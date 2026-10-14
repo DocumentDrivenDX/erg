@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Usage Monitor</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mute:#6b7280;--line:#e3e6ec;--accent:#3b6fd8;--grid:#eceef3}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#171b23;--fg:#e6e9ef;--mute:#8d96a6;--line:#262c38;--accent:#6c9bff;--grid:#222834}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+h1{font-size:16px;margin:0 8px 0 0;font-weight:650}
+.ctl{display:flex;gap:6px;align-items:center;color:var(--mute);font-size:12px}
+select,button,input.num{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-right:1px solid var(--line)}.seg button:last-child{border:0}
+.seg button.on{background:var(--accent);color:#fff}
+.chip{cursor:pointer;border-radius:999px;padding:2px 10px;font-size:12px}.chip.off{opacity:.4;text-decoration:line-through}
+main{padding:16px 20px;max-width:1500px;margin:0 auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:14px}
+.kpi,.card{background:var(--card);border:1px solid var(--line);border-radius:10px}
+.kpi{padding:10px 14px}.kpi .v{font-size:22px;font-weight:650;letter-spacing:-.3px}.kpi .l{color:var(--mute);font-size:12px}.kpi .s{color:var(--mute);font-size:11px}
+.card{padding:12px 14px;margin-bottom:14px}.card h2{font-size:13px;margin:0 0 2px;font-weight:650}.card .sub{color:var(--mute);font-size:12px;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--mute);margin-top:4px}.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+svg text{fill:var(--mute);font-size:11px}svg .grid{stroke:var(--grid)}svg .axis{stroke:var(--line)}
+#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px #0003;display:none;z-index:9;max-width:320px}
+#tip b{display:block;margin-bottom:3px}#tip div{display:flex;justify-content:space-between;gap:14px}#tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:var(--mute);font-weight:500;cursor:pointer;font-size:12px}th.sorted{color:var(--fg)}
+.heat{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;font-size:11px;color:var(--mute)}.heat div{min-height:20px;border-radius:3px;text-align:center}
+.note{color:var(--mute);font-size:12px;padding:8px 0}code{background:var(--grid);padding:1px 5px;border-radius:4px}
+.corr{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}.corr span{background:var(--grid);border-radius:6px;padding:3px 9px;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Agent Usage Monitor</h1>
+  <div class="ctl">Range <div class="seg" id="range"></div></div>
+  <div class="ctl">Bucket <div class="seg" id="bucket"></div></div>
+  <div class="ctl">Group by <select id="group"></select></div>
+  <div class="ctl">Tokens <select id="measure"></select></div>
+  <div class="ctl">Project <select id="project"></select></div>
+  <div class="ctl">Machine <select id="machine"></select></div>
+  <div class="ctl">Whose <select id="requester"></select></div>
+  <div class="ctl" id="toolchips"></div>
+  <div class="ctl" id="kindchips"></div>
+  <span class="ctl" id="gen" style="margin-left:auto"></span>
+</header>
+<main>
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><h2>Tokens</h2><div class="sub" id="sub-tokens"></div><div id="c-tokens"></div><div class="legend" id="l-tokens"></div></div>
+  <div class="grid2">
+    <div class="card"><h2>Commits</h2><div class="sub">git history by author date, attributed via Co-Authored-By trailers</div><div id="c-commits"></div><div class="legend" id="l-commits"></div></div>
+    <div class="card"><h2>Lines added in commits (code)</h2><div class="sub">lockfiles, data files and generated assets excluded</div><div id="c-lines"></div><div class="legend" id="l-lines"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Documents: doc lines added in commits</h2><div class="sub">.md .mdx .rst .txt .adoc …</div><div id="c-docs"></div><div class="legend" id="l-docs"></div></div>
+    <div class="card"><h2>Lines written by agents (Edit / Write / apply_patch)</h2><div class="sub">activity measure; includes churn that never reaches a commit</div><div id="c-edits"></div><div class="legend" id="l-edits"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><h2>Your input: tokens typed</h2><div class="sub">estimated tokens (chars ÷ 4) of prompts you sent; text itself is never stored</div><div id="c-typed"></div><div class="legend" id="l-typed"></div></div>
+    <div class="card"><h2>Your input: prompts &amp; active time</h2><div class="sub">prompt count (bars) and minutes at the keyboard (line; from HID idle &lt; 2 min, needs the sampler)</div><div id="c-active"></div><div class="legend" id="l-active"></div></div>
+  </div>
+  <div class="card"><h2>Machine load vs. agent activity</h2>
+    <div class="sub">Pearson r between each machine metric and hourly agent activity over the selected range (machine metrics are machine-wide; project filter applies to the activity side). Warm = rises with activity.</div>
+    <div style="overflow-x:auto"><table id="matrix"></table></div><div class="note" id="perfnote"></div></div>
+  <div class="card"><h2>Lagged correlation <span class="ctl">activity <select id="lagvar"></select></span></h2>
+    <div class="sub">r between hourly activity at <i>t</i> and each machine metric at <i>t + lag</i>. Positive lag = the machine reacts after the agents; negative = load leads (e.g. builds that precede prompts). Outlined cell = strongest per metric.</div>
+    <div style="overflow-x:auto"><table id="lagtbl"></table></div></div>
+  <div class="card"><h2>Load without agents</h2>
+    <div class="sub">hours where the machine was busy but agents were not: metric ≥ the chosen percentile of its own range, agent tokens ≤ the chosen percentile of activity, and no prompts from you. Red bars mark flagged hours.</div>
+    <div class="ctl" style="margin:4px 0 8px;flex-wrap:wrap">metric <select id="idlemetric"></select> busy ≥ P<input id="idlehi" type="number" min="50" max="99" style="width:56px" class="num"> agents ≤ P<input id="idlelo" type="number" min="0" max="75" style="width:56px" class="num"></div>
+    <div id="idle-sum" class="note" style="color:var(--fg)"></div><div id="c-idle"></div><div class="legend" id="l-idle"></div>
+    <div style="overflow-x:auto"><table id="idletbl"></table></div></div>
+  <div class="card"><h2>Scatter <span class="ctl"><select id="perfmetric"></select></span></h2><div class="sub">one dot per hour: x = tokens that hour, y = machine metric</div><div id="c-scatter"></div></div>
+  <div class="card"><h2>Machine metrics by time, with tokens</h2><div class="sub">line = hourly average (dashed = hourly peak where known), bars = tokens (right axis)</div><div class="grid2" id="pm-grid"></div></div>
+  <div class="card"><h2>What each project costs the machine</h2><div class="sub">token-weighted average machine state during hours the project was active (concurrency means this is attribution-by-association, not accounting)</div><div style="overflow-x:auto"><table id="ptbl"></table></div></div>
+  <div class="card"><h2>Sources &amp; coverage</h2><div class="sub">tokens per day by source, ignoring filters (excl. cache reads). Days where the gateway shows usage but local logs do not come from machines not scraped here.</div>
+    <div style="overflow-x:auto"><table id="cov"></table></div></div>
+  <div class="card"><h2>When you burn tokens</h2><div class="sub">local day-of-week × hour of day, selected range</div><div class="heat" id="heat"></div></div>
+  <div class="card"><h2>Breakdown <span class="seg" id="tabdim" style="margin-left:8px"></span></h2><div style="overflow-x:auto"><table id="tbl"></table></div></div>
+</main>
+<div id="tip"></div>
+<script>
+"use strict";
+const PAL=['#4e79a7','#f28e2b','#59a14f','#e15759','#b07aa1','#76b7b2','#edc948','#9c755f','#ff9da7','#86bc86'],OTHER='#9aa0a6';
+const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MEASURES={all:['All tokens (incl. cache reads)',r=>r.fresh_in+r.cache_read+r.cache_write+r.out],
+  nocache:['Excl. cache reads',r=>r.fresh_in+r.cache_write+r.out],
+  io:['Fresh input + output',r=>r.fresh_in+r.out],out:['Output only',r=>r.out],cache:['Cache reads only',r=>r.cache_read]};
+const GROUPS={none:'Nothing (total)',project:'Project',model:'Model',tool:'Agent (claude / codex)',machine:'Machine',kind:'Session kind'};
+const RANGES={'24h':24,'3d':72,'7d':168,'30d':720,'90d':2160,'All':0};
+const S={range:'7d',bucket:'hour',group:'project',measure:'nocache',project:'*',machine:'*',tools:new Set(['claude','codex','gateway','none']),requester:'me',kinds:new Set(['main','subagent','review']),dim:'project',sort:'tokens',perf:'cpu',lagvar:'tokens',idlemetric:'cpu',idlehi:75,idlelo:25};
+let D=null, T={}; // dataset, derived
+const fmt=n=>{n=+n||0;const a=Math.abs(n);return a>=1e9?(n/1e9).toFixed(2)+'B':a>=1e6?(n/1e6).toFixed(2)+'M':a>=1e4?(n/1e3).toFixed(1)+'k':a>=1e3?(n/1e3).toFixed(2)+'k':Math.round(n).toLocaleString()};
+const fbytes=n=>{n=+n||0;const u=['B/s','KB/s','MB/s','GB/s'];let i=0;while(n>=1024&&i<3){n/=1024;i++}return n.toFixed(n<10?1:0)+' '+u[i]};
+
+function modelLabel(m){
+  if(!m)return '(none)';
+  const r=/(opus|sonnet|haiku|fable)[- ](\d+)(?:[-.](\d{1,2})(?!\d))?/i.exec(m);
+  if(r)return r[1][0].toUpperCase()+r[1].slice(1).toLowerCase()+' '+r[2]+(r[3]?'.'+r[3]:'');
+  return m;
+}
+function objs(cols,rows){return rows.map(r=>{const o={};cols.forEach((c,i)=>o[c]=r[i]);return o})}
+
+async function load(){
+  const d=await (await fetch('/api/data')).json();D=d;
+  T.llm=objs(d.llm_cols,d.llm);T.edits=objs(d.edit_cols,d.edits);T.prompts=objs(d.prompt_cols,d.prompts);
+  T.commits=objs(d.commit_cols,d.commits).map(c=>(c.tool=c.agent,c.model=modelLabel(c.model),c));
+  T.metrics=objs(d.metric_cols,d.metrics);T.notes=objs(d.note_cols,d.notes);
+  [T.llm,T.edits,T.prompts].forEach(t=>t.forEach(r=>r.model=modelLabel(r.model)));
+  $('#gen').textContent='data as of '+new Date(d.generated*1000).toLocaleString();
+  buildControls();render();
+}
+
+function buildControls(){
+  const seg=(el,items,key)=>{const e=$(el);e.innerHTML='';items.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=S[key]===k?'on':'';b.onclick=()=>{S[key]=k;buildControls();render()};e.appendChild(b)})};
+  seg('#range',Object.keys(RANGES).map(k=>[k,k]),'range');seg('#bucket',[['hour','Hour'],['day','Day']],'bucket');
+  seg('#tabdim',[['project','Project'],['model','Model'],['tool','Agent'],['machine','Machine']],'dim');
+  const sel=(el,opts,key)=>{const e=$(el);e.innerHTML=opts.map(([k,l])=>`<option value="${esc(k)}" ${S[key]===k?'selected':''}>${esc(l)}</option>`).join('');e.onchange=()=>{S[key]=e.value;render()}};
+  sel('#group',Object.entries(GROUPS),'group');sel('#measure',Object.entries(MEASURES).map(([k,v])=>[k,v[0]]),'measure');
+  const projs=[...new Set([...T.llm,...T.commits].map(r=>r.project))].sort();
+  sel('#project',[['*','All projects'],...projs.map(p=>[p,p])],'project');
+  const reqs=[...new Set(T.llm.map(r=>r.requester).filter(Boolean))].sort();
+  sel('#requester',[['me','Me'],['all','Everyone'],...reqs.map(r=>[r,r])],'requester');
+  sel('#machine',[['*','All machines'],...D.machines.map(p=>[p,p])],'machine');
+  const chips=(el,names,set,colors)=>{const e=$(el);e.innerHTML='';names.forEach(([k,l],i)=>{const s=document.createElement('span');s.className='chip'+(set.has(k)?'':' off');s.style.background=colors[i];s.style.color='#fff';s.textContent=l;s.onclick=()=>{set.has(k)?set.delete(k):set.add(k);buildControls();render()};e.appendChild(s)})};
+  chips('#toolchips',[['claude','Claude'],['codex','Codex'],['gateway','DB gateway'],['none','human commits']],S.tools,[PAL[1],PAL[0],PAL[4],PAL[7]]);
+  chips('#kindchips',[['main','main'],['subagent','subagents'],['review','auto-review']],S.kinds,['#6b7280','#6b7280','#6b7280']);
+}
+
+// ---- time bucketing (local time)
+const tzCache=new Map();
+function localDate(h){let v=tzCache.get(h);if(!v){const d=new Date(h*3600e3);v={d,day:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),hod:d.getHours(),dow:(d.getDay()+6)%7};tzCache.set(h,v)}return v}
+function span(){
+  const now=Math.floor(D.generated/3600);let h0=RANGES[S.range]?now-RANGES[S.range]+1:Math.min(...[T.llm,T.commits,T.edits,T.prompts].filter(t=>t.length).map(t=>Math.min(...t.map(r=>r.hour))),now);
+  let bucket=S.bucket;if((now-h0)>24*45&&bucket==='hour')bucket='day';
+  const keys=[],seen=new Set();for(let h=h0;h<=now;h++){const k=bucket==='hour'?h:localDate(h).day;if(!seen.has(k)){seen.add(k);keys.push(k)}}
+  return {h0,now,bucket,keys,idx:new Map(keys.map((k,i)=>[k,i]))}
+}
+const bk=(sp,h)=>sp.bucket==='hour'?h:localDate(h).day;
+function bucketLabel(sp,k){return sp.bucket==='hour'?new Date(k*3600e3).toLocaleString([],{month:'short',day:'numeric',hour:'numeric'}):k}
+
+// ---- filtering & grouping
+const reqOk=r=>r.requester===undefined||S.requester==='all'||(S.requester==='me'?(r.requester===''||D.me.includes(r.requester)):r.requester===S.requester);
+const pass=(r,kind)=>reqOk(r)&&(S.project==='*'||r.project===S.project)&&(S.machine==='*'||r.machine===S.machine)&&(r.tool===undefined||S.tools.has(r.tool))&&(!kind||r.kind===undefined||S.kinds.has(r.kind));
+function gkey(r){switch(S.group){case 'none':return 'Total';case 'project':return r.project;case 'model':return r.model;case 'tool':return r.tool==='none'?'human':r.tool;case 'machine':return r.machine;case 'kind':return r.kind||'main'}}
+function series(sp,rows,valf,kind){
+  const tot=new Map(),per=new Map();
+  for(const r of rows){if(r.hour<sp.h0||!pass(r,kind))continue;const k=bk(sp,r.hour),i=sp.idx.get(k);if(i===undefined)continue;
+    const g=gkey(r),v=valf(r);if(!v)continue;tot.set(g,(tot.get(g)||0)+v);let a=per.get(g);if(!a){a=new Array(sp.keys.length).fill(0);per.set(g,a)}a[i]+=v}
+  const order=[...tot.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+  const top=order.slice(0,10),rest=order.slice(10),out=top.map((g,i)=>({name:g,color:PAL[i%PAL.length],data:per.get(g),total:tot.get(g)}));
+  if(rest.length){const d=new Array(sp.keys.length).fill(0);rest.forEach(g=>per.get(g).forEach((v,i)=>d[i]+=v));out.push({name:'other ('+rest.length+')',color:OTHER,data:d,total:d.reduce((a,b)=>a+b,0)})}
+  return out;
+}
+const sum=(ss)=>ss.reduce((a,s)=>a+s.total,0);
+
+// ---- charts
+let tipEl=$('#tip');
+function showTip(ev,title,rows){tipEl.innerHTML='<b>'+esc(title)+'</b>'+rows.map(r=>`<div><span><i style="background:${r[2]||'#888'}"></i>${esc(r[0])}</span><span>${esc(r[1])}</span></div>`).join('');tipEl.style.display='block';const w=tipEl.offsetWidth;tipEl.style.left=Math.min(ev.clientX+14,innerWidth-w-10)+'px';tipEl.style.top=(ev.clientY+14)+'px'}
+const hideTip=()=>tipEl.style.display='none';
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
+function legend(el,ss){$(el).innerHTML=ss.map(s=>`<span><i style="background:${s.color}"></i>${esc(s.name)} <b style="color:var(--fg)">${esc(s.fv?s.fv(s.total):fmt(s.total))}</b></span>`).join('')}
+function frame(el,H,pl,pr){const w=Math.max(300,$(el).clientWidth),pt=8,pb=24;return {w,H,pl,pr,pt,pb,iw:w-pl-pr,ih:H-pt-pb}}
+function axes(f,max,fy,sp){
+  let g='';for(let i=0;i<=4;i++){const y=f.pt+f.ih-f.ih*i/4;g+=`<line class="grid" x1="${f.pl}" x2="${f.w-f.pr}" y1="${y}" y2="${y}"/><text x="${f.pl-6}" y="${y+4}" text-anchor="end">${fy(max*i/4)}</text>`}
+  const n=sp.keys.length,step=Math.max(1,Math.ceil(n/Math.floor(f.iw/ (sp.bucket==='hour'?90:70))));
+  for(let i=0;i<n;i+=step){const x=f.pl+f.iw*(i+.5)/n,k=sp.keys[i];g+=`<text x="${x}" y="${f.H-6}" text-anchor="middle">${esc(sp.bucket==='hour'?new Date(k*3600e3).toLocaleString([],{month:'numeric',day:'numeric',hour:'numeric'}):k.slice(5))}</text>`}
+  return g
+}
+function stacked(el,sp,ss,fv,H){
+  const f=frame(el,H||200,48,8),n=sp.keys.length;let max=0;for(let i=0;i<n;i++)max=Math.max(max,ss.reduce((a,s)=>a+s.data[i],0));max=niceMax(max);
+  const bw=Math.max(1,f.iw/n-(n>150?0:1));let b='';
+  for(let i=0;i<n;i++){let y=f.pt+f.ih;const x=f.pl+f.iw*i/n;for(const s of ss){const h=f.ih*s.data[i]/max;if(h<=0)continue;y-=h;b+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${s.color}"/>`}}
+  $(el).innerHTML=`<svg width="${f.w}" height="${f.H}">${axes(f,max,fv,sp)}${b}<line class="guide axis" y1="${f.pt}" y2="${f.pt+f.ih}" style="display:none"/><rect class="ov" x="${f.pl}" y="${f.pt}" width="${f.iw}" height="${f.ih}" fill="transparent"/></svg>`;
+  hover(el,f,sp,n,(i,ev)=>{const rows=ss.filter(s=>s.data[i]).sort((a,b)=>b.data[i]-a.data[i]).map(s=>[s.name,fv(s.data[i]),s.color]);if(rows.length>1)rows.push(['total',fv(ss.reduce((a,s)=>a+s.data[i],0))]);showTip(ev,bucketLabel(sp,sp.keys[i]),rows.length?rows:[['—','0']])});
+}
+function hover(el,f,sp,n,cb){const svg=$(el+' svg'),ov=svg.querySelector('.ov'),gd=svg.querySelector('.guide');
+  ov.onmousemove=ev=>{const r=svg.getBoundingClientRect(),i=Math.min(n-1,Math.max(0,Math.floor((ev.clientX-r.left-f.pl)/f.iw*n)));const x=f.pl+f.iw*(i+.5)/n;gd.setAttribute('x1',x);gd.setAttribute('x2',x);gd.style.display='';cb(i,ev)};
+  ov.onmouseleave=()=>{gd.style.display='none';hideTip()}}
+function lines(el,sp,ss,H,opts){ // ss: [{name,color,data(with nulls),fv,right,bars}]
+  opts=opts||{};const f=frame(el,H||220,52,opts.right?56:10),n=sp.keys.length;
+  const L=ss.filter(s=>!s.right),R=ss.filter(s=>s.right);const mx=a=>niceMax(Math.max(0,...a.flatMap(s=>s.data.map(v=>v||0))));
+  const ml=mx(L),mr=R.length?mx(R):1,fl=L[0]?L[0].fv:fmt,fr=R[0]?R[0].fv:fmt;let b=axes(f,ml,fl,sp);
+  if(R.length)for(let i=0;i<=4;i++)b+=`<text x="${f.w-f.pr+6}" y="${f.pt+f.ih-f.ih*i/4+4}">${fr(mr*i/4)}</text>`;
+  for(const s of ss){const m=s.right?mr:ml;
+    if(s.bars){const bw=Math.max(1,f.iw/n-1);s.data.forEach((v,i)=>{if(!v)return;const h=f.ih*v/m;b+=`<rect x="${(f.pl+f.iw*i/n).toFixed(1)}" y="${(f.pt+f.ih-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${s.color}" opacity=".55"/>`});continue}
+    let d='',pen=false;s.data.forEach((v,i)=>{if(v==null){pen=false;return}const x=f.pl+f.iw*(i+.5)/n,y=f.pt+f.ih-f.ih*v/m;d+=(pen?'L':'M')+x.toFixed(1)+' '+y.toFixed(1);pen=true});
+    b+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.6" ${s.dash?'stroke-dasharray="4 3"':''}/>`}
+  $(el).innerHTML=`<svg width="${f.w}" height="${f.H}">${b}<line class="guide axis" y1="${f.pt}" y2="${f.pt+f.ih}" style="display:none"/><rect class="ov" x="${f.pl}" y="${f.pt}" width="${f.iw}" height="${f.ih}" fill="transparent"/></svg>`;
+  hover(el,f,sp,n,(i,ev)=>showTip(ev,bucketLabel(sp,sp.keys[i]),ss.map(s=>[s.name,s.data[i]==null?'—':s.fv(s.data[i]),s.color])));
+}
+function scatter(el,pts,xl,yl,fx,fy){
+  const f=frame(el,220,52,10);if(pts.length<3){$(el).innerHTML='';return}
+  const mx=niceMax(Math.max(...pts.map(p=>p[0]))),my=niceMax(Math.max(...pts.map(p=>p[1])));let b='';
+  for(let i=0;i<=4;i++){const y=f.pt+f.ih-f.ih*i/4,x=f.pl+f.iw*i/4;b+=`<line class="grid" x1="${f.pl}" x2="${f.w-f.pr}" y1="${y}" y2="${y}"/><text x="${f.pl-6}" y="${y+4}" text-anchor="end">${fy(my*i/4)}</text><text x="${x}" y="${f.H-6}" text-anchor="middle">${fx(mx*i/4)}</text>`}
+  pts.forEach(p=>b+=`<circle cx="${f.pl+f.iw*p[0]/mx}" cy="${f.pt+f.ih-f.ih*p[1]/my}" r="3" fill="${PAL[0]}" fill-opacity=".55"><title>${esc(p[2])}</title></circle>`);
+  $(el).innerHTML=`<svg width="${f.w}" height="${f.H}">${b}<text x="${f.pl+4}" y="${f.pt+10}">y: ${esc(yl)}  ·  x: ${esc(xl)}</text></svg>`;
+}
+const pearson=(a,b)=>{const n=a.length;if(n<4)return null;const ma=a.reduce((x,y)=>x+y,0)/n,mb=b.reduce((x,y)=>x+y,0)/n;let sab=0,saa=0,sbb=0;for(let i=0;i<n;i++){sab+=(a[i]-ma)*(b[i]-mb);saa+=(a[i]-ma)**2;sbb+=(b[i]-mb)**2}return saa&&sbb?sab/Math.sqrt(saa*sbb):null};
+
+// ---- render
+function render(){
+  const sp=span(),mv=MEASURES[S.measure][1];
+  const tokS=series(sp,T.llm,mv,true);
+  $('#sub-tokens').textContent=MEASURES[S.measure][0]+' per '+sp.bucket+(sp.bucket!==S.bucket?' (auto-switched to day for long range)':'');
+  stacked('#c-tokens',sp,tokS,fmt,230);legend('#l-tokens',tokS);
+  const cs=series(sp,T.commits,r=>r.n),ls=series(sp,T.commits,r=>r.added_code),ds=series(sp,T.commits,r=>r.added_doc),es=series(sp,T.edits,r=>r.added+0,false);
+  const es2=series(sp,T.edits.filter(e=>!e.doc),r=>r.added),typed=series(sp,T.prompts,r=>r.est_tokens);
+  stacked('#c-commits',sp,cs,fmt);legend('#l-commits',cs);stacked('#c-lines',sp,ls,fmt);legend('#l-lines',ls);
+  stacked('#c-docs',sp,ds,fmt);legend('#l-docs',ds);stacked('#c-edits',sp,es,fmt);legend('#l-edits',es);
+  stacked('#c-typed',sp,typed,fmt);legend('#l-typed',typed);
+  // prompts + active time
+  const pr=series(sp,T.prompts,r=>r.n);
+  const tot=a=>a.reduce((x,s)=>x.map((v,i)=>v+s.data[i]),new Array(sp.keys.length).fill(0));
+  const act=new Array(sp.keys.length).fill(0);let anyAct=false;
+  for(const [x,o] of mhours('active')){if(x<sp.h0)continue;const i=sp.idx.get(bk(sp,x));if(i!==undefined){act[i]+=o.avg*60;anyAct=true}}
+  lines('#c-active',sp,[{name:'prompts',color:PAL[0],data:tot(pr),fv:fmt,bars:true},...(anyAct?[{name:'active minutes',color:PAL[1],data:act,fv:v=>v.toFixed(0)+' min',right:true}]:[])],200,{right:anyAct});
+  $('#l-active').innerHTML=anyAct?'':'<span>no keyboard-active samples (needs <code>./usage sampler</code>)</span>';
+  coverage(sp);perfSection(sp,mv);lagSection(sp,mv);idleSection(sp,mv);heat(mv);table(sp,mv);kpis(sp,{tokS,cs,ls,ds,es,typed,pr,act});
+}
+function kpis(sp,x){
+  const allTok=sum(series(sp,T.llm,MEASURES.all[1],true)),out=sum(series(sp,T.llm,r=>r.out,true)),commits=sum(x.cs);
+  const codeL=sum(x.ls),docL=sum(x.ds),pr=sum(x.pr),typedTok=sum(x.typed);
+  const chars=series(sp,T.prompts,r=>r.chars);const hrs=sp.keys.length*(sp.bucket==='hour'?1:24);
+  const act=x.act.reduce((a,b)=>a+b,0)/60;
+  const cpuh=[...mhours('cpu')].filter(([h])=>h>=sp.h0).map(e=>e[1].avg);const avgcpu=cpuh.length?cpuh.reduce((a,b)=>a+b,0)/cpuh.length:null;
+  const phours=new Set();T.prompts.forEach(r=>{if(r.hour>=sp.h0&&pass(r))phours.add(r.hour)});
+  const k=[['Tokens (selected measure)',fmt(sum(x.tokS)),`${fmt(allTok)} incl. cache reads`],['Output tokens',fmt(out),`${fmt(out/Math.max(1,hrs))}/hour avg`],
+    ['Commits',fmt(commits),`${(commits/Math.max(1,hrs/24)).toFixed(1)}/day`],['Code lines added',fmt(codeL),commits?fmt(sum(x.tokS)/Math.max(1,codeL))+' tok/line':''],
+    ['Doc lines added',fmt(docL),''],['Agent-written lines',fmt(sum(x.es)),'Edit/Write/apply_patch'],
+    ['Prompts sent',fmt(pr),`${fmt(chars.reduce((a,s)=>a+s.total,0))} chars · ~${fmt(typedTok)} tok typed`],
+    ['Hours with prompts',String(phours.size),act?act.toFixed(1)+' h at keyboard (sampler)':'hours you sent ≥1 prompt'],['Avg CPU',avgcpu==null?'—':avgcpu.toFixed(0)+'%','hourly mean']];
+  $('#kpis').innerHTML=k.map(([l,v,s])=>`<div class="kpi"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
+}
+const MET=[['cpu','CPU busy',v=>v.toFixed(0)+'%',1],['mem_pct','Memory used',v=>v.toFixed(0)+'%'],['mem_pressure','Memory pressure',v=>v.toFixed(0)+'%'],
+  ['swap_mb','Swap used',v=>fmt(v)+' MB'],['decompress_per_s','Compressor thrash (decompressions/s)',v=>fmt(v)],['disk_r','Disk read',v=>fmt(v)+' KB/s',1],['disk_w','Disk write',v=>fmt(v)+' KB/s',1],
+  ['net_down','Network down',v=>fmt(v)+' KB/s',1],['net_up','Network up',v=>fmt(v)+' KB/s',1],['gpu','GPU',v=>v.toFixed(0)+'%'],['temp_max','Hottest sensor (heuristic)',v=>v.toFixed(0)+' °C',1],
+  ['fan_rpm','Fan',v=>fmt(v)+' rpm'],['container_vm_mb','OrbStack VM footprint',v=>fmt(v)+' MB'],['containers','Containers running',v=>v.toFixed(0)],['load1','Load average',v=>v.toFixed(1)],['therm','Thermal throttling',v=>v.toFixed(0)+'%']];
+function mhours(m){ // hour -> {avg,max} averaged over selected machines
+  const acc=new Map();for(const r of T.metrics){if(r.m!==m||(S.machine!=='*'&&r.machine!==S.machine))continue;const o=acc.get(r.hour)||{s:0,mx:-1e18,n:0};o.s+=r.avg;o.mx=Math.max(o.mx,r.max);o.n++;acc.set(r.hour,o)}
+  const out=new Map();acc.forEach((o,h)=>out.set(h,{avg:o.s/o.n,max:o.mx}));return out}
+function actHours(mv){ // hour -> activity vars
+  const A=new Map(),g=h=>{let o=A.get(h);if(!o){o={tokens:0,out:0,calls:0,edits:0,prompts:0,commits:0};A.set(h,o)}return o};
+  T.llm.forEach(r=>{if(pass(r,true)){const o=g(r.hour);o.tokens+=mv(r);o.out+=r.out;o.calls+=r.calls}});
+  T.edits.forEach(r=>{if(pass(r))g(r.hour).edits+=r.added});T.prompts.forEach(r=>{if(pass(r))g(r.hour).prompts+=r.n});T.commits.forEach(r=>{if(pass(r))g(r.hour).commits+=r.n});return A}
+function perfSection(sp,mv){
+  const A=actHours(mv),vars=[['tokens','tokens'],['out','output tok'],['calls','LLM calls'],['edits','agent lines'],['prompts','prompts'],['commits','commits']];
+  const have=MET.filter(([m])=>T.metrics.some(r=>r.m===m)),mh=new Map(have.map(([m])=>[m,mhours(m)]));
+  $('#perfmetric').innerHTML=have.map(([m,l])=>`<option value="${m}" ${S.perf===m?'selected':''}>${esc(l)}</option>`).join('');$('#perfmetric').onchange=e=>{S.perf=e.target.value;render()};
+  const cell=r=>{if(r==null)return '<td>—</td>';const a=Math.min(1,Math.abs(r)),c=r>=0?'227,89,89':'78,121,167';return `<td style="background:rgba(${c},${(a*.65).toFixed(2)})" title="r=${r.toFixed(3)}">${r.toFixed(2)}</td>`};
+  let h='<tr><th>metric</th><th>hours</th>'+vars.map(v=>`<th>${v[1]}</th>`).join('')+'</tr>';
+  for(const [m,l,f] of have){const hm=mh.get(m),hrs=[...hm.keys()].filter(x=>x>=sp.h0);const n=hrs.length;
+    h+=`<tr><td>${esc(l)}</td><td>${n}</td>`+vars.map(([k])=>cell(pearson(hrs.map(x=>(A.get(x)||{})[k]||0),hrs.map(x=>hm.get(x).avg)))).join('')+'</tr>'}
+  $('#matrix').innerHTML=h;
+  const srcs={};T.metrics.forEach(r=>{(srcs[r.src]=srcs[r.src]||new Set()).add(r.m)});
+  $('#perfnote').innerHTML=have.length?'Sources: '+Object.entries(srcs).map(([k,v])=>`<code>${k}</code> (${v.size} metrics)`).join(', ')+'. Hourly values use the finest ring-buffer tier covering ≥80% of the hour. Correlation is not causation — builds and test runs also load the CPU.':'No machine metrics yet. Run <code>./usage sampler</code>, or point the collector at iStat Menus or an endpoint-metrics CSV (docs/adapters.md).';
+  // scatter
+  const pm=S.perf,hm=mh.get(pm),pts=[];if(hm)hm.forEach((o,x)=>{if(x>=sp.h0&&A.has(x))pts.push([A.get(x).tokens,o.avg,bucketLabel({bucket:'hour'},x)])});
+  const meta=MET.find(x=>x[0]===pm)||MET[0];scatter('#c-scatter',pts,'tokens / hour',meta[1],fmt,meta[2]);
+  // small multiples
+  const tt=new Array(sp.keys.length).fill(0);for(const [x,o] of A){if(x<sp.h0)continue;const i=sp.idx.get(bk(sp,x));if(i!==undefined)tt[i]+=o.tokens}
+  const grid=$('#pm-grid');grid.innerHTML=have.map(([m,l])=>`<div><div class="sub" style="margin:0">${esc(l)}</div><div id="pm-${m}"></div></div>`).join('');
+  for(const [m,l,f,pk] of have){const hm=mh.get(m),av=new Array(sp.keys.length).fill(null),cnt=new Array(sp.keys.length).fill(0),mx=new Array(sp.keys.length).fill(null);
+    hm.forEach((o,x)=>{if(x<sp.h0)return;const i=sp.idx.get(bk(sp,x));if(i===undefined)return;av[i]=(av[i]||0)+o.avg;cnt[i]++;mx[i]=Math.max(mx[i]??-1e18,o.max)});
+    const avg=av.map((v,i)=>v==null?null:v/cnt[i]);
+    lines('#pm-'+m,sp,[{name:l,color:PAL[3],data:avg,fv:f},...(pk?[{name:l+' (peak)',color:PAL[3],data:mx,fv:f,dash:true}]:[]),{name:'tokens',color:PAL[0],data:tt,fv:fmt,right:true,bars:true}],150,{right:true})}
+  // per-project footprint
+  const key='project',acc=new Map(),base={};
+  const tokBy=new Map();T.llm.forEach(r=>{if(r.hour>=sp.h0&&pass(r,true)){const k=r.project+'\u0001'+r.hour;tokBy.set(k,(tokBy.get(k)||0)+mv(r))}});
+  const cols=[['cpu','CPU',v=>v.toFixed(0)+'%'],['mem_pct','Mem',v=>v.toFixed(0)+'%'],['disk_w','Disk write',v=>fmt(v)+' KB/s'],['container_vm_mb','OrbStack VM',v=>fmt(v)+' MB'],['gpu','GPU',v=>v.toFixed(0)+'%']].filter(c=>mh.has(c[0]));
+  tokBy.forEach((w,k)=>{const [p,hs]=k.split('\u0001'),x=+hs;let o=acc.get(p);if(!o)acc.set(p,o={p,w:0,wm:{}});o.w+=w;for(const [m] of cols){const v=mh.get(m).get(x);if(v){o.wm[m]=o.wm[m]||[0,0];o.wm[m][0]+=w*v.avg;o.wm[m][1]+=w}}});
+  const rows=[...acc.values()].sort((a,b)=>b.w-a.w).slice(0,25);
+  $('#ptbl').innerHTML='<tr><th>project</th><th>tokens</th>'+cols.map(c=>`<th>${c[1]}</th>`).join('')+'</tr>'+rows.map(o=>`<tr><td>${esc(o.p)}</td><td>${fmt(o.w)}</td>`+cols.map(([m,,f])=>`<td>${o.wm[m]?f(o.wm[m][0]/o.wm[m][1]):'—'}</td>`).join('')+'</tr>').join('')
+    +'<tr><td style="color:var(--mute)">all hours (baseline)</td><td></td>'+cols.map(([m,,f])=>{const hm=mh.get(m),v=[...hm].filter(([x])=>x>=sp.h0).map(e=>e[1].avg);return `<td style="color:var(--mute)">${v.length?f(v.reduce((a,b)=>a+b,0)/v.length):'—'}</td>`}).join('')+'</tr>';
+}
+const ACT=[['tokens','tokens'],['out','output tokens'],['calls','LLM calls'],['prompts','your prompts'],['edits','agent-written lines'],['commits','commits']];
+const MIN_PAIRS=12;
+function lagSection(sp,mv){
+  const A=actHours(mv),lags=[-3,-2,-1,0,1,2,3],k=S.lagvar;
+  $('#lagvar').innerHTML=ACT.map(([v,l])=>`<option value="${v}" ${k===v?'selected':''}>${l}</option>`).join('');$('#lagvar').onchange=e=>{S.lagvar=e.target.value;render()};
+  const have=MET.filter(([m])=>T.metrics.some(r=>r.m===m));
+  let h='<tr><th>metric</th>'+lags.map(l=>`<th>${l>0?'+':''}${l} h</th>`).join('')+'<th>best</th></tr>';
+  for(const [m,l] of have){const hm=mhours(m),rs=lags.map(L=>{const a=[],b=[];for(let x=sp.h0;x<=sp.now;x++){const v=hm.get(x+L);if(v){a.push((A.get(x)||{})[k]||0);b.push(v.avg)}}return a.length>=MIN_PAIRS?pearson(a,b):null});
+    const best=rs.reduce((bi,r,i)=>r!=null&&(bi<0||Math.abs(r)>Math.abs(rs[bi]))?i:bi,-1);
+    h+=`<tr><td>${esc(l)}</td>`+rs.map((r,i)=>{if(r==null)return '<td>—</td>';const a=Math.min(1,Math.abs(r)),c=r>=0?'227,89,89':'78,121,167';return `<td style="background:rgba(${c},${(a*.65).toFixed(2)});${i===best?'outline:2px solid var(--fg);outline-offset:-2px':''}" title="r=${r.toFixed(3)}">${r.toFixed(2)}</td>`}).join('')+`<td>${best<0?'—':(lags[best]>0?'+':'')+lags[best]+' h'}</td></tr>`}
+  $('#lagtbl').innerHTML=h;
+}
+const pctile=(arr,p)=>{if(!arr.length)return 0;const a=[...arr].sort((x,y)=>x-y);return a[Math.min(a.length-1,Math.floor(p/100*a.length))]};
+function idleSection(sp,mv){
+  const A=actHours(mv),have=MET.filter(([m])=>T.metrics.some(r=>r.m===m)&&['cpu','mem_pct','load1','gpu','disk_w','disk_r','net_down','container_vm_mb','temp_max'].includes(m));
+  if(!have.some(x=>x[0]===S.idlemetric))S.idlemetric=(have[0]||['cpu'])[0];
+  $('#idlemetric').innerHTML=have.map(([m,l])=>`<option value="${m}" ${S.idlemetric===m?'selected':''}>${esc(l)}</option>`).join('');
+  $('#idlemetric').onchange=e=>{S.idlemetric=e.target.value;render()};
+  for(const [id,key] of [['#idlehi','idlehi'],['#idlelo','idlelo']]){const e=$(id);e.value=S[key];e.onchange=()=>{S[key]=Math.max(0,Math.min(99,+e.value||0));render()}}
+  const meta=MET.find(x=>x[0]===S.idlemetric)||MET[0],hm=mhours(S.idlemetric);
+  const hrs=[...hm.keys()].filter(x=>x>=sp.h0&&x<=sp.now);
+  if(!hrs.length){$('#idle-sum').textContent='No data for this metric in range.';$('#c-idle').innerHTML='';$('#idletbl').innerHTML='';return}
+  const hi=pctile(hrs.map(x=>hm.get(x).avg),S.idlehi),lo=pctile(hrs.map(x=>(A.get(x)||{tokens:0}).tokens),S.idlelo);
+  const notes=new Map();T.notes.forEach(n=>{if(S.machine==='*'||n.machine===S.machine)notes.set(n.hour,n.text)});
+  const busy=hrs.filter(x=>hm.get(x).avg>=hi),flag=busy.filter(x=>{const a=A.get(x)||{tokens:0,prompts:0};return a.tokens<=lo&&!a.prompts});
+  $('#idle-sum').innerHTML=`<b>${flag.length}</b> of ${busy.length} busy hours (${meta[1]} ≥ ${meta[2](hi)}) had no agent load (tokens ≤ ${fmt(lo)}, no prompts) — <b>${busy.length?Math.round(100*flag.length/busy.length):0}%</b> of heavy load is unexplained by agents.`;
+  const n=sp.keys.length,mt=new Array(n).fill(null),cnt=new Array(n).fill(0),fl=new Array(n).fill(null),tt=new Array(n).fill(0);
+  for(const x of hrs){const i=sp.idx.get(bk(sp,x));if(i===undefined)continue;const v=hm.get(x).avg;mt[i]=(mt[i]||0)+v;cnt[i]++;if(flag.includes(x))fl[i]=Math.max(fl[i]||0,v)}
+  for(const [x,o] of A){if(x<sp.h0)continue;const i=sp.idx.get(bk(sp,x));if(i!==undefined)tt[i]+=o.tokens}
+  const flagSet=new Set(flag);
+  lines('#c-idle',sp,[{name:meta[1],color:PAL[2],data:mt.map((v,i)=>v==null?null:v/cnt[i]),fv:meta[2]},{name:'unexplained-load hour',color:PAL[3],data:fl,fv:meta[2],bars:true},{name:'tokens',color:PAL[0],data:tt,fv:fmt,right:true}],190,{right:true});
+  $('#l-idle').innerHTML=`<span><i style="background:${PAL[2]}"></i>${esc(meta[1])} (left)</span><span><i style="background:${PAL[3]}"></i>flagged hour</span><span><i style="background:${PAL[0]}"></i>tokens (right)</span>`;
+  const cpu=mhours('cpu'),mem=mhours('mem_pct'),vm=mhours('container_vm_mb');const f1=(m,x,f)=>m.get(x)?f(m.get(x).avg):'—';
+  $('#idletbl').innerHTML='<tr><th>hour (local)</th><th>'+esc(meta[1])+'</th><th>CPU</th><th>Mem</th><th>OrbStack VM</th><th>tokens</th><th>top memory apps (MB)</th></tr>'+
+    flag.sort((a,b)=>hm.get(b).avg-hm.get(a).avg).slice(0,40).map(x=>`<tr><td>${esc(new Date(x*3600e3).toLocaleString([],{month:'short',day:'numeric',hour:'numeric'}))}</td><td>${meta[2](hm.get(x).avg)}</td><td>${f1(cpu,x,v=>v.toFixed(0)+'%')}</td><td>${f1(mem,x,v=>v.toFixed(0)+'%')}</td><td>${f1(vm,x,v=>fmt(v)+' MB')}</td><td>${fmt((A.get(x)||{tokens:0}).tokens)}</td><td style="text-align:left;color:var(--mute)">${esc(notes.get(x)||'')}</td></tr>`).join('');
+}
+function coverage(sp){
+  const days=new Map(),src=r=>r.tool==='gateway'?(D.me.includes(r.requester)?'gateway (me)':'gateway (others)'):'local '+r.tool;
+  const cols=['local claude','local codex','gateway (me)','gateway (others)'],first={},last={};
+  T.llm.forEach(r=>{const k=src(r),d=localDate(r.hour).day;let o=days.get(d);if(!o)days.set(d,o={});o[k]=(o[k]||0)+r.fresh_in+r.cache_write+r.out;first[k]=Math.min(first[k]??1e12,r.hour);last[k]=Math.max(last[k]??0,r.hour)});
+  const fmtd=h=>h==null?'—':new Date(h*3600e3).toLocaleDateString([],{month:'short',day:'numeric'});
+  const ds=[...days.keys()].sort().reverse().filter(d=>sp.idx.has(d)||sp.bucket==='hour'&&localDate(sp.h0).day<=d);
+  $('#cov').innerHTML='<tr><th>day</th>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>'+
+    '<tr style="color:var(--mute)"><td>coverage</td>'+cols.map(c=>`<td>${fmtd(first[c])} – ${fmtd(last[c])}</td>`).join('')+'</tr>'+
+    ds.slice(0,45).map(d=>{const o=days.get(d),warn=(o['gateway (me)']&&!o['local claude']&&!o['local codex']);return `<tr><td>${d}${warn?' <span title="gateway only: usage from another machine" style="color:var(--mute)">⚠</span>':''}</td>`+cols.map(c=>`<td>${o[c]?fmt(o[c]):'—'}</td>`).join('')+'</tr>'}).join('');
+}
+function heat(mv){
+  const sp=span(),g=Array.from({length:7},()=>new Array(24).fill(0));let mx=0;
+  T.llm.forEach(r=>{if(r.hour<sp.h0||!pass(r,true))return;const l=localDate(r.hour);g[l.dow][l.hod]+=mv(r)});g.forEach(a=>a.forEach(v=>mx=Math.max(mx,v)));
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];let h='<div></div>'+Array.from({length:24},(_,i)=>`<div>${i%3?'':i}</div>`).join('');
+  g.forEach((a,d)=>{h+=`<div>${days[d]}</div>`+a.map((v,i)=>`<div title="${days[d]} ${i}:00 — ${fmt(v)}" style="background:color-mix(in srgb,${PAL[0]} ${mx?Math.round(100*Math.sqrt(v/mx)):0}%,var(--grid))"></div>`).join('')});
+  $('#heat').innerHTML=h;
+}
+function table(sp,mv){
+  const dim=S.dim,key=r=>dim==='tool'?(r.tool==='none'?'human':r.tool):r[dim],agg=new Map();
+  const get=k=>{let o=agg.get(k);if(!o)agg.set(k,o={k,tokens:0,out:0,prompts:0,typed:0,edit:0,commits:0,code:0,docs:0});return o};
+  const inr=r=>r.hour>=sp.h0&&pass(r,true);
+  T.llm.forEach(r=>{if(inr(r)){const o=get(key(r));o.tokens+=mv(r);o.out+=r.out}});
+  T.prompts.forEach(r=>{if(inr(r)){const o=get(key(r));o.prompts+=r.n;o.typed+=r.est_tokens}});
+  T.edits.forEach(r=>{if(inr(r))get(key(r)).edit+=r.added});
+  T.commits.forEach(r=>{if(inr(r)){const o=get(key(r));o.commits+=r.n;o.code+=r.added_code;o.docs+=r.added_doc}});
+  const rows=[...agg.values()].map(o=>(o.tpc=o.commits?o.tokens/o.commits:null,o.tpl=o.code?o.tokens/o.code:null,o)).sort((a,b)=>(b[S.sort]??-1)-(a[S.sort]??-1));
+  const cols=[['k',dim],['tokens','tokens'],['out','output tok'],['prompts','prompts'],['typed','typed tok'],['edit','agent lines'],['commits','commits'],['code','code lines'],['docs','doc lines'],['tpc','tok / commit'],['tpl','tok / code line']];
+  $('#tbl').innerHTML='<tr>'+cols.map(([k,l])=>`<th data-k="${k}" class="${S.sort===k?'sorted':''}">${l}</th>`).join('')+'</tr>'+rows.slice(0,60).map(o=>'<tr>'+cols.map(([k])=>`<td>${k==='k'?esc(o.k):o[k]==null?'—':fmt(o[k])}</td>`).join('')+'</tr>').join('');
+  document.querySelectorAll('#tbl th').forEach(t=>t.onclick=()=>{S.sort=t.dataset.k;table(sp,mv)});
+}
+addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(()=>D&&render(),120)});
+load();
+</script>
+</body>
+</html>

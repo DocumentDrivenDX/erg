@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.db
+*.db-*
+perf.ndjson
+.DS_Store
+.venv/
+dist/
