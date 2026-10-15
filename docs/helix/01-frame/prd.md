@@ -2,6 +2,7 @@
 ddx:
   id: erg.prd
   status: draft
+  links: [product-vision]
 ---
 # PRD: Agent Usage & Productivity Monitor
 
@@ -21,7 +22,11 @@ A single engineer running coding agents on a laptop plus remote boxes.
 7. Idempotent, incremental ingest; deduplicates streamed/forked/resumed sessions.
 
 ## Non-goals
-Billing-accurate dollar cost; keystroke logging (opt-in only, out of v1); multi-user auth.
+- Billing-grade metering or chargeback: cost is estimation-grade with provenance labels (see `usage-metering` in concerns).
+- Being an agent runtime or benchmark harness: fizeau owns measurement and agents; erg archives what they publish.
+- LLM-application observability (prompts, evals, prompt management): Langfuse and Helicone cover that.
+- Storing prompt or response text; storing credentials.
+- Keystroke logging (opt-in only, out of v1); multi-user auth or a hosted service.
 
 ## Success
 One command refreshes all machines; the dashboard answers every grouping above within a second.

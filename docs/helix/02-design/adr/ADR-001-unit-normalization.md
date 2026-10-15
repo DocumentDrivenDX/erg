@@ -2,7 +2,7 @@
 ddx:
   id: erg.adr.001
   status: proposed
-  links: [erg.prd, erg.architecture]
+  links: [erg.prd, erg.architecture, product-vision]
 ---
 # ADR-001: Unit normalization (tokens, cost, work, energy)
 
@@ -35,6 +35,13 @@ reports interoperate.
 - Never invent prices: models without a configured price have `unknown` cost and are excluded from $ totals, with a visible count.
 - Prices are data (user-editable, importable), not code.
 - Attribution of commits to agents is by `Co-Authored-By`, so efficiency by model is only meaningful where trailers exist.
+
+## Decision direction (2026-10-15)
+- erg owns a **dated price ledger** (`catalog/prices.yaml`): per model and surface, effective-dated entries with source and as-of date,
+  plus subscription plan prices and billing kind. Field names follow Fizeau's catalog (`cost_*_per_m`). Fizeau keeps power, surfaces,
+  reasoning and routing metadata and is expected to read prices from the ledger (a separate Fizeau change).
+- Fizeau is a **producer**: measurements it generates (power, timing, benchmark evidence) are archived by erg the way prices are.
+  erg provides standardized trace collection and cost accounting; it does not run agents or benchmarks.
 
 ## Open questions
 Work-unit weights; whether to adopt Fizeau `power` as a normalizer; price source of truth for gateway traffic
