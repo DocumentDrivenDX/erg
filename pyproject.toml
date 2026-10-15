@@ -1,5 +1,5 @@
 [project]
-name = "agentusage"
+name = "erg"
 version = "0.1.0"
 description = "Local-first token, output and machine-load dashboard for Claude Code, Codex and AI gateways"
 readme = "README.md"
@@ -9,9 +9,9 @@ requires-python = ">=3.8"
 dependencies = []
 
 [project.scripts]
-usage = "agentusage.cli:main"
+erg = "erg.cli:main"
 
 [tool.setuptools]
-packages = ["agentusage"]
+packages = ["erg"]
 [tool.setuptools.package-data]
-agentusage = ["static/*.html", "collect.py"]
+erg = ["static/*.html", "collect.py"]

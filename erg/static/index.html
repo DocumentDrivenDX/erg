@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agent Usage Monitor</title>
+<title>erg</title>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--fg:#1d2330;--mute:#6b7280;--line:#e3e6ec;--accent:#3b6fd8;--grid:#eceef3}
 @media (prefers-color-scheme:dark){:root{--bg:#0f1218;--card:#171b23;--fg:#e6e9ef;--mute:#8d96a6;--line:#262c38;--accent:#6c9bff;--grid:#222834}}
@@ -35,7 +35,7 @@ th{color:var(--mute);font-weight:500;cursor:pointer;font-size:12px}th.sorted{col
 </head>
 <body>
 <header>
-  <h1>Agent Usage Monitor</h1>
+  <h1>erg <span style="font-weight:400;color:var(--mute);font-size:13px">agent usage monitor</span></h1>
   <div class="ctl">Range <div class="seg" id="range"></div></div>
   <div class="ctl">Bucket <div class="seg" id="bucket"></div></div>
   <div class="ctl">Group by <select id="group"></select></div>
@@ -218,7 +218,7 @@ function render(){
   const act=new Array(sp.keys.length).fill(0);let anyAct=false;
   for(const [x,o] of mhours('active')){if(x<sp.h0)continue;const i=sp.idx.get(bk(sp,x));if(i!==undefined){act[i]+=o.avg*60;anyAct=true}}
   lines('#c-active',sp,[{name:'prompts',color:PAL[0],data:tot(pr),fv:fmt,bars:true},...(anyAct?[{name:'active minutes',color:PAL[1],data:act,fv:v=>v.toFixed(0)+' min',right:true}]:[])],200,{right:anyAct});
-  $('#l-active').innerHTML=anyAct?'':'<span>no keyboard-active samples (needs <code>./usage sampler</code>)</span>';
+  $('#l-active').innerHTML=anyAct?'':'<span>no keyboard-active samples (needs <code>erg sampler</code>)</span>';
   coverage(sp);perfSection(sp,mv);lagSection(sp,mv);idleSection(sp,mv);heat(mv);table(sp,mv);kpis(sp,{tokS,cs,ls,ds,es,typed,pr,act});
 }
 function kpis(sp,x){
@@ -256,7 +256,7 @@ function perfSection(sp,mv){
     h+=`<tr><td>${esc(l)}</td><td>${n}</td>`+vars.map(([k])=>cell(pearson(hrs.map(x=>(A.get(x)||{})[k]||0),hrs.map(x=>hm.get(x).avg)))).join('')+'</tr>'}
   $('#matrix').innerHTML=h;
   const srcs={};T.metrics.forEach(r=>{(srcs[r.src]=srcs[r.src]||new Set()).add(r.m)});
-  $('#perfnote').innerHTML=have.length?'Sources: '+Object.entries(srcs).map(([k,v])=>`<code>${k}</code> (${v.size} metrics)`).join(', ')+'. Hourly values use the finest ring-buffer tier covering ≥80% of the hour. Correlation is not causation — builds and test runs also load the CPU.':'No machine metrics yet. Run <code>./usage sampler</code>, or point the collector at iStat Menus or an endpoint-metrics CSV (docs/adapters.md).';
+  $('#perfnote').innerHTML=have.length?'Sources: '+Object.entries(srcs).map(([k,v])=>`<code>${k}</code> (${v.size} metrics)`).join(', ')+'. Hourly values use the finest ring-buffer tier covering ≥80% of the hour. Correlation is not causation — builds and test runs also load the CPU.':'No machine metrics yet. Run <code>erg sampler</code>, or point the collector at iStat Menus or an endpoint-metrics CSV (docs/adapters.md).';
   // scatter
   const pm=S.perf,hm=mh.get(pm),pts=[];if(hm)hm.forEach((o,x)=>{if(x>=sp.h0&&A.has(x))pts.push([A.get(x).tokens,o.avg,bucketLabel({bucket:'hour'},x)])});
   const meta=MET.find(x=>x[0]===pm)||MET[0];scatter('#c-scatter',pts,'tokens / hour',meta[1],fmt,meta[2]);

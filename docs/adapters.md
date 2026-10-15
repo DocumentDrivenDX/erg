@@ -9,7 +9,7 @@ Sensor names are hashed; temperature and fan are inferred by value range.
 
 ## Endpoint-metrics CSV
 Point at directories containing `endpoint-metrics.csv` (and optionally `container-metrics.csv`) via
-`$USAGE_ENDPOINT_CSV_DIRS` (colon-separated) or `~/.config/usage/config.json`:
+`$ERG_ENDPOINT_CSV_DIRS` (colon-separated) or `~/.config/erg/config.json`:
 `{"endpoint_csv_dirs": ["/path/to/dir"]}`.
 Columns used: `ts_utc, cpu_busy_pct, cpu_user_pct, cpu_sys_pct, am_used_pct, am_pressure_pct, am_used_mb, am_compressed_mb,
 am_swap_used_mb, load1, load_norm, therm_pct, disk_pct, comp_ratio, demand_mb, pressure, swapins_cum, swapouts_cum,
@@ -17,7 +17,7 @@ decompressions_cum, top_apps_mem_plus_cmprs`; container CSV: `vm_footprint_mb, c
 Missing columns are skipped; `-1` means unavailable.
 
 ## Databricks AI Gateway
-`usage add-gateway --profile <cli-profile>`; reads `system.ai_gateway.usage` through the Databricks CLI login.
+`erg add-gateway --profile <cli-profile>`; reads `system.ai_gateway.usage` through the Databricks CLI login.
 Needs SELECT on that table. Gateway rows are stored as tool `gateway` with the requester.
 
 ## Priority

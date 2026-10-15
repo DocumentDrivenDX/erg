@@ -1,6 +1,6 @@
 ---
 ddx:
-  id: usage.prd
+  id: erg.prd
   status: draft
 ---
 # PRD: Agent Usage & Productivity Monitor

@@ -1,8 +1,8 @@
 """SQLite store + ingest of collector NDJSON."""
 import json, os, sqlite3, time
 
-DB_DIR = os.environ.get("USAGE_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share", "usage")
-DB_PATH = os.path.join(DB_DIR, "usage.db")
+DB_DIR = os.environ.get("ERG_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share", "erg")
+DB_PATH = os.path.join(DB_DIR, "erg.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS llm(machine TEXT, uid TEXT, ts INT, tool TEXT, session TEXT, project TEXT, model TEXT,
@@ -190,7 +190,7 @@ def my_identities():
     except OSError:
         pass
     try:
-        with open(os.path.join(os.path.expanduser("~"), ".config", "usage", "gateway.json")) as f:
+        with open(os.path.join(os.path.expanduser("~"), ".config", "erg", "gateway.json")) as f:
             me.append(json.load(f).get("me", ""))
     except (OSError, ValueError):
         pass

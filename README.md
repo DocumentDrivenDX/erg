@@ -1,17 +1,17 @@
-# agentusage — agent productivity monitor
+# erg — agent productivity monitor
 
 Part of the [DocumentDrivenDX](https://github.com/DocumentDrivenDX) family. Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
 
 Tokens, output and machine load across Claude Code and OpenAI Codex, by hour/day, project, model, agent and machine.
-Python 3.8+ stdlib only. Everything stays local (SQLite at `~/.local/share/usage/usage.db`).
+Python 3.8+, stdlib only. Install with `pip install .` (gives an `erg` command) or run `bin/erg` from a checkout. Everything stays local (SQLite at `~/.local/share/erg/erg.db`).
 
-    ./usage sync --full        # first run: scrape this machine (~1 min for months of logs)
-    ./usage sync               # incremental, local + every configured host
-    ./usage serve --sync-every 15   # dashboard at http://127.0.0.1:8787, re-sync every 15 min
+    erg sync --full        # first run: scrape this machine (~1 min for months of logs)
+    erg sync               # incremental, local + every configured host
+    erg serve --sync-every 15   # dashboard at http://127.0.0.1:8787, re-sync every 15 min
 
 ## Remote machines (nothing to install)
-    ./usage add-host gpu-box you@gpu-box [--roots ~/code]
-    ./usage sync --host gpu-box
+    erg add-host gpu-box you@gpu-box [--roots ~/code]
+    erg sync --host gpu-box
 The collector is streamed over SSH (`ssh host python3 - collect < collect.py`); rows are tagged with the host name.
 
 ## Performance counters
@@ -19,9 +19,9 @@ Automatic where present: **iStat Menus 7** history and the a generic **endpoint-
 Otherwise (Linux/remote hosts, keyboard-active time) run the built-in sampler:
 History cannot be reconstructed, so run the sampler (30 s cadence):
 
-    ./usage sampler                  # writes a launchd agent / systemd unit and prints the activation command
-    ./usage sampler --host gpu-box   # same on a remote host
-Samples land in `~/.local/share/usage/perf.ndjson` on each machine and are pulled by `sync`.
+    erg sampler                  # writes a launchd agent / systemd unit and prints the activation command
+    erg sampler --host gpu-box   # same on a remote host
+Samples land in `~/.local/share/erg/perf.ndjson` on each machine and are pulled by `sync`.
 
 ## What is measured
 - **Tokens**: fresh input, cache read, cache write, output (reasoning shown separately) per API call, de-duplicated across streamed/forked sessions. Codex `cached_input` is subtracted from input.
@@ -31,7 +31,7 @@ Samples land in `~/.local/share/usage/perf.ndjson` on each machine and are pulle
 Specs: `docs/helix/` (PRD, architecture).
 
 ## Databricks AI Gateway
-    ./usage add-gateway --profile my-profile     # warehouse auto-discovered; identity from the profile
+    erg add-gateway --profile my-profile     # warehouse auto-discovered; identity from the profile
 `sync` then pulls `system.ai_gateway.usage` through the Databricks CLI's existing login (no credentials stored; if the login expired it prints `databricks auth login -p …`). Rows land as tool `gateway` with the requester kept, so the dashboard's **Whose** filter shows just you, everyone, or one requester. Gateway calls that exactly match a local Claude/Codex call (same output + cache-read tokens within 2 min) are marked duplicates and dropped from totals. The *Sources & coverage* card shows each source per day.
 
 ## Privacy

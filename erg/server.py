@@ -36,5 +36,5 @@ def serve(port, sync_every, sync_fn):
                 except Exception as e: print("sync failed:", e)
         threading.Thread(target=loop, daemon=True).start()
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
-    print("usage dashboard → http://127.0.0.1:%d" % port)
+    print("erg dashboard → http://127.0.0.1:%d" % port)
     srv.serve_forever()

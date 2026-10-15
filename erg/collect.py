@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""agentusage collector: single-file, stdlib-only, Python 3.8+.
+"""erg collector: single-file, stdlib-only, Python 3.8+.
 
 Runs locally or is piped over SSH (`ssh host python3 - collect < collect.py`).
 Emits NDJSON events on stdout; every event has a stable `uid` so the central
@@ -13,7 +13,7 @@ import json, os, re, subprocess, sys, time, socket, platform
 
 VERSION = 1
 HOME = os.path.expanduser("~")
-STATE_DIR = os.environ.get("USAGE_STATE_DIR") or os.path.join(HOME, ".local", "share", "usage")
+STATE_DIR = os.environ.get("ERG_STATE_DIR") or os.path.join(HOME, ".local", "share", "erg")
 PERF_FILE = os.path.join(STATE_DIR, "perf.ndjson")
 PERF_STATE = os.path.join(STATE_DIR, "perf.state.json")
 
@@ -398,12 +398,12 @@ def metric(src, m, ts, iv, v, pk=None):
 
 def adapter_dirs():
     """Directories holding endpoint-metrics.csv / container-metrics.csv (5-minute samples), from
-    $USAGE_ENDPOINT_CSV_DIRS (colon-separated) or ~/.config/usage/config.json {"endpoint_csv_dirs": [...]}."""
-    env = os.environ.get("USAGE_ENDPOINT_CSV_DIRS")
+    $ERG_ENDPOINT_CSV_DIRS (colon-separated) or ~/.config/erg/config.json {"endpoint_csv_dirs": [...]}."""
+    env = os.environ.get("ERG_ENDPOINT_CSV_DIRS")
     if env:
         return [d for d in env.split(":") if d]
     try:
-        return list(json.load(open(os.path.join(HOME, ".config", "usage", "config.json"))).get("endpoint_csv_dirs", []))
+        return list(json.load(open(os.path.join(HOME, ".config", "erg", "config.json"))).get("endpoint_csv_dirs", []))
     except (OSError, ValueError):
         return []
 
@@ -615,11 +615,11 @@ def sampler_install():
         import shutil
         shutil.copy(__file__, script)
     if platform.system() == "Darwin":
-        plist = os.path.join(HOME, "Library", "LaunchAgents", "ai.agentusage.sampler.plist")
+        plist = os.path.join(HOME, "Library", "LaunchAgents", "dev.ddx.erg.sampler.plist")
         open(plist, "w").write("""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-<key>Label</key><string>ai.agentusage.sampler</string>
+<key>Label</key><string>dev.ddx.erg.sampler</string>
 <key>ProgramArguments</key><array><string>/usr/bin/python3</string><string>%s</string><string>sample</string><string>--loop</string><string>30</string></array>
 <key>RunAtLoad</key><true/><key>KeepAlive</key><true/>
 <key>StandardErrorPath</key><string>%s/sampler.err</string>
@@ -629,10 +629,10 @@ def sampler_install():
     else:
         unit_dir = os.path.join(HOME, ".config", "systemd", "user")
         os.makedirs(unit_dir, exist_ok=True)
-        open(os.path.join(unit_dir, "agentusage-sampler.service"), "w").write(
-            "[Unit]\nDescription=agentusage perf sampler\n[Service]\nExecStart=%s %s sample --loop 30\nRestart=always\n[Install]\nWantedBy=default.target\n"
+        open(os.path.join(unit_dir, "erg-sampler.service"), "w").write(
+            "[Unit]\nDescription=erg perf sampler\n[Service]\nExecStart=%s %s sample --loop 30\nRestart=always\n[Install]\nWantedBy=default.target\n"
             % (sys.executable, script))
-        print("wrote systemd unit; activate with:\n  systemctl --user enable --now agentusage-sampler")
+        print("wrote systemd unit; activate with:\n  systemctl --user enable --now erg-sampler")
 
 
 # ------------------------------------------------------------------------ main

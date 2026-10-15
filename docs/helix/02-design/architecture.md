@@ -1,8 +1,8 @@
 ---
 ddx:
-  id: usage.architecture
+  id: erg.architecture
   status: draft
-  links: [usage.prd]
+  links: [erg.prd]
 ---
 # Architecture
 
@@ -10,11 +10,11 @@ ddx:
  machine A (local)         machine B (ssh)
  collect.py  ── NDJSON ──▶ ssh host python3 - < collect.py ──▶ NDJSON
       │                                   │
-      └────────────── usage ingest ◀──────┘   (idempotent upsert on uid)
+      └────────────── erg ingest ◀──────┘   (idempotent upsert on uid)
                           │
-                    SQLite  (~/.local/share/usage/usage.db)
+                    SQLite  (~/.local/share/erg/erg.db)
                           │
-                 usage serve  → /api/data (hourly rollups) → static SPA
+                 erg serve  → /api/data (hourly rollups) → static SPA
  sampler (launchd/cron, 30s) → perf.ndjson on each machine → picked up by collect
 ```
 
@@ -28,7 +28,7 @@ ddx:
 
 ## Telemetry adapters (ADR-7)
 Existing monitors are preferred over our own sampler; the collector reads them read-only and emits canonical `metric` events (`src`, `m`, `ts`, `iv`, `v`, `pk`).
-- **Endpoint-metrics CSVs** (directories configured via `$USAGE_ENDPOINT_CSV_DIRS` or `~/.config/usage/config.json`): 5-min memory (Activity-Monitor-equivalent), pressure, swap, compressor churn, CPU, thermal, OrbStack VM footprint.
+- **Endpoint-metrics CSVs** (directories configured via `$ERG_ENDPOINT_CSV_DIRS` or `~/.config/erg/config.json`): 5-min memory (Activity-Monitor-equivalent), pressure, swap, compressor churn, CPU, thermal, OrbStack VM footprint.
 - **iStat Menus 7 `history.db`**: multi-resolution ring buffers (5 s … 6 d; fine tiers expire, so sync regularly) for CPU, memory, disk and network throughput (KB/s), GPU, load, hashed sensor keys (temps/fans by value-range heuristic).
 - **Own sampler** remains for hosts without either (Linux, remote), and is the only source of keyboard-active time.
 - Hourly rollup picks, per machine/metric/hour, the highest-priority source, and within it the finest tier covering >=80% of the hour.

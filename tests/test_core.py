@@ -1,7 +1,7 @@
 import json, os, sys, tempfile, unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from agentusage import collect, store
+from erg import collect, store
 
 
 class Collector(unittest.TestCase):

@@ -1,10 +1,10 @@
-"""usage CLI: sync (local + ssh hosts), serve, sampler."""
+"""erg CLI: sync (local + ssh hosts), serve, sampler."""
 import argparse, json, os, subprocess, sys, time
 
 from . import store
 
 COLLECT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "collect.py")
-CONF = os.path.join(os.path.expanduser("~"), ".config", "usage", "hosts.json")
+CONF = os.path.join(os.path.expanduser("~"), ".config", "erg", "hosts.json")
 
 
 def load_hosts():
@@ -48,7 +48,7 @@ def sync_one(db, host, full=False):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog="usage")
+    ap = argparse.ArgumentParser(prog="erg")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("sync", help="scrape this machine + configured hosts into the DB")
     s.add_argument("--full", action="store_true"); s.add_argument("--no-local", action="store_true")
@@ -58,7 +58,7 @@ def main(argv=None):
     ad = sub.add_parser("add-host", help="register a remote machine")
     ad.add_argument("name"); ad.add_argument("ssh", help="user@host"); ad.add_argument("--python", default="python3")
     ad.add_argument("--roots", help="comma-separated git scan roots on remote, default ~/Projects")
-    ag = sub.add_parser("add-gateway", help="configure Databricks AI Gateway usage ingest (uses the databricks CLI's auth)")
+    ag = sub.add_parser("add-gateway", help="configure Databricks AI Gateway erg ingest (uses the databricks CLI's auth)")
     ag.add_argument("--profile", required=True); ag.add_argument("--warehouse", help="SQL warehouse id (auto-discovered if omitted)")
     ag.add_argument("--table", default="system.ai_gateway.usage")
     sa = sub.add_parser("sampler", help="install the perf sampler locally or on a host")
@@ -81,7 +81,7 @@ def main(argv=None):
                 sync_one(db, h, a.full)
         from . import gateway
         gc = gateway.load_conf()
-        if gc and not a.host and not os.environ.get("USAGE_SKIP_GATEWAY"):
+        if gc and not a.host and not os.environ.get("ERG_SKIP_GATEWAY"):
             t0 = time.time()
             try:
                 n = gateway.sync(db, gc, a.full)
@@ -99,8 +99,8 @@ def main(argv=None):
         if a.host:
             h = next(h for h in load_hosts() if h["name"] == a.host)
             sh = lambda c, inp=None: subprocess.run(["ssh", h["ssh"], c], input=inp, text=True)
-            sh("mkdir -p ~/.local/share/usage && cat > ~/.local/share/usage/collect.py", open(COLLECT).read())
-            sh("%s ~/.local/share/usage/collect.py sampler-install" % h.get("python", "python3"))
+            sh("mkdir -p ~/.local/share/erg && cat > ~/.local/share/erg/collect.py", open(COLLECT).read())
+            sh("%s ~/.local/share/erg/collect.py sampler-install" % h.get("python", "python3"))
         else:
             subprocess.run([sys.executable, COLLECT, "sampler-install"])
     elif a.cmd == "serve":

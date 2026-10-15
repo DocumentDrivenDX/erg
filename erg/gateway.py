@@ -1,11 +1,11 @@
-"""Databricks AI Gateway usage ingest (system.ai_gateway.usage).
+"""Databricks AI Gateway erg ingest (system.ai_gateway.usage).
 
 Uses the Databricks CLI's existing auth (`databricks api ...`); no tokens are read or stored here.
-Config: ~/.config/usage/gateway.json  {"profile","warehouse_id","table","me"}
+Config: ~/.config/erg/gateway.json  {"profile","warehouse_id","table","me"}
 """
 import calendar, json, os, subprocess, time
 
-CONF = os.path.join(os.path.expanduser("~"), ".config", "usage", "gateway.json")
+CONF = os.path.join(os.path.expanduser("~"), ".config", "erg", "gateway.json")
 TABLE = "system.ai_gateway.usage"
 MACHINE = "databricks"
 
