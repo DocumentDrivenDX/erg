@@ -3,7 +3,8 @@ name = "agentusage"
 version = "0.1.0"
 description = "Local-first token, output and machine-load dashboard for Claude Code, Codex and AI gateways"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 requires-python = ">=3.8"
 dependencies = []
 

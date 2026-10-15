@@ -5,3 +5,4 @@
 - Never store prompt text or credentials. Measure and discard.
 - Run `python -m unittest discover -s tests` before sending a PR.
 - Specs live in `docs/helix/` (HELIX / DDx). Change the spec with the code.
+- By contributing you agree your work is dual-licensed under MIT OR Apache-2.0 (see README, License).

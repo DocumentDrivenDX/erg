@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.0
+- Dual-licensed MIT OR Apache-2.0.
 - Claude Code and Codex collectors (tokens, agent edits, prompts), git commit collector.
 - iStat Menus 7 and generic endpoint-metrics CSV adapters; built-in perf/keyboard-idle sampler.
 - Databricks AI Gateway ingest via the Databricks CLI.

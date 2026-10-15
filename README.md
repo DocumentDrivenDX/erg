@@ -1,6 +1,6 @@
 # agentusage — agent productivity monitor
 
-Part of the [DocumentDrivenDX](https://github.com/DocumentDrivenDX) family. MIT licensed.
+Part of the [DocumentDrivenDX](https://github.com/DocumentDrivenDX) family. Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
 
 Tokens, output and machine load across Claude Code and OpenAI Codex, by hour/day, project, model, agent and machine.
 Python 3.8+ stdlib only. Everything stays local (SQLite at `~/.local/share/usage/usage.db`).
@@ -39,3 +39,7 @@ Everything is local. Prompt text is never stored (only length). The Databricks a
 
 ## Development
     python -m unittest discover -s tests
+
+## License
+Licensed under either of [Apache License 2.0](LICENSE-APACHE) or [MIT license](LICENSE-MIT) at your option.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this project, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
