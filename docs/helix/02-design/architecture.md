@@ -2,7 +2,7 @@
 ddx:
   id: erg.architecture
   status: draft
-  links: [erg.prd]
+  links: [prd]
 ---
 # Architecture
 

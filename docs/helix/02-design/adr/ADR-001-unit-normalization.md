@@ -2,7 +2,7 @@
 ddx:
   id: erg.adr.001
   status: proposed
-  links: [erg.prd, erg.architecture, product-vision]
+  links: [prd, erg.architecture, product-vision]
 ---
 # ADR-001: Unit normalization (tokens, cost, work, energy)
 

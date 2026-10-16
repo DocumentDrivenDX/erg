@@ -10,7 +10,7 @@ ddx:
 
 ## Mission Statement
 
-erg gives engineers who run several coding agents a single local ledger of what the agents spent, produced and cost the machine, in units that compare across agents, models, machines and gateways.
+erg extends AI-gateway measurement to the local host: for engineers who run several coding agents, it keeps one ledger of what the agents spent, what they produced, and what they cost the machine, including the subscription and local traffic no gateway sees.
 
 ## Positioning
 
@@ -21,7 +21,7 @@ erg joins every agent, machine and gateway on one set of units and keeps the his
 
 ## Vision
 
-Every agent session, wherever it runs, leaves a standard trace and a cost record. Prices live in a dated ledger that other tools read, so last month's tokens are costed at last month's prices.
+Everything that can go through the AI gateway does, and everything that cannot is measured on the host in the same shape. Every agent session, wherever it runs, leaves a standard trace and a cost record, with its intent and the value it delivered where those can be measured. Prices live in a dated ledger that other tools read, so last month's tokens are costed at last month's prices.
 Spend is quoted as dollars per unit of work, with its provenance (reported, configured or unknown) beside it. Subscription and metered traffic appear on the same axis.
 Agent runtimes such as fizeau publish their own measurements (power, timing) into the same archive. Traces from local machines reach the organization's telemetry store next to the gateway's spans, joined by trace id.
 
