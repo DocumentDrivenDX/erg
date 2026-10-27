@@ -97,3 +97,19 @@ Fresh wheel and source installations passed the installed-runtime smoke checks o
 Python 3.12 and Python 3.8, with no runtime dependencies or retained history bodies.
 Archives were rebuilt after recording this evidence. Hosted CI and its complete
 OS/Python matrix await a push; no remote publication is implied by these local runs.
+
+## Hosted runtime provisioning correction
+
+The first push of `23506d8` passed the complete hosted quality job (723 tests,
+eight permitted Linux/cloud skips, 78.4109% line and 71.6557% branch coverage) and
+the Linux Python 3.12 runtime/install job. Python 3.8 provisioning failed before
+tests: `ubuntu-latest` resolved to Ubuntu 26.04, for which `setup-python` did not
+supply that interpreter. Matrix fail-fast cancelled the remaining macOS jobs.
+
+The runtime matrix now uses the existing pinned uv installer to provision managed
+Python into an isolated, seeded environment, with project discovery disabled.
+No erg development dependencies are installed in runtime consumers. Both operating
+systems and both Python versions remain required; no tests or gates were removed.
+Actionlint passed and the same bootstrap created Python 3.8.20 locally, then passed
+fresh wheel installation and the installed-runtime smoke check. Hosted rerun
+results are retained by the CI run associated with this correction commit.
