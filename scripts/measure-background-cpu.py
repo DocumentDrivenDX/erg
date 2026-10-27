@@ -12,7 +12,7 @@ import time
 import urllib.request
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from erg import service,store
+from erg import service,store,delivery_service
 
 
 def process_seconds(stamp):
@@ -27,8 +27,14 @@ def snapshot(port):
     rows={}
     for line in subprocess.check_output(['ps','-axo','pid=,ppid=,time='],text=True).splitlines():
         pid,parent,stamp=line.split();rows[int(pid)]=(int(parent),process_seconds(stamp))
+    delivery=delivery_service.status()
+    observed=[('collector',status),('reporter',health)]
+    delivery_scope='not_running'
+    if delivery.get('running'):
+        if not delivery.get('cpu_accounting'):raise RuntimeError('running delivery service lacks CPU accounting; refresh its runtime before measuring')
+        observed.append(('delivery',delivery));delivery_scope='included'
     components={}
-    for name,state in [('collector',status),('reporter',health)]:
+    for name,state in observed:
         pid=state['pid']
         if pid not in rows:raise RuntimeError(name+' process disappeared during observation')
         ids={pid}
@@ -37,18 +43,21 @@ def snapshot(port):
             if not extra:break
             ids|=extra
         children={p:rows[p][1] for p in ids-{pid}};a=state['cpu_accounting']
-        components[name]=dict(pid=pid,identity=state.get('started') if name=='collector' else state.get('instance'),sampled_at=a['sampled_at'],cpu_seconds=a['process_cpu_seconds']+a['reaped_children_cpu_seconds']+sum(children.values()),process_cpu_seconds=a['process_cpu_seconds'],reaped_children_cpu_seconds=a['reaped_children_cpu_seconds'],live_children=children)
+        components[name]=dict(pid=pid,identity=state.get('instance') if name=='reporter' else state.get('started'),sampled_at=a['sampled_at'],cpu_seconds=a['process_cpu_seconds']+a['reaped_children_cpu_seconds']+sum(children.values()),process_cpu_seconds=a['process_cpu_seconds'],reaped_children_cpu_seconds=a['reaped_children_cpu_seconds'],live_children=children)
     with sqlite3.connect('file:'+str(store.DB_PATH)+'?mode=ro',uri=True,timeout=8) as db:
         seq=db.execute('SELECT max(seq) FROM history_events').fetchone()[0]
         pending=db.execute('SELECT count(*) FROM history_pending').fetchone()[0]
-    return dict(wall=time.time(),components=components,capture_state=status.get('capture_state'),file_events=status.get('file_events'),history_scan=status.get('history_scan'),last_seq=seq,pending=pending,
+    return dict(wall=time.time(),components=components,delivery_scope=delivery_scope,capture_state=status.get('capture_state'),file_events=status.get('file_events'),history_scan=status.get('history_scan'),last_seq=seq,pending=pending,
                 last_full=status.get('last_full'),last_full_error=status.get('last_full_error'),next_full_at=status.get('next_full_at'),last_pr_refresh=status.get('last_pr_refresh'),last_pr_error=status.get('last_pr_error'),worker_cpu=status.get('worker_cpu'),metric_rollup_cache=status.get('metric_rollup_cache'),title_scan=status.get('title_scan'),request_cpu=health.get('request_cpu'))
 
 
 def interval(a,b):
     result={}
-    for name,start in a['components'].items():
-        end=b['components'][name];duration=end['sampled_at']-start['sampled_at'];cpu=end['cpu_seconds']-start['cpu_seconds']
+    for name in sorted(set(a['components'])|set(b['components'])):
+        start=a['components'].get(name);end=b['components'].get(name)
+        if start is None or end is None:
+            result[name]=None;continue
+        duration=end['sampled_at']-start['sampled_at'];cpu=end['cpu_seconds']-start['cpu_seconds']
         stable=start['pid']==end['pid'] and start.get('identity')==end.get('identity')
         result[name]=100*cpu/duration if stable and duration>0 and cpu>=0 else None
     return dict(component_percent=result,combined_percent=sum(result.values()) if all(v is not None for v in result.values()) else None,wall_seconds=b['wall']-a['wall'])
@@ -70,7 +79,7 @@ def save(path,report):
 def run(port,duration,period,output):
     if os.path.lexists(output):raise ValueError('choose a new output path; existing evidence is not overwritten')
     report=dict(probe_pid=os.getpid(),state='running',planned_seconds=duration,samples=[],whole_tool_acceptance=False,
-                scope='Collector/reporter plus reaped and boundary-live helper CPU. Excludes browser renderer, agent-host hooks, observer and kernel work. Asynchronous collector heartbeat boundaries have timestamp skew. Cold reports, migration work and live capture inside the window are included.')
+                scope='Collector/reporter and running delivery service plus reaped and boundary-live helper CPU. Excludes browser renderer, agent-host hooks, observer and kernel work. Asynchronous collector heartbeat boundaries have timestamp skew. Cold reports, migration work and live capture inside the window are included.')
     try:
         report['samples'].append(snapshot(port));save(output,report)
         deadline=time.monotonic()+duration

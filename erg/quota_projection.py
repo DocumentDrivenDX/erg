@@ -88,6 +88,7 @@ def run(db,limit=4096,budget=.1):
             # A REPLACE can change a timestamp tie's winner without changing its
             # payload; make that source-order repair visible to the publisher.
             db.execute("INSERT INTO project_rollup_state VALUES('evidence_serial','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INT)+1")
+            db.execute("INSERT INTO project_rollup_state VALUES('evidence_quota_serial','1') ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INT)+1")
     return dict(processed=processed,pending=db.execute('SELECT count(*) FROM quota_summary_pending').fetchone()[0])
 
 

@@ -161,7 +161,9 @@ def next_batch(db, now=None):
     config = db.execute('SELECT enrollment_id,installation_id,destination_generation FROM delivery_config').fetchone()
     if not config: return None
     enrollment = dict(zip(wire.ENROLLMENT, config))
-    rows = db.execute('SELECT delivery_seq,item FROM delivery_items WHERE batch_id IS NULL AND enrollment_id=? AND destination_generation=? ORDER BY delivery_seq LIMIT ?',
+    # Seek the sparse unsent set first. The enrollment primary-key plan can
+    # otherwise walk all delivered items before reaching the next tiny batch.
+    rows = db.execute('SELECT delivery_seq,item FROM delivery_items INDEXED BY delivery_unsent WHERE batch_id IS NULL AND enrollment_id=? AND destination_generation=? ORDER BY delivery_seq LIMIT ?',
                       (config[0], config[2], wire.MAX_ITEMS)).fetchall()
     if not rows: return None
     items = []; selected = []; batch_id = str(uuid.uuid4())
@@ -212,7 +214,9 @@ def status(db):
     result['forward_started_at']=db.execute('SELECT forward_ts FROM delivery_config').fetchone()[0]
     result['source_boundaries']=db.execute('SELECT COUNT(*) FROM delivery_source_floors').fetchone()[0]
     result['blocked_reason'] = db.execute('SELECT blocked_reason FROM delivery_config').fetchone()[0]
-    result['pending_revisions'] = db.execute('SELECT COUNT(*) FROM delivery_journal WHERE prepared<>1').fetchone()[0]
+    # The completed journal grows forever until expiry; count only indexed
+    # unfinished ranges, including failed and future nonterminal states.
+    result['pending_revisions'] = db.execute('SELECT (SELECT COUNT(*) FROM delivery_journal WHERE prepared<1)+(SELECT COUNT(*) FROM delivery_journal WHERE prepared>1)').fetchone()[0]
     result['blocked_batches'] = db.execute('SELECT COUNT(*) FROM delivery_batches WHERE blocked=1 AND accepted=0').fetchone()[0]
     result['blocked_revisions'] = db.execute('SELECT COUNT(*) FROM delivery_journal WHERE prepared<0').fetchone()[0]
     result['pending_items'] = db.execute('SELECT COUNT(*) FROM delivery_items WHERE accepted=0').fetchone()[0]

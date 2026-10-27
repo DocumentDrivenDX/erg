@@ -188,13 +188,31 @@ class DurableProjectRollups(unittest.TestCase):
             pacer=project_rollups.Pacer(Stop(),lambda:allowance[0]);pacer(force=True)
         self.assertEqual(waits,[.25])
 
-    def test_reporting_catchup_yields_cpu_to_corpus_projection(self):
+    def test_reporting_catchup_ignores_small_transient_queues_and_bounds_pressure_probe(self):
         self.assertEqual(project_rollups.worker_allowance(self.db,.9),.9)
         with self.db:self.db.execute("INSERT INTO history_work_pending(event_id,seq,content_hash) VALUES('fixture',1,'hash')")
-        self.assertEqual(project_rollups.worker_allowance(self.db,.9),.02)
+        self.assertEqual(project_rollups.worker_allowance(self.db,.9),.9)
+        with self.db:self.db.executemany('INSERT INTO history_work_pending(event_id,seq,content_hash) VALUES(?,?,?)',[(str(n),n+2,'hash') for n in range(project_rollups.CORPUS_PRESSURE_ROWS)])
+        self.assertEqual(project_rollups.worker_allowance(self.db,.9),.10)
         self.assertEqual(project_rollups.worker_allowance(self.db,.01),.01)
         with self.db:self.db.execute('DELETE FROM history_work_pending')
         self.assertEqual(project_rollups.worker_allowance(self.db,.9),.9)
+
+    def test_scheduler_drains_old_hours_and_coalesces_only_recent_active_hour(self):
+        now=360050;hour=int(now)//3600
+        with self.db:
+            self.db.execute('DELETE FROM project_rollup_dirty')
+            project_rollups.put(self.db,updated_at=now-1)
+            self.db.execute('INSERT INTO project_rollup_dirty VALUES(?,1)',(hour,))
+        hot=project_rollups.worker_schedule(self.db,now)
+        self.assertFalse(hot['publish']);self.assertEqual(hot['mode'],'coalescing')
+        self.assertTrue(project_rollups.worker_schedule(self.db,now+5)['publish'])
+        self.assertTrue(project_rollups.worker_schedule(self.db,now-10)['publish'],'clock rollback must not freeze publication')
+        with self.db:self.db.execute('INSERT INTO project_rollup_dirty VALUES(?,1)',(hour-2,))
+        cold=project_rollups.worker_schedule(self.db,now)
+        self.assertTrue(cold['publish']);self.assertEqual(cold['max_hours'],4);self.assertEqual(cold['delay'],.05)
+        with self.db:self.db.execute('DELETE FROM project_rollup_dirty')
+        self.assertTrue(project_rollups.worker_schedule(self.db,now)['publish'],'metadata-only changes remain cheap and immediate')
 
     def test_background_gc_drains_retired_versions_and_stops_cleanly(self):
         self.add();self.build()
@@ -330,3 +348,36 @@ class DurableProjectRollups(unittest.TestCase):
             project_rollups.run_worker(self.path,stop,update)
         self.assertEqual(checkpoint.call_count,1)
         self.assertEqual(len(seen),3)
+
+    def test_invalidation_diagnostics_count_enqueued_hours_without_source_payload(self):
+        self.add();self.canonical()
+        rows=self.db.execute('SELECT source,queued_rows,max_batch FROM project_rollup_invalidations').fetchall()
+        self.assertTrue(rows);self.assertTrue(all(n>0 and peak>0 for source,n,peak in rows))
+        self.assertTrue(all(source.startswith(('erg_project_rollup_','erg_rollup_dependency_')) for source,n,peak in rows))
+        self.build();self.parity()
+
+    def test_invalidation_diagnostics_distinguish_historical_hours(self):
+        self.add();self.canonical()
+        rows=self.db.execute('SELECT source,historical_rows,oldest_hour FROM project_rollup_invalidations WHERE historical_rows>0').fetchall()
+        self.assertTrue(rows);self.assertTrue(all(hour==1 for source,n,hour in rows))
+        self.assertEqual(project_rollups.state(self.db).get('_dirty_cause'),'')
+
+    def test_previous_hour_corrections_coalesce_with_active_hour(self):
+        now=360050;hour=int(now)//3600
+        with self.db:
+            project_rollups.put(self.db,updated_at=now-1)
+            self.db.execute('DELETE FROM project_rollup_dirty')
+            self.db.execute('INSERT INTO project_rollup_dirty VALUES(?,1)',(hour-1,))
+        plan=project_rollups.worker_schedule(self.db,now)
+        self.assertFalse(plan['publish']);self.assertEqual(plan['max_hours'],2)
+        self.assertTrue(project_rollups.worker_schedule(self.db,now+5)['publish'])
+
+    def test_prompt_upsert_diagnostics_do_not_override_nested_conflict_policy(self):
+        self.add();self.build()
+        prompt=dict(t='prompt',uid='human',ts=3701,tool='pi',session='s',origin='human',provenance='user',text='fixture')
+        for length in (7,11,19):
+            prompt['chars']=length
+            store.ingest(self.db,[json.dumps(prompt)],machine='host')
+        self.assertEqual(self.db.execute("SELECT chars FROM prompts WHERE uid='human'").fetchone()[0],19)
+        self.assertEqual(project_rollups.state(self.db).get('_dirty_cause'),'')
+        self.build();self.parity()

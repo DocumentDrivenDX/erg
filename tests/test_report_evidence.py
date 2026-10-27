@@ -139,3 +139,32 @@ class EvidenceReports(unittest.TestCase):
             with self.db:self.db.execute("INSERT INTO sessions(machine,uid,tool,session,parent_session,last_ts) VALUES('host','pi:500','pi','500','',8000) ON CONFLICT(machine,uid) DO UPDATE SET last_ts=excluded.last_ts")
         finally:self.db.set_progress_handler(None,0)
         self.assertLess(len(steps),10,'unchanged session metadata scanned unrelated sessions')
+
+    def test_commit_object_metadata_refreshes_without_rebuilding_attributed_calls(self):
+        sha='c'*40
+        self.add();self.event(t='work_context',uid='ctx',ts=3600,tool='pi',session='s',repo='github.com/a/app',scope_id='scope',capture_version=5)
+        self.event(t='work_evidence',uid='fact',ts=4000,tool='pi',session='s',repo='github.com/a/app',scope_id='scope',sha=sha,capture_version=5,provenance='tool_commit')
+        self.build();heads=list(self.db.execute('SELECT * FROM project_rollup_heads'))
+        self.assertEqual(self.report()['commit_attributed_calls'],0)
+        self.event(t='work_commit',uid='object',ts=4000,repo='github.com/a/app',sha=sha,added_code=12,files=1,provenance='git_object')
+        self.assertEqual(project_rollups.status(self.db)['pending_hours'],0);self.build()
+        self.assertEqual(heads,list(self.db.execute('SELECT * FROM project_rollup_heads')))
+        self.assertEqual(self.report()['commit_attributed_calls'],1);self.assertEqual(self.report()['commits'][0]['added_code'],12)
+        self.event(t='work_commit',uid='object',ts=4000,repo='github.com/a/app',sha=sha,added_code=20,files=1,provenance='git_history')
+        self.build();self.assertEqual(heads,list(self.db.execute('SELECT * FROM project_rollup_heads')));self.assertEqual(self.report()['commits'][0]['added_code'],20)
+        with self.db:self.db.execute("DELETE FROM work_commit_evidence WHERE uid='object'")
+        self.build();self.assertEqual(heads,list(self.db.execute('SELECT * FROM project_rollup_heads')));self.assertEqual(self.report()['commit_attributed_calls'],0)
+
+    def test_work_facts_invalidate_only_their_scope_including_pre_commit_calls(self):
+        self.add('first',ts=3700);self.add('second',ts=7300)
+        for uid,stamp,scope in [('one',3600,'one'),('two',7200,'two')]:
+            self.event(t='work_context',uid=uid,ts=stamp,tool='pi',session='s',repo='github.com/a/app',scope_id=scope,capture_version=5)
+        self.build()
+        self.event(t='work_evidence',uid='fact',ts=5000,tool='pi',session='s',repo='github.com/a/app',scope_id='one',sha='d'*40,capture_version=5,provenance='tool_commit')
+        self.assertEqual(list(self.db.execute('SELECT hour FROM project_rollup_dirty')),[(1,)])
+        self.build()
+        # Replacement must invalidate both the retracted scope and its new scope.
+        self.event(t='work_evidence',uid='fact',ts=8000,tool='pi',session='s',repo='github.com/a/app',scope_id='two',sha='d'*40,capture_version=5,provenance='tool_commit')
+        self.assertEqual(list(self.db.execute('SELECT hour FROM project_rollup_dirty ORDER BY hour')),[(1,),(2,)])
+        self.build();raw=work.effectiveness(self.db,view='work',selection=report_scope.Selection())
+        self.assertEqual(self.report()['commit_attributed_calls'],raw['commit_attributed_calls'])

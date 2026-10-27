@@ -52,6 +52,8 @@ def initialize(db):
             triggers[table+'_'+event.lower()]=(('BEFORE INSERT' if event=='INSERT' else 'AFTER '+event)+' ON '+table+when,body)
     for name,(event,body) in triggers.items():
         name='erg_rollup_dependency_'+name
+        from .project_rollups import instrument_dirty
+        body=instrument_dirty(body,name)
         sql='CREATE TRIGGER '+name+' '+event+' BEGIN '+body+'END'
         old=db.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?",(name,)).fetchone()
         if old and old[0]!=sql:db.execute('DROP TRIGGER '+name);old=None

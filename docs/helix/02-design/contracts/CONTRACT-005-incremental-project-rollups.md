@@ -2,16 +2,35 @@
 ddx:
   id: erg.incremental-project-rollups
   status: draft
+  authoring:
+    home: repo
   links: [prd, erg.architecture, erg.project-hierarchy]
 ---
 # Incremental usage and project cost reporting
+
+## Purpose
 
 The operator requires fast opening/refreshing, demand-proportional low-rate CPU,
 and rapid catch-up using up to one core across erg components and helpers. The prior cold all-history read consumed 35 seconds
 of reporter CPU and 210 seconds wall time. It repeated allocation and request
 pricing over the full canonical corpus. An in-memory TTL cache is insufficient.
 
-## Decisions and interfaces
+## Scope and boundaries
+
+This contract governs derived reporting in the private local SQLite ledger and
+the local Databricks read cache. Capture and delivery remain independently owned.
+Rebuilding retained metadata neither imports older native history nor enables
+exports, changes enrollment, consumes quota or modifies provider credentials.
+
+## Precedence and compatibility
+
+The PRD resource policy and CONTRACT-001 session-ledger invariants take precedence.
+CONTRACT-002 owns conservative work attribution and CONTRACT-003 owns accounting
+semantics. Current demand-driven catch-up rules supersede earlier fixed CPU caps;
+no scheduling optimization may change amounts, allocation, ambiguity or atomic
+publication guarantees.
+
+## Normative surface
 
 - Persist hourly Usage cells and per-session cost cells in the local SQLite
   ledger. Retain priced, allocated per-request facts for exact partial-hour Cost
@@ -38,14 +57,13 @@ pricing over the full canonical corpus. An in-memory TTL cache is insufficient.
   Source-free hourly aggregates are already REAL numbers, so the read reducer
   sums them directly instead of converting each stored float through Decimal.
   The exact Decimal/raw implementation remains the parity oracle.
-- The collector owns a separate projection thread, with an exclusive local worker
-  lock. Default measured thread-CPU duty is 2%, including SQLite maintenance;
-  the first evidence publication cycle (including retirement cleanup) may use
-  4% before subsequent passes return to 2%. Background
-  usage projection is bounded to 60 ms / 128 candidates per scan, separately
-  from durable raw capture;
-  sleeping holds no writer lock. This reserves headroom for existing capture
-  under the fleet 10% target, not a claim of a hard global scheduler limit.
+- The collector owns a separate projection thread with an exclusive local worker
+  lock. Managed catch-up targets 90% measured thread CPU, with bounded upstream
+  pressure priority and explicit lower configured allowances respected. Sleeping
+  holds no writer lock. Normal active-hour changes coalesce; historical debt
+  drains in bounded batches. Demand-proportional low-rate process CPU and
+  up-to-one-core catch-up require sustained process-tree acceptance measurement;
+  these cooperative budgets are not a hard global scheduler limit.
 - Validate total, per-project, per-folder and per-session counts/tokens/value
   against the canonical reference, including split allocation, arbitrary time
   boundaries, source corrections/deletion, mirrors, late context, price/policy
@@ -111,12 +129,33 @@ never array offsets that could change during metadata updates.
 
 ## Bounded publication cycles and observable lag
 
-Ordinary maintenance publishes one hour per transaction. Two turns prefer the
-newest dirty hour; the third serves the oldest debt. Every publication swaps the
+Recent-hour maintenance coalesces the active and immediately preceding hour for
+five seconds after the previous publication, publishing them in one bounded batch.
+Late packets around an hour boundary do not trigger continuous catch-up mode. Older historical/future-hour debt uses
+bounded four-hour batches, reserving one slot for the oldest debt and preferring
+recent hours in the other slots. Semantic winner dependencies may expand a batch
+when required for correctness. Metadata-only changes remain immediate. Every publication swaps the
 same Usage/Costs/Work/Accounts heads. Project-policy, rate-card and definition
 changes retain a full atomic rebuild, so allocation revisions never mix. Dirty
 serials changed during a source snapshot remain queued. Per-hour source timestamps
 record when the pinned read began, separately from publication time.
+
+Content-free `project_rollup_invalidations` counters identify enqueueing trigger
+classes, historical enqueue counts, earliest affected hour and last observation.
+Counts include repeated updates of already-dirty hours; they are not distinct
+source events or token usage. Labels live within the writer transaction and never
+contain request bodies, account identifiers or credentials. Existing debt before
+instrumentation has no inferred cause. Canonical dependency triggers use the same
+attribution, so newly arriving evidence can be distinguished from stalled catch-up.
+
+Commit-object details (file/line counts and object provenance) refresh shared work
+metadata without rebuilding unchanged call facts. New, corrected or retracted
+work evidence invalidates the exact recorded work-scope context intervals on its
+machine/tool/session, including calls and inputs before the commit or PR. A scope
+replacement invalidates both its prior and new intervals. Descendant sessions or
+other scopes are not inferred to share that fact. Operator links retain their
+explicit parent-inheritance behavior. Source corrections remain authoritative and
+ambiguous attribution remains unknown.
 
 Retirement yields after at most 128 indexed chunks or 100 ms measured thread CPU
 per cycle, including pacing waits outside transactions. Each chunk retains the
@@ -179,8 +218,13 @@ The current PRD resource policy supersedes earlier 2%/4% rollup and 10% whole-to
 limits above. Capture must remain independent of derived queues. The managed
 usage/edit/work worker drains bounded transactions continuously while progress is
 possible, shares one CPU budget, and sleeps when empty or retry-blocked. Reporting
-uses a small share while corpus projection is pending, then uses the available
-catch-up budget. No database writer lock may span pacing, source subprocesses or
+uses the available catch-up budget for ordinary transient queues. Only an
+upstream queue exceeding 1,024 entries reduces reporting to a 10% thread allowance
+(or a smaller explicitly configured allowance). Pressure probes are bounded and
+cached for 250 ms; a handful of normal in-flight records MUST NOT starve report
+catch-up. Non-current-hour debt drains without the idle two-second pause. Recent
+hour changes coalesce for five seconds, with a clock-rollback escape. Waiting for
+canonical winners uses a bounded retry delay. Status distinguishes pending closed hours from older historical debt.  No database writer lock may span pacing, source subprocesses or
 network waits. Failed/retry-blocked work must not cause a busy loop.
 
 Capacity acceptance compares representative record and byte arrivals with actual
@@ -190,3 +234,24 @@ Measure active catch-up and the return to idle independently. Keep missing work
 context, cost/account uncertainty and incomplete raw traces explicit even when a
 queue has been fully acknowledged. Publication and cleanup remain bounded and
 atomic; increasing catch-up speed does not relax those invariants.
+
+
+## Error semantics
+
+A failed or interrupted build leaves the previous publication available. Staged
+rows remain invisible until their batch commits, and concurrent source serials
+remain queued for another pass. Status reports errors, backlog, source time and
+warming explicitly. Capture continues independently; no failure may fabricate
+zero usage, billed costs, successful capture or completed publication.
+
+## Examples
+
+- A few records awaiting native projection do not reduce report catch-up to a
+  tiny CPU share. A queue exceeding 1,024 candidates gives upstream work priority.
+- A hundred historical hours drain in four-hour batches, including the oldest
+  debt. A canonical winner that moves between hours couples those hours into the
+  same atomic publication even when the cohort exceeds the nominal batch size.
+- Changes in only the active hour coalesce over five seconds. A clock rollback
+  bypasses that wait; metadata-only changes remain eligible for immediate refresh.
+- A source mutation during a pinned build preserves its new dirty serial after
+  publication, so a later pass catches it without losing or double-counting facts.

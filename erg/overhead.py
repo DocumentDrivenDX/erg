@@ -54,7 +54,7 @@ class WorkerCPU:
 
     def snapshot(self):
         with self.lock:
-            return dict(scope='Measured collector thread CPU only; excludes subprocess CPU, watcher callbacks and uninstrumented code. Use cpu_accounting for process totals.',
+            return dict(scope='Measured named worker thread CPU only; excludes subprocess CPU, watcher callbacks and uninstrumented code. Use cpu_accounting for process totals.',
                         workers={k:dict(v) for k,v in self.values.items()},
                         child_window_scope='Process-wide waited-child CPU deltas during each phase, not ownership. Concurrent phases may include the same child CPU; do not sum windows or add them to cpu_accounting. Live children are excluded until reaped. Unknown/reset counters are not zero observations.',
                         child_cpu_windows={k:dict(v) for k,v in self.child_windows.items()})

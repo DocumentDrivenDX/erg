@@ -162,6 +162,8 @@ def worker(database,stop):
         with contextlib.closing(store.connect(database)) as db:
             initialize(db,dict(identity=cfg['identity'],namespace=cfg['cloud']['namespace'],host=cfg['cloud']['host']),forward_ts=forward_boundary())
             with db:project_rollups.initialize(db);project_rollups.put(db,enabled=1)
+            from . import report_evidence
+            preparation_cache=report_evidence.PreparationCache()
             while not stop.is_set():
                 try:
                     sync_policy(db)
@@ -184,7 +186,7 @@ def worker(database,stop):
                     quota=quota_projection.run(db)
                     if quota.get('pending'):
                         stop.wait(.1);continue
-                    publication=project_rollups.rebuild(database,max_hours=4)
+                    publication=project_rollups.rebuild(database,max_hours=4,preparation_cache=preparation_cache)
                     project_rollups.gc(db)
                     from . import history_browse
                     browse=history_browse.run(database,max_hours=1)

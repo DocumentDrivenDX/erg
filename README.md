@@ -127,7 +127,15 @@ Usage and Projects & costs read durable incremental rollups. Opening or refreshi
 an activated reporter never reprices the corpus. The collector rebuilds dirty
 hours from one pinned snapshot and publishes each completed batch atomically.
 Initial warming, pending changes and the previous allocation revision are explicit;
-the last completed batch remains usable while a later batch builds. Exact partial
+the last completed batch remains usable while a later batch builds. Work, account,
+quota and title preparation reuse at most one snapshot per component in each
+worker, keyed by transactional input counters. Database generation, file identity
+and schema changes invalidate reuse. Period presentation receives fresh copies,
+and missing counters fall back to fresh reads. Both reporting backends use this
+same preparation stack. `python3 -B scripts/verify-report-preparation.py --output
+/tmp/erg-preparation-parity.json` compares fresh and reused complete metadata and
+current-hour work/account decisions in a read-only snapshot. Its timings qualify
+preparation reuse, not end-to-end ingestion capacity. Exact partial
 hour cost filters use retained priced facts rather than reading source sessions.
 The reporter also reuses immutable hour payloads across publications, decoding
 only changed hours (a bounded 1,024-hour cache). Forced refresh still reloads
@@ -136,8 +144,9 @@ under the same projection budget, preventing repeated rewrites from accumulating
 obsolete data.
 Resource use follows demand. The managed service drains usage, edits and work
 in one independent worker, targeting roughly 90% thread CPU during catch-up and
-sleeping when empty or retry-blocked. Reporting yields to pending corpus projection,
-then uses the available catch-up allowance. The operator permits up to one core
+sleeping when empty or retry-blocked. Reporting yields to substantial corpus
+projection debt (over 1,024 queued records), and uses the available catch-up
+allowance for normal small transient queues. The operator permits up to one core
 while catching up; the old 10% ceiling must not stretch a backlog across hours.
 The capacity target is at least 10x representative record and byte arrivals,
 including bursts and recovery. Process-tree measurement and return-to-idle behavior
@@ -658,13 +667,30 @@ corpus, title and observed usage remain in the private ledger.
 
 ### Background overhead verification
 
-Collector heartbeats and reporter `/healthz` expose cumulative process CPU and
+Collector and delivery-worker heartbeats and reporter `/healthz` expose cumulative process CPU and
 CPU charged to waited-for child processes. These counters support before/after
 measurements; account for live children at the boundaries. They exclude browser
 rendering, hooks running inside another agent, and operating-system work.
 LaunchAgents request background scheduling and low-priority I/O; this is not a
 hard CPU cap. Catch-up may use up to one core; when input falls, resource use must
-fall with it. Validate at least 10x representative arrival capacity in records and
+fall with it. The process-tree observer includes a running delivery worker and rejects
+old uploader runtimes without CPU counters, rather than silently excluding upload
+work. Starting or stopping a component invalidates a combined measurement window.
+Delivery status counts indexed unfinished journal ranges, so completed upload
+history does not increase the send loop’s pending-count work. Batch selection
+uses the existing unsent-item index explicitly, avoiding a planner choice that
+walked delivered enrollment history on every submission. Uploader phase CPU
+counters distinguish metadata, preparation, sending and receipt refresh.
+New forward sessions seek reporting observations by machine, agent and session
+through a partial index that excludes host samples. Global PR/account/charge
+headers are reconsidered when eligible repository, PR or account keys change,
+including late evidence on an existing session. This annotates the forward corpus;
+pre-boundary native activity and session bodies remain excluded.
+Use `python3 -B scripts/verify-reporting-scope.py --output /tmp/erg-scope-parity.json`
+for a read-only comparison of the full enrolled scope with the pre-index selection
+rules. It includes already-delivered observations and reports counts and timings
+without session identifiers or payloads.
+Validate at least 10x representative arrival capacity in records and
 bytes, plus backlog recovery and return to idle. Include source reconciliation,
 periodic enrichment and active capture; a quiet short sample proves no capacity
 margin. The fixed 10% ceiling was superseded by the operator on 2026-10-24.
@@ -977,11 +1003,14 @@ hour's pinned source time. Visible Usage, Costs, Work and Accounts views poll a
 small `/api/reporting/status` response every 30 seconds for capture-check age,
 usage/work queue counts and pending hours. A newer publication offers refresh;
 it does not silently relabel the displayed data. Ordinary maintenance publishes
-one hour at a time with recent/oldest fairness and interleaves bounded retirement
-cleanup. Policy/rate changes remain atomic across all affected hours. Forward
+four-hour catch-up batches with recent/oldest fairness, coalesces active/preceding-hour
+changes over five seconds, and interleaves bounded retirement cleanup. Policy/rate changes remain atomic across all affected hours. Forward
 work preparation batches validated checkpoints and keeps parsing outside the
 writer transaction. These software budgets require live process-tree CPU and
 arrival/drain-rate verification; snapshot timestamps alone do not prove coverage.
+`python3 scripts/verify-published-reporting.py --output /tmp/erg-report-parity.json`
+compares completed hours with uncached canonical SQL, including project/folder
+costs and all four views. This explicit qualification is expensive and read-only.
 
 
 Background writes use FULL WAL synchronization with checkpoints owned by paced

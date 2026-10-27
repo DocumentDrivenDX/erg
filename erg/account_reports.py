@@ -5,7 +5,7 @@ import time
 from . import accounting,rates
 
 
-def periods(db,account_root):
+def periods(db,account_root,identities=None):
     charges_by_key={}
     for charge in accounting.rows(db,'subscription_charge_events'):
         key=(charge['provider'],account_root(charge['account_key']),charge.get('source_charge_key') or charge['uid'])
@@ -27,7 +27,7 @@ def periods(db,account_root):
     # Plan-price observations accrue from their actual observation time. They
     # are estimates, never invoice rows or invented billing anniversary dates.
     plans={}
-    for i in accounting.rows(db,'identity_events'):
+    for i in accounting.rows(db,'identity_events') if identities is None else identities:
         amount=i.get('monthly_usd')
         if accounting.number(amount) is None or amount<0 or i.get('price_currency')!='USD' or i.get('billing_interval')!='month':continue
         plans.setdefault(account_root(i['account_key']),[]).append(i)
@@ -64,7 +64,7 @@ def allocate(periods,ts,valuation,account):
             p=eligible[0][1];p['calls']+=1;rates.add(p['valuation'],valuation)
 
 
-def finish(db,account_root,identities,global_value,periods):
+def finish(db,account_root,identities,global_value,periods,quota=None):
     for period in periods.values():
         period['valuation']=rates.finish(period['valuation']);v=period['valuation'];spend=period['subscription_spend_usd']
         period['charge_provenance']=sorted(period['charge_provenance'])
@@ -72,13 +72,16 @@ def finish(db,account_root,identities,global_value,periods):
         period['known_value_per_subscription_dollar_low']=v['known_value_low_usd']/spend if spend is not None and spend>0 and v['priced_calls'] else None
         period['known_value_per_subscription_dollar_high']=v['known_value_high_usd']/spend if spend is not None and spend>0 and v['priced_calls'] else None
         period['ratio_coverage']='observed_lower_bound' if v['priced_calls'] else 'unknown'
-    from . import quota_projection
-    summary=quota_projection.summary(db,account_root)
-    if summary is None:summary=raw_quota_summary(db,account_root)
+    summary=quota if quota is not None else quota_summary(db,account_root)
     return dict(definition_version='erg.work-effectiveness.v3',cost_provenance='unknown',generated=int(time.time()),
                 valuation=rates.finish(global_value),subscription_periods=list(periods.values()),
                 accounts=[dict(i,account_key=account_root(i['account_key'])) for i in identities],**summary)
 
+
+def quota_summary(db,account_root):
+    from . import quota_projection
+    summary=quota_projection.summary(db,account_root)
+    return raw_quota_summary(db,account_root) if summary is None else summary
 
 def raw_quota_summary(db,account_root):
     quotas=accounting.rows(db,'quota_events');latest={}
@@ -100,7 +103,7 @@ def report(db):
     """Fold canonical calls with payer routes, without session, prompt or Git work."""
     from . import session_usage
     card=rates.load(db);resolve,root,identities=accounting.resolver(db)
-    subscription_periods=periods(db,root);value=rates.empty()
+    subscription_periods=periods(db,root,identities);value=rates.empty()
     cols=session_usage.CALL_COLS
     import sqlite3
     from . import report_sqlite

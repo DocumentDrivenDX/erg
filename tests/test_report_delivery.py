@@ -156,3 +156,58 @@ class ReportingDelivery(unittest.TestCase):
   with self.db:self.db.execute('INSERT INTO delivery_report_errors VALUES(?,?,?)',(row[0],row[1],'ValueError'))
   self.assertEqual(reports.retry_errors(self.db),1)
   self.assertEqual(self.db.execute('SELECT count(*) FROM delivery_report_errors').fetchone()[0],0)
+
+ def test_late_account_and_repository_unlock_older_headers_without_another_session(self):
+  self.ingest('pull_request','old-pr',40,repo='https://github.com/o/r',url='https://github.com/o/r/pull/1',title='Earlier PR')
+  self.ingest('subscription_charge','old-charge',20,account_key='account',usd=20)
+  self.ingest('subscription_charge','unrelated-charge',20,account_key='other',usd=999)
+  self.ingest('llm','old-call',50,tool='pi',session='s',fresh_in=999,out=999)
+  reports.publish(self.db,budget=5)
+  self.assertEqual(self.db.execute('SELECT count(*) FROM delivery_report_sent').fetchone()[0],0)
+  self.ingest('work_context','late-repo',250,tool='pi',session='s',repo='https://github.com/o/r')
+  self.ingest('identity','late-account',250,tool='pi',session='s',account_key='account')
+  for _ in range(4):reports.publish(self.db,budget=5)
+  self.assertEqual(reports.publish(self.db,budget=5)['queued'],0)
+  while journal.prepare_one(self.db):pass
+  cloud_dashboard.initialize(self.cloud,self.identity,forward_ts=100)
+  cloud_dashboard.apply_page(self.cloud,[(seq,item.decode()) for seq,item in self.db.execute('SELECT delivery_seq,item FROM delivery_items ORDER BY delivery_seq')])
+  self.assertEqual(self.cloud.execute('SELECT title FROM pull_requests').fetchall(),[('Earlier PR',)])
+  self.assertEqual(self.cloud.execute('SELECT usd FROM subscription_charge_events').fetchall(),[(20,)])
+  self.assertEqual(self.cloud.execute('SELECT count(*) FROM llm').fetchone()[0],0)
+  self.assertEqual(self.db.execute('SELECT count(*) FROM history_events').fetchone()[0],1)
+
+ def test_new_session_reuses_global_scope_and_seeks_only_its_own_observations(self):
+  noise=[]
+  for i in range(10000):
+   noise.append(json.dumps(dict(t='work_context',uid='context-'+str(i),ts=150,tool='pi',session='unrelated',repo='https://github.com/other/repo')))
+   noise.append(json.dumps(dict(t='subscription_charge',uid='charge-'+str(i),ts=150,account_key='unrelated',usd=1)))
+  store.ingest(self.db,noise,machine='host')
+  reports.publish(self.db,budget=5)
+  with self.db:history.put(self.db,'pi','new-session','app',250,'session',dict(type='session',id='new-session'),'native-new',machine='host')
+  self.ingest('work_context','new-context',250,tool='pi',session='new-session')
+  ticks=[];self.db.set_progress_handler(lambda:ticks.append(1) or 0,100)
+  try:result=reports.publish(self.db,budget=5)
+  finally:self.db.set_progress_handler(None,0)
+  self.assertEqual(result['queued'],1)
+  self.assertLess(len(ticks),100,'New session scanned unrelated retained observations')
+  self.assertEqual(self.db.execute("SELECT count(*) FROM delivery_snapshots WHERE origin='derived_reporting'").fetchone()[0],1)
+
+ def test_configuration_route_cannot_unlock_charges_but_session_payer_can(self):
+  self.ingest('subscription_charge','gateway-charge',20,account_key='gateway-account',provider='databricks',usd=12)
+  reports.publish(self.db,budget=5)
+  self.ingest('session_route','config',250,tool='pi',session='s',account_key='gateway-account',account_provider='databricks',scope='configuration',billing_mode='gateway')
+  for _ in range(3):reports.publish(self.db,budget=5)
+  self.assertEqual(self.db.execute("SELECT count(*) FROM delivery_snapshots WHERE role='subscription_charge'").fetchone()[0],0)
+  self.ingest('session_route','payer',251,tool='pi',session='s',account_key='gateway-account',account_provider='databricks',scope='session',billing_mode='gateway')
+  for _ in range(3):reports.publish(self.db,budget=5)
+  self.assertEqual(self.db.execute("SELECT count(*) FROM delivery_snapshots WHERE role='subscription_charge'").fetchone()[0],1)
+
+ def test_session_index_upgrade_is_idempotent(self):
+  with self.db:
+   self.db.execute('DROP INDEX delivery_observation_scope')
+   self.db.execute("CREATE INDEX delivery_observation_scope ON observations(machine,json_extract(payload,'$.tool'),json_extract(payload,'$.session'),kind,ts) WHERE kind IN ("+reports.session_kinds()+")")
+  reports.initialize(self.db)
+  self.assertIn('CAST(',self.db.execute("SELECT sql FROM sqlite_master WHERE name='delivery_observation_scope'").fetchone()[0])
+  version=self.db.execute('PRAGMA schema_version').fetchone()[0]
+  reports.initialize(self.db)
+  self.assertEqual(self.db.execute('PRAGMA schema_version').fetchone()[0],version)

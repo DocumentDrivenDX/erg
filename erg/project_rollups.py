@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import sqlite3
 import time
 import uuid
@@ -23,7 +24,14 @@ FIELDS=HEAD+NUM+['first_ts','last_ts']
 
 def initialize(db):
     db.execute('CREATE TABLE IF NOT EXISTS project_rollup_state(key TEXT PRIMARY KEY,value TEXT)')
+    db.execute("INSERT INTO project_rollup_state VALUES('_dirty_cause','') ON CONFLICT(key) DO NOTHING")
     db.execute('CREATE TABLE IF NOT EXISTS project_rollup_dirty(hour INTEGER PRIMARY KEY,serial INTEGER NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS project_rollup_invalidations(source TEXT PRIMARY KEY,queued_rows INTEGER,max_batch INTEGER,last_at INTEGER)')
+    columns={r[1] for r in db.execute('PRAGMA table_info(project_rollup_invalidations)')}
+    for column in ('historical_rows','oldest_hour'):
+        if column not in columns:db.execute('ALTER TABLE project_rollup_invalidations ADD COLUMN '+column+(' INTEGER' if column=='oldest_hour' else ' INTEGER DEFAULT 0'))
+    for event in ('INSERT','UPDATE'):
+        db.execute("CREATE TRIGGER IF NOT EXISTS project_rollup_dirty_diagnostic_"+event.lower()+" AFTER "+event+" ON project_rollup_dirty BEGIN INSERT INTO project_rollup_invalidations(source,queued_rows,max_batch,last_at,historical_rows,oldest_hour) SELECT COALESCE(NULLIF((SELECT value FROM project_rollup_state WHERE key='_dirty_cause'),''),'unattributed'),1,1,CAST(strftime('%s','now') AS INT),CASE WHEN NEW.hour<CAST(strftime('%s','now') AS INT)/3600 THEN 1 ELSE 0 END,NEW.hour ON CONFLICT(source) DO UPDATE SET queued_rows=queued_rows+1,last_at=excluded.last_at,historical_rows=coalesce(historical_rows,0)+excluded.historical_rows,oldest_hour=MIN(coalesce(oldest_hour,excluded.oldest_hour),excluded.oldest_hour); END")
     db.execute('CREATE TABLE IF NOT EXISTS project_rollup_watermarks(hour INTEGER PRIMARY KEY,version TEXT,source_at REAL)')
     db.execute('CREATE TABLE IF NOT EXISTS project_rollup_capture(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT)')
     db.execute('CREATE TABLE IF NOT EXISTS project_rollup_heads(hour INTEGER PRIMARY KEY,version TEXT NOT NULL)')
@@ -101,8 +109,17 @@ def initialize(db):
     rollup_dependencies.initialize(db)
 
 
+def instrument_dirty(body,name):
+    # Writer transactions serialize the temporary cause label; dirty-table hooks
+    # count exact affected hours, including updates of already-queued debt.
+    before="UPDATE project_rollup_state SET value='"+name+"' WHERE key='_dirty_cause'; "
+    after=" UPDATE project_rollup_state SET value='' WHERE key='_dirty_cause'; "
+    return re.sub(r'(INSERT INTO project_rollup_dirty[^;]*;)',lambda m:before+m[0]+after,body)
+
+
 def trigger(db,name,event,body):
     name='erg_project_rollup_'+name
+    body=instrument_dirty(body,name)
     sql='CREATE TRIGGER '+name+' '+event+' BEGIN '+body+'END'
     old=db.execute("SELECT sql FROM sqlite_master WHERE type='trigger' AND name=?",(name,)).fetchone()
     if old and old[0]!=sql:db.execute('DROP TRIGGER '+name);old=None
@@ -143,7 +160,7 @@ def status(db):
     from . import quota_projection
     quota_pending=quota_projection.status(db)
     target=projects.snapshot(db)['revision'];stale=bool(s.get('signature') and int(s.get('revision',0))!=target)
-    return dict(**freshness(db),quota_projection=quota_pending,migration_pending=s.get('dependency_bootstrap')=='1',target_project_revision=target,stale_policy=stale,enabled=s.get('enabled')=='1',ready=bool(s.get('signature')),state='reallocating' if stale else 'ready' if s.get('signature') else 'warming',project_revision=int(s.get('revision',0)),updated_at=float(s.get('updated_at',0)),pending_metadata=s.get('evidence_serial','0')!=s.get('evidence_published_serial',''),pending_hours=db.execute('SELECT count(*) FROM project_rollup_dirty').fetchone()[0],last_error=s.get('error') or None,building=s.get('building')=='1',completed_hours=int(s.get('completed_hours',0)),batch_hours=int(s.get('batch_hours',0)))
+    return dict(**freshness(db),quota_projection=quota_pending,pending_closed_hours=db.execute('SELECT count(*) FROM project_rollup_dirty WHERE hour<?',(int(time.time())//3600,)).fetchone()[0],pending_historical_hours=db.execute('SELECT count(*) FROM project_rollup_dirty WHERE hour<?',(int(time.time())//3600-1,)).fetchone()[0],migration_pending=s.get('dependency_bootstrap')=='1',target_project_revision=target,stale_policy=stale,enabled=s.get('enabled')=='1',ready=bool(s.get('signature')),state='reallocating' if stale else 'ready' if s.get('signature') else 'warming',project_revision=int(s.get('revision',0)),updated_at=float(s.get('updated_at',0)),pending_metadata=s.get('evidence_serial','0')!=s.get('evidence_published_serial',''),pending_hours=db.execute('SELECT count(*) FROM project_rollup_dirty').fetchone()[0],last_error=s.get('error') or None,building=s.get('building')=='1',completed_hours=int(s.get('completed_hours',0)),batch_hours=int(s.get('batch_hours',0)))
 
 
 class Pacer:
@@ -178,7 +195,7 @@ def gc(db,limit=256):
         db.execute('DELETE FROM project_rollup_gc WHERE version=? AND hour=?',row)
 
 
-def rebuild(database,tick=None,progress=None,max_hours=None):
+def rebuild(database,tick=None,progress=None,max_hours=None,preparation_cache=None):
     """One dirty batch, one source snapshot, one atomic publication; no imports."""
     tick=tick or (lambda **kwargs:None)
     with contextlib.closing(store.open_readonly(database)) as source,contextlib.closing(store.connect(path=database,initialize=False,autocheckpoint=False)) as writer:
@@ -207,7 +224,7 @@ def rebuild(database,tick=None,progress=None,max_hours=None):
         from . import report_evidence
         metadata_changed=current.get('evidence_published_serial','')!=current.get('evidence_serial','0')
         work_changed=current.get('evidence_work_serial','0')!=current.get('evidence_work_published_serial','')
-        prepared=report_evidence.prepare(source,tick,json.loads(current['evidence_metadata']) if not dirty and not work_changed and current.get('evidence_metadata') else None) if dirty or metadata_changed or not current.get('evidence_metadata') else None
+        prepared=report_evidence.prepare(source,tick,json.loads(current['evidence_metadata']) if not dirty and not work_changed and current.get('evidence_metadata') else None,cache=preparation_cache,versions=current) if dirty or metadata_changed or not current.get('evidence_metadata') else None
         metadata=json.dumps(prepared[3],separators=(',',':')) if prepared else current.get('evidence_metadata')
         if not dirty:
             if current.get('dependency_bootstrap')=='1':
@@ -388,13 +405,28 @@ def costs(db,**filters):
     return dict(available=True,generated=int(time.time()),revision=s['project_revision'],catalog=catalog,binding_count=int(state(db).get('binding_count',0)),filters=v,totals=project_reports.finish(totals),projects=sorted((project_reports.finish(r) for r in buckets.values()),key=lambda r:-r['tokens']),folders=sorted(folder_rows,key=lambda r:-r['tokens']),folder_catalog=list(folders.values()),observed_tools=sorted(tools),sessions=output,session_count=len(sessions),sessions_truncated=len(sessions)>100,unassigned_reasons=reasons,rate_card_dates=sorted(price_dates),rate_sources=sorted(price_sources),warnings=['Unreconciled agent/server source observations may overlap; this is not a deduplicated physical-spend total.'] if overlap else [],monetary_basis='Reference token value and native reported estimates are separate; actual billed and allocated subscription expense are unknown',context_scope='Recorded context; durable incremental hourly reporting',rollup_status=s)
 
 
+# A few records between capture/projection ticks are normal, not catch-up debt.
+CORPUS_PRESSURE_ROWS=1024
+RECENT_HOUR_COALESCE_SECONDS=5
+
+
 def worker_allowance(db,duty):
-    # Prioritize corpus projection on the shared CPU budget. Once it is clear,
-    # reporting catches up quickly instead of spreading the same CPU over minutes.
     for table in ('history_pending','history_edit_pending','history_work_pending'):
-        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",(table,)).fetchone() and db.execute('SELECT 1 FROM '+table+' LIMIT 1').fetchone():
-            return min(.02,duty)
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",(table,)).fetchone() and db.execute('SELECT 1 FROM '+table+' LIMIT 1 OFFSET ?',(CORPUS_PRESSURE_ROWS,)).fetchone():
+            return min(.10,duty)
     return duty
+
+
+def worker_schedule(db,now=None):
+    now=time.time() if now is None else now;hour=int(now)//3600
+    cold=db.execute('SELECT 1 FROM project_rollup_dirty WHERE hour<? OR hour>? LIMIT 1',(hour-1,hour)).fetchone()
+    if cold:return dict(publish=True,max_hours=4,delay=.05,mode='catchup')
+    hot=db.execute('SELECT 1 FROM project_rollup_dirty WHERE hour BETWEEN ? AND ? LIMIT 1',(hour-1,hour)).fetchone()
+    stamp=db.execute("SELECT value FROM project_rollup_state WHERE key='updated_at'").fetchone()
+    age=now-float(stamp[0]) if stamp else RECENT_HOUR_COALESCE_SECONDS
+    if hot and 0<=age<RECENT_HOUR_COALESCE_SECONDS:
+        return dict(publish=False,max_hours=2,delay=min(2,RECENT_HOUR_COALESCE_SECONDS-age),mode='coalescing')
+    return dict(publish=True,max_hours=2 if hot else 1,delay=2,mode='recent' if hot else 'current')
 
 
 def run_worker(database,stop,update=None,duty=.90,measure=None):
@@ -413,9 +445,17 @@ def run_worker(database,stop,update=None,duty=.90,measure=None):
                 except sqlite3.OperationalError as error:
                     if 'locked' not in str(error).lower():raise
                     stop.wait(2)
-            allowance=lambda:worker_allowance(db,duty)
+            pressure=dict(at=float('-inf'),value=duty)
+            def allowance():
+                now=time.monotonic()
+                if now-pressure['at']>=.25:
+                    pressure.update(at=now,value=worker_allowance(db,duty))
+                return pressure['value']
+            from . import report_evidence
+            preparation_cache=report_evidence.PreparationCache()
             pacer=Pacer(stop,allowance);last_checkpoint=0;checkpoint=None
             while not stop.is_set():
+                result={}
                 try:
                     if not db.execute("SELECT 1 FROM sqlite_master WHERE type='trigger' AND name='erg_project_rollup_winner_insert'").fetchone():
                         with db:
@@ -425,8 +465,12 @@ def run_worker(database,stop,update=None,duty=.90,measure=None):
                     if quota.get('pending'):
                         if update:update(dict(status(db),quota_projection=quota))
                         stop.wait(.1);continue
+                    schedule=worker_schedule(db)
+                    if not schedule['publish']:
+                        if update:update(dict(status(db),scheduler_mode=schedule['mode'],worker_cpu_seconds=time.thread_time()-worker_cpu_start))
+                        stop.wait(schedule['delay']);pacer=Pacer(stop,allowance);continue
                     progress=lambda value:update(dict(value,worker_cpu_seconds=time.thread_time()-worker_cpu_start)) if update else None
-                    result=measure('project_rollups',rebuild,database,pacer,progress,max_hours=1) if measure else rebuild(database,pacer,progress,max_hours=1)
+                    result=measure('project_rollups',rebuild,database,pacer,progress,max_hours=schedule['max_hours'],preparation_cache=preparation_cache) if measure else rebuild(database,pacer,progress,max_hours=schedule['max_hours'],preparation_cache=preparation_cache)
                     # Drain retired versions, not one chunk per publication:
                     # busy-hour rewrites can retire thousands of facts at once.
                     # Each indexed chunk commits before the duty-cycle sleep.
@@ -446,9 +490,10 @@ def run_worker(database,stop,update=None,duty=.90,measure=None):
                     last_checkpoint=time.monotonic()
                     try:checkpoint=store.passive_checkpoint(db)
                     except Exception as error:checkpoint=dict(state='error',error=type(error).__name__)
-                if update:update(dict(status(db),checkpoint=checkpoint,worker_cpu_seconds=time.thread_time()-worker_cpu_start))
+                if update:update(dict(status(db),checkpoint=checkpoint,worker_cpu_seconds=time.thread_time()-worker_cpu_start,preparation_cache=preparation_cache.stats()))
                 try:pacer(force=True)
                 except InterruptedError:break
                 # Fresh pacing window prevents idle credits permitting a burst.
-                stop.wait(2);pacer=Pacer(stop,allowance)
+                delay=.25 if result.get('state')=='waiting_for_canonical_winners' else worker_schedule(db)['delay']
+                stop.wait(delay);pacer=Pacer(stop,allowance)
     finally:lock.close()

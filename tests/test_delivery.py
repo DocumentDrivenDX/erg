@@ -232,4 +232,32 @@ class Delivery(unittest.TestCase):
         self.assertEqual(head, (2, 'content_tombstone'))
 
 
+    def test_pending_revision_status_does_not_scan_completed_history(self):
+        journal.enroll(self.db, IDENTITY)
+        with self.db:
+            self.db.executemany("INSERT INTO delivery_journal(enrollment_id,installation_id,destination_generation,event_id,revision,source_seq,snapshot,captured_at,prepared) VALUES('fixture-device','fixture-install','fixture-generation',?,1,0,'{}',1,?)",[(str(n),1) for n in range(20000)]+[('pending',0),('failed',-1),('future',2)])
+        ticks=[]
+        self.db.set_progress_handler(lambda:ticks.append(1) or 0,100)
+        try:status=journal.status(self.db)
+        finally:self.db.set_progress_handler(None,0)
+        self.assertEqual(status['pending_revisions'],3)
+        self.assertEqual(status['blocked_revisions'],1)
+        self.assertLess(len(ticks),100,'Status scanned completed journal history')
+
+
+    def test_batch_selection_does_not_scan_delivered_history_or_other_enrollments(self):
+        journal.enroll(self.db, IDENTITY)
+        with self.db:
+            self.db.executemany("INSERT INTO delivery_items(enrollment_id,destination_generation,delivery_seq,journal_id,item,batch_id,accepted,materialized,projected) VALUES('fixture-device','fixture-generation',?,0,'{}','archived',1,1,1)",[(n,) for n in range(100,20100)])
+            self.db.execute("INSERT INTO delivery_items(enrollment_id,destination_generation,delivery_seq,journal_id,item) VALUES('other-device','fixture-generation',1,0,'{}')")
+            self.put()
+        journal.prepare_one(self.db)
+        ticks=[];self.db.set_progress_handler(lambda:ticks.append(1) or 0,100)
+        try:batch=journal.next_batch(self.db)
+        finally:self.db.set_progress_handler(None,0)
+        self.assertLess(len(ticks),100,'Batch selection scanned delivered history')
+        self.assertEqual([r['delivery_seq'] for r in wire.decode(batch[1])['items']],[1])
+        self.assertIsNone(self.db.execute("SELECT batch_id FROM delivery_items WHERE enrollment_id='other-device'").fetchone()[0])
+
+
 if __name__ == '__main__': unittest.main()

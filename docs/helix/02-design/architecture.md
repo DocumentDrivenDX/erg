@@ -562,8 +562,10 @@ under CPU duty pacing and exposed through one atomic head update. Pending serial
 survive intervening writes. Reporters read completed projections and expose lag,
 warming and the active allocation revision. Their refresh path does not perform
 source allocation/pricing. The worker is independent from capture threads and its
-default 2% measured thread-CPU allowance reserves headroom under the 10% fleet
-target; it does not replace sustained process-tree acceptance measurement.
+catch-up allowance uses available CPU for bounded historical batches. Normal
+in-flight capture queues do not suppress publication; substantial upstream debt
+receives priority. Active-hour updates coalesce over five seconds. Demand-based
+pacing does not replace sustained process-tree acceptance measurement.
 
 
 ## Shared dashboard over the Databricks corpus

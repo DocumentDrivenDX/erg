@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS delivery_report_scope(machine TEXT,tool TEXT,session 
 CREATE TABLE IF NOT EXISTS delivery_report_seed(event_id TEXT PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS delivery_report_sent(event_id TEXT PRIMARY KEY,source_seq INTEGER);
 CREATE TABLE IF NOT EXISTS delivery_report_errors(event_id TEXT PRIMARY KEY,source_seq INTEGER,reason TEXT);
+CREATE TABLE IF NOT EXISTS delivery_report_global_scope(id INTEGER PRIMARY KEY CHECK(id=1),digest TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS delivery_context_scope(machine TEXT,tool TEXT,session TEXT,PRIMARY KEY(machine,tool,session));
 CREATE TABLE IF NOT EXISTS delivery_context_dirty(machine TEXT,source_uid TEXT,PRIMARY KEY(machine,source_uid));
 CREATE TRIGGER IF NOT EXISTS delivery_context_insert AFTER INSERT ON project_contexts
@@ -31,6 +32,8 @@ ACTIVITY=frozenset(('llm','prompt','edit'))
 CONTEXT=frozenset(('project_context','work_context','work_link','work_evidence','pull_request','pr_commit','work_commit','commit'))
 ACCOUNT=frozenset(('identity','session_route','quota','session_cost','account_binding','subscription_charge'))
 
+def session_kinds():return ','.join("'"+kind+"'" for kind in sorted(SESSION))
+
 def initialize(db):
     db.executescript(SCHEMA)
     if 'seeded' not in {r[1] for r in db.execute('PRAGMA table_info(delivery_report_scope)')}:db.execute('ALTER TABLE delivery_report_scope ADD COLUMN seeded INTEGER DEFAULT 0')
@@ -39,6 +42,15 @@ def initialize(db):
     with db:db.execute('UPDATE delivery_report_seed SET source_seq=(SELECT seq FROM observations o WHERE o.event_id=delivery_report_seed.event_id) WHERE source_seq IS NULL')
     db.execute('CREATE INDEX IF NOT EXISTS delivery_report_seed_order ON delivery_report_seed(source_seq,event_id)')
     db.execute('CREATE INDEX IF NOT EXISTS delivery_snapshot_scope ON delivery_snapshots(machine,tool,session,ts)')
+    db.execute("CREATE INDEX IF NOT EXISTS delivery_identity_scope ON identity_events(machine,tool,session,account_key) WHERE account_key<>''")
+    db.execute("CREATE INDEX IF NOT EXISTS delivery_route_scope ON session_route_events(machine,tool,session,account_key) WHERE account_key<>''")
+    # Exclude host samples and other non-session observations from this index.
+    # TEXT affinity must match the enrolled identity columns, or SQLite uses
+    # only the machine prefix and scans every session on that machine.
+    sql="CREATE INDEX delivery_observation_scope ON observations(machine,CAST(json_extract(payload,'$.tool') AS TEXT),CAST(json_extract(payload,'$.session') AS TEXT),kind,ts) WHERE kind IN ("+session_kinds()+")"
+    previous=db.execute("SELECT sql FROM sqlite_master WHERE type='index' AND name='delivery_observation_scope'").fetchone()
+    if previous and previous[0]!=sql:db.execute('DROP INDEX delivery_observation_scope');previous=None
+    if not previous:db.execute(sql)
 
 def retry_errors(db,limit=64):
     """Explicit bounded recovery after a schema/runtime update, before publication.
@@ -111,30 +123,36 @@ def publish(db,limit=4000,budget=.35):
         db.execute('UPDATE delivery_report_progress SET scope_seq=? WHERE id=1',(latest,))
     context_queued=publish_contexts(db,config)
     scope=set(db.execute('SELECT machine,tool,session FROM delivery_report_scope'))
-    repos={r[0] for r in db.execute("SELECT DISTINCT c.repo FROM work_contexts c JOIN delivery_report_scope s ON c.machine=s.machine AND c.tool=s.tool AND c.session=s.session WHERE c.repo<>''")}
+    repos={r[0] for r in db.execute("SELECT DISTINCT c.repo FROM delivery_report_scope s CROSS JOIN work_contexts c INDEXED BY work_context_session ON c.machine=s.machine AND c.tool=s.tool AND c.session=s.session WHERE c.repo<>''")}
     prs={url for repo,url in db.execute('SELECT repo,url FROM pull_requests') if repo in repos}
-    accounts={r[0] for r in db.execute("SELECT DISTINCT i.account_key FROM identity_events i JOIN delivery_report_scope s ON i.machine=s.machine AND i.tool=s.tool AND i.session=s.session WHERE i.account_key<>''")}
-    accounts.update(r[0] for r in db.execute("SELECT DISTINCT i.account_key FROM session_route_events i JOIN delivery_report_scope s ON i.machine=s.machine AND i.tool=s.tool AND i.session=s.session WHERE i.account_key<>'' AND i.account_provider<>'' AND i.scope<>'configuration'"))
+    accounts={r[0] for r in db.execute("SELECT DISTINCT i.account_key FROM delivery_report_scope s CROSS JOIN identity_events i INDEXED BY delivery_identity_scope ON i.machine=s.machine AND i.tool=s.tool AND i.session=s.session WHERE i.account_key<>''")}
+    accounts.update(r[0] for r in db.execute("SELECT DISTINCT i.account_key FROM delivery_report_scope s CROSS JOIN session_route_events i INDEXED BY delivery_route_scope ON i.machine=s.machine AND i.tool=s.tool AND i.session=s.session WHERE i.account_key<>'' AND i.account_provider<>'' AND i.scope<>'configuration'"))
     high=db.execute('SELECT seq FROM journal_clock WHERE id=1').fetchone()[0]
-    if db.execute('SELECT 1 FROM delivery_report_scope WHERE seeded=0 LIMIT 1').fetchone():
-        # Indexed kind/time selection of current, scoped snapshots. No native body
-        # reads and no walk through millions of retained host samples.
-        kinds=sorted(SESSION-ACTIVITY);marks=','.join('?' for _ in kinds)
-        unsent="NOT EXISTS(SELECT 1 FROM delivery_report_sent sent WHERE sent.event_id=e.event_id AND sent.source_seq>=e.seq)"
-        scope_sql=unsent+" AND EXISTS(SELECT 1 FROM delivery_report_scope s WHERE s.seeded=0 AND s.machine=e.machine AND s.tool=json_extract(e.payload,'$.tool') AND s.session=json_extract(e.payload,'$.session'))"
-        ids=db.execute("SELECT event_id,seq FROM observations e INDEXED BY observations_kind WHERE kind IN ("+marks+") AND seq<=? AND "+scope_sql,kinds+[high]).fetchall()
-        ids+=db.execute("SELECT event_id,seq FROM observations e INDEXED BY observations_ts WHERE ts>=? AND seq<=? AND kind IN ('llm','prompt','edit') AND "+scope_sql,(config[3],high)).fetchall()
-        # Only newly relevant global metadata. Already delivered versions cannot
-        # re-enter the seed whenever another forward session is discovered.
+    # Global headers are reconsidered when eligibility changes, including a
+    # late route/account/repository for an already-enrolled session. A new
+    # session using the same keys must not rescan unrelated retained headers.
+    digest=wire.digest(wire.encode([sorted(repos),sorted(prs,key=lambda v:json.dumps(v)),sorted(accounts)]))
+    previous=db.execute('SELECT digest FROM delivery_report_global_scope WHERE id=1').fetchone()
+    global_changed=previous is None or previous[0]!=digest
+    new_scopes=bool(db.execute('SELECT 1 FROM delivery_report_scope WHERE seeded=0 LIMIT 1').fetchone())
+    ids=[]
+    unsent="NOT EXISTS(SELECT 1 FROM delivery_report_sent sent WHERE sent.event_id=e.event_id AND sent.source_seq>=e.seq)"
+    if new_scopes:
+        # Seek only new session identities; never scan all retained kinds or
+        # recent host samples to find their content-free reporting evidence.
+        ids=db.execute("SELECT e.event_id,e.seq FROM delivery_report_scope s CROSS JOIN observations e INDEXED BY delivery_observation_scope ON e.machine=s.machine AND CAST(json_extract(e.payload,'$.tool') AS TEXT)=s.tool AND CAST(json_extract(e.payload,'$.session') AS TEXT)=s.session WHERE s.seeded=0 AND e.kind IN ("+session_kinds()+") AND e.seq<=? AND (e.kind NOT IN ('llm','prompt','edit','session','session_cost','quota') OR e.ts>=?) AND "+unsent,(high,config[3])).fetchall()
+    if global_changed:
         global_ids=db.execute("SELECT event_id,payload,kind,seq FROM observations e INDEXED BY observations_kind WHERE kind IN ('pull_request','pr_commit','work_commit','subscription_charge','identity','account_binding') AND seq<=? AND "+unsent,(high,))
         for eid,encoded,kind,source_seq in global_ids:
             value=json.loads(encoded)
             relevant=value.get('repo') in repos if kind in ('pull_request','work_commit') else value.get('pr_url') in prs if kind=='pr_commit' else (kind=='subscription_charge' or not value.get('session')) and bool(value.get('account_key')) and value['account_key'] in accounts
             if relevant:ids.append((eid,source_seq))
         ids+=db.execute("SELECT event_id,seq FROM observations e INDEXED BY observations_ts WHERE kind IN ('commit','quota') AND ts>=? AND seq<=? AND "+unsent,(config[3],high)).fetchall()
+    if new_scopes or global_changed:
         with db:
             db.executemany('INSERT OR IGNORE INTO delivery_report_seed(event_id,source_seq) VALUES(?,?)',ids)
-            db.execute('UPDATE delivery_report_scope SET seeded=1')
+            if new_scopes:db.execute('UPDATE delivery_report_scope SET seeded=1')
+            if global_changed:db.execute('INSERT INTO delivery_report_global_scope VALUES(1,?) ON CONFLICT(id) DO UPDATE SET digest=excluded.digest',(digest,))
             if cursor==0:db.execute('UPDATE delivery_report_progress SET source_seq=? WHERE id=1',(high,));cursor=high
     with db:db.execute('DELETE FROM delivery_report_seed WHERE event_id IN (SELECT s.event_id FROM (SELECT event_id FROM delivery_report_seed ORDER BY source_seq LIMIT 4000) s JOIN delivery_report_sent sent ON s.event_id=sent.event_id JOIN observations o ON o.event_id=s.event_id WHERE sent.source_seq>=o.seq LIMIT 4000)')
     def seed_rows():

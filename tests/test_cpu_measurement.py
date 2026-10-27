@@ -25,3 +25,12 @@ class CPUProbe(unittest.TestCase):
             self.assertEqual(path.stat().st_mode&0o777,0o600)
             with self.assertRaises(ValueError):probe.run(8787,60,50,str(path))
             self.assertEqual(json.loads(path.read_text()),dict(state='complete'))
+
+    def test_delivery_cannot_silently_disappear_or_join_a_measurement(self):
+        before=self.state(100,3);after=self.state(200,4)
+        before['components']['delivery']=dict(sampled_at=100,cpu_seconds=1,pid=2,identity='upload')
+        after['components']['delivery']=dict(sampled_at=200,cpu_seconds=3,pid=2,identity='upload')
+        self.assertEqual(probe.interval(before,after)['combined_percent'],3)
+        del after['components']['delivery']
+        self.assertIsNone(probe.interval(before,after)['combined_percent'])
+        self.assertIsNone(probe.interval(after,before)['combined_percent'])
