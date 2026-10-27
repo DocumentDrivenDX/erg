@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "aliases": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "qwen3.8-flash-next-reasoner": "qwen3.8-flash-next",
+    "qwen3.8-flash-next-chat": "qwen3.8-flash-next"
+  },
+  "entries": [
+    {
+      "model": "qwen3.8-flash-next",
+      "channel": "lyceum-api",
+      "input": 0.2,
+      "output": 0.5,
+      "cache_read": 0.05,
+      "cache_write_5m": 0.2,
+      "as_of": "2026-10-26",
+      "source": "https://lyceum.technology/models/",
+      "basis": "market_comparison",
+      "note": "Local ds4 aliases identify Qwen3.8 Flash Next. Lyceum public API comparison; not local electricity/hardware expense. Cache creation valued at fresh input.",
+      "tiers": []
+    },
+    {
+      "model": "glm-5-3-flash",
+      "channel": "lyceum-api",
+      "input": 0.2,
+      "output": 0.5,
+      "cache_read": 0.05,
+      "cache_write_5m": 0.2,
+      "as_of": "2026-10-26",
+      "source": "https://lyceum.technology/models/",
+      "basis": "market_comparison",
+      "tiers": []
+    },
+    {
+      "model": "kimi-k3",
+      "channel": "lyceum-api",
+      "input": 3,
+      "output": 15,
+      "cache_read": 0.75,
+      "cache_write_5m": 3,
+      "as_of": "2026-10-26",
+      "source": "https://lyceum.technology/models/",
+      "basis": "market_comparison",
+      "tiers": []
+    }
+  ],
+  "reviewer_valuation": "observed_parent_model_range.v1"
+}

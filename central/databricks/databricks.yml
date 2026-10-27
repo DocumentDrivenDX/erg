@@ -1,0 +1,101 @@
+bundle:
+  name: erg-central
+
+variables:
+  deployment_root:
+    description: Infra-approved private bundle folder with deployment-write and processor-read ACLs
+  workspace_host:
+    description: Qualified private production workspace origin
+  workspace_id:
+    description: Numeric workspace ID for scoped Zerobus resource
+  processor_service_principal:
+    description: Native Databricks processor application ID
+  zerobus_endpoint:
+    description: Qualified Zerobus HTTPS origin
+  oauth_secret_scope:
+    description: Dedicated processor secret scope (not a secret value)
+  oauth_secret_key:
+    description: Qualified credential key reference (not a secret value)
+  oauth_scope:
+    description: Narrow approved processor scope; wider scopes require separate qualification
+    default: unity-catalog
+  catalog:
+    default: erg
+  ingest_schema:
+    description: Zerobus raw landing schema, independent of private spool/control volumes
+    default: ingest
+  telemetry_schema:
+    default: telemetry
+  admin_schema:
+    default: admin
+  reporting_schema:
+    default: reporting
+  spool_prefix:
+    default: v1
+  spool_volume:
+    default: /Volumes/erg/ingest/spool
+  control_volume:
+    default: /Volumes/erg/ingest/control
+  processor_archive:
+    description: Immutable versioned processor artifact; existing active runs retain their original archive path
+    default: erg-central.pyz
+  schedule_pause_status:
+    description: Explicitly UNPAUSED only for an authorized forward enrollment
+    default: PAUSED
+  execution_enabled:
+    description: Remains false until qualification and explicit deployment approval
+    default: "false"
+
+# Authentication host is supplied by the approved CLI profile/DATABRICKS_HOST.
+# Bundle variables cannot configure workspace authentication.
+
+sync:
+  include:
+    - job.py
+    - erg-central.pyz
+    - erg-central-reporting-v1.pyz
+    - erg-central-reporting-v2.pyz
+    - erg-central-reporting-v3.pyz
+    - erg-central-reporting-v4.pyz
+
+resources:
+  jobs:
+    processor:
+      name: erg-central-processor
+      max_concurrent_runs: 1
+      queue:
+        enabled: false
+      timeout_seconds: 900
+      run_as:
+        service_principal_name: ${var.processor_service_principal}
+      schedule:
+        quartz_cron_expression: "0 0/5 * * * ?"
+        timezone_id: UTC
+        pause_status: ${var.schedule_pause_status}
+      environments:
+        - environment_key: central
+          spec:
+            environment_version: "4"
+      parameters:
+        - name: action
+          default: reconcile
+        - name: enabled
+          default: ${var.execution_enabled}
+        - name: verification_manifest
+          default: ""
+      tasks:
+        - task_key: reconcile
+          environment_key: central
+          spark_python_task:
+            python_file: job.py
+            parameters: [--action, "{{job.parameters.action}}", --enabled, "{{job.parameters.enabled}}", --workspace, "${var.workspace_host}", --workspace-id, "${var.workspace_id}", --zerobus-endpoint, "${var.zerobus_endpoint}", --catalog, "${var.catalog}", --ingest-schema, "${var.ingest_schema}", --telemetry-schema, "${var.telemetry_schema}", --spool-volume, "${var.spool_volume}", --control-volume, "${var.control_volume}", --client-id, "${var.processor_service_principal}", --secret-scope, "${var.oauth_secret_scope}", --secret-key, "${var.oauth_secret_key}", --application-archive, "${workspace.file_path}/${var.processor_archive}", --oauth-scope, "${var.oauth_scope}", --verification-manifest, "{{job.parameters.verification_manifest}}"]
+
+targets:
+  qualification:
+    mode: production
+    # Preparation only: the namespace/network plan must be reviewed and applied
+    # by infra before deployment or any enabled run against this target.
+    variables:
+      ingest_schema: zerobus_landing
+    workspace:
+      root_path: ${var.deployment_root}

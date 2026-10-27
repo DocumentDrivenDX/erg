@@ -15,7 +15,7 @@
 - **python-uv** — Python language runtime, with project overrides below (areas: all)
 - **testing** — layered tests; `unittest` here (areas: all)
 - **o11y-otel** — OpenTelemetry is the governing telemetry model for traces erg emits and ingests (areas: collect, gateway)
-- **security-owasp** — prompt text is measured and discarded; no credentials stored (areas: all)
+- **security-owasp** — usage envelopes exclude content; explicitly enrolled private history preserves bodies, while transport credentials are excluded (areas: all)
 - **scope-discipline** — explicit non-goals in the PRD gate gold-plating (areas: all)
 - **unity-catalog** — Databricks realization of governance for gateway reads and any future writes (areas: gateway)
 - **databricks-ai-gateway** — gateway usage and trace tables as an ingest and export target (areas: gateway)

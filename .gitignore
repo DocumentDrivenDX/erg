@@ -6,3 +6,12 @@ perf.ndjson
 .DS_Store
 .venv/
 dist/
+
+# Build products and machine-specific deployment/evidence (preserved locally).
+build/
+*.egg-info/
+*.pyz
+*.zip
+.databricks/
+.local-evidence/
+/docs/helix/04-build/evidence/

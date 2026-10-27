@@ -1,0 +1,705 @@
+# erg price ledger -- SEED (draft). Pure data; see docs/research/pricing-sources.md.
+# Units: USD per 1,000,000 tokens. Every entry was read from the cited URL on as_of.
+# provenance: reported = read from the source; configured = user-entered; unknown = no verified price.
+# Anything not here is NOT priced: do not infer prices for it.
+schema_version: 0
+status: draft
+generated: 2026-10-16
+currency: USD
+unit: per_mtok
+
+aliases:
+  # canonical id -> surface spellings seen in local data / gateway (dash for dot). Mapping inferred from naming, confirm per release.
+  gemini-3.1-flash-lite: [gemini-3-1-flash-lite]
+  gemini-3.1-pro: [gemini-3-1-pro]
+  gemini-3.5-flash: [gemini-3-5-flash]
+  gemini-3.5-flash-lite: [gemini-3-5-flash-lite]
+  gemini-3.6-flash: [gemini-3-6-flash]
+  gemini-3.7-flash: [gemini-3-7-flash]
+  gemini-3.8-flash: [gemini-3-8-flash]
+  gpt-5.1: [gpt-5-1]
+  gpt-5.2: [gpt-5-2]
+  gpt-5.3-codex: [gpt-5-3-codex]
+  gpt-5.4: [gpt-5-4]
+  gpt-5.4-mini: [gpt-5-4-mini]
+  gpt-5.4-nano: [gpt-5-4-nano]
+  gpt-5.5: [gpt-5-5]
+  gpt-5.5-pro: [gpt-5-5-pro]
+  gpt-5.6-luna: [gpt-5-6-luna]
+  gpt-5.6-sol: [gpt-5-6-sol]
+  gpt-5.6-terra: [gpt-5-6-terra]
+  gpt-6.1-sol: [gpt-6-1-sol]
+
+entries:
+  # ---- Anthropic first-party API (official pricing page) ----
+  - model: claude-fable-5-1
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 10
+    output: 50
+    cache_read: 0.25
+    cache_write_5m: 12.5
+    cache_write_1h: 20
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-fable-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 10
+    output: 50
+    cache_read: 1
+    cache_write_5m: 12.5
+    cache_write_1h: 20
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-opus-5-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 4
+    output: 20
+    cache_read: 0.2
+    cache_write_5m: 5
+    cache_write_1h: 8
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-opus-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 5
+    output: 25
+    cache_read: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-sonnet-5-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 2
+    output: 10
+    cache_read: 0.1
+    cache_write_5m: 2.5
+    cache_write_1h: 4
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-sonnet-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 2
+    output: 10
+    cache_read: 0.2
+    cache_write_5m: 2.5
+    cache_write_1h: 4
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-sonnet-4-6
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 3
+    output: 15
+    cache_read: 0.3
+    cache_write_5m: 3.75
+    cache_write_1h: 6
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-opus-4-8
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 5
+    output: 25
+    cache_read: 0.5
+    cache_write_5m: 6.25
+    cache_write_1h: 10
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; 1M context at standard price; inference_geo us = x1.1"
+  - model: claude-sonnet-4-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 3
+    output: 15
+    cache_read: 0.3
+    cache_write_5m: 3.75
+    cache_write_1h: 6
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "page states 1M-context standard pricing only for 4.6+; OpenRouter shows a >200k surcharge for 4.5 (unverified here)"
+  - model: claude-haiku-4-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 1
+    output: 5
+    cache_read: 0.1
+    cache_write_5m: 1.25
+    cache_write_1h: 2
+    tiers:
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "batch 50% off per official page; no inference_geo support listed (4.6+ only)"
+  - model: claude-haiku-5-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 0.1
+    output: 0.5
+    cache_read: 0.01
+    cache_write_5m: 0.125
+    cache_write_1h: 0.2
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 100000, input: 0.5, output: 2.5, cache_read: 0.05, cache_write_5m: 0.625, cache_write_1h: 1}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache]}
+    note: "prompt length counts cache reads and writes"
+  # Opus 5.5 fast mode: input 8 / output 40; Opus 5 fast mode: 10 / 50 (same page, research preview).
+  - model: claude-opus-5-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 8
+    output: 40
+    service_tier: fast
+    note: "fast mode; cache multipliers stack on this price"
+  - model: claude-opus-5
+    channel: anthropic-api
+    billing_kind: payg
+    provenance: reported
+    source: https://platform.claude.com/docs/en/about-claude/pricing
+    as_of: '2026-10-16'
+    input: 10
+    output: 50
+    service_tier: fast
+    note: "fast mode, research preview"
+  # ---- OpenAI first-party API (official pricing page; short-context / >272K-input tiers) ----
+  - model: gpt-6.1-sol
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 2
+    output: 10
+    cache_read: 0.1
+    cache_write_5m: 2.5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 4, output: 15, cache_read: 0.2, cache_write: 5}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-6-sol
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 2
+    output: 10
+    cache_read: 0.2
+    cache_write_5m: 2.5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 4, output: 15, cache_read: 0.4, cache_write: 5}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-6-astra
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 10
+    output: 50
+    cache_read: 1
+    cache_write_5m: 12.5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 20, output: 75, cache_read: 2, cache_write: 25}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-6-luna
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 0.1
+    output: 0.5
+    cache_read: 0.01
+    cache_write_5m: 0.125
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 0.2, output: 0.75, cache_read: 0.02, cache_write: 0.25}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-5.6-sol
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 4
+    output: 20
+    cache_read: 0.4
+    cache_write_5m: 5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 8, output: 30, cache_read: 0.8, cache_write: 10}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-5.6-terra
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 2
+    output: 12
+    cache_read: 0.2
+    cache_write_5m: 2.5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 4, output: 18, cache_read: 0.4, cache_write: 5}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-5.6-luna
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 0.2
+    output: 1.2
+    cache_read: 0.02
+    cache_write_5m: 0.25
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 0.4, output: 1.8, cache_read: 0.04, cache_write: 0.5}
+      - {kind: batch, multiplier: 0.5, applies_to: [input, output, cache], note: flex matches batch}
+      - {kind: fast, multiplier: 2, applies_to: [input, output, cache]}
+    note: "OpenAI cache write has a single price; stored as cache_write_5m"
+  - model: gpt-5.5
+    channel: openai-api
+    billing_kind: payg
+    provenance: reported
+    source: https://developers.openai.com/api/docs/pricing
+    as_of: '2026-10-16'
+    input: 5
+    output: 30
+    cache_read: 0.5
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 10, output: 45, cache_read: 1}
+      - {kind: batch, input: 2.5, output: 15, cache_read: 0.25}
+      - {kind: fast, input: 12.5, output: 75, cache_read: 1.25}
+    note: "no cache-write price listed"
+  # ---- Databricks gateway: see databricks_gateway section below (cash price differs from list) ----
+  # ---- OpenRouter models API (aggregator; cheapest-route price, NOT first-party) ----
+  - model: gpt-5.4-mini
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.75
+    output: 4.5
+    cache_read: 0.075
+    openrouter_id: openai/gpt-5.4-mini
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.4-nano
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.2
+    output: 1.25
+    cache_read: 0.02
+    openrouter_id: openai/gpt-5.4-nano
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.4
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 2.5
+    output: 15
+    cache_read: 0.25
+    openrouter_id: openai/gpt-5.4
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 5, output: 22.5}
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.2
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 1.75
+    output: 14
+    cache_read: 0.175
+    openrouter_id: openai/gpt-5.2
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.1
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 1.25
+    output: 10
+    cache_read: 0.125
+    openrouter_id: openai/gpt-5.1
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 1.25
+    output: 10
+    cache_read: 0.125
+    openrouter_id: openai/gpt-5
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5-mini
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.25
+    output: 2
+    cache_read: 0.025
+    openrouter_id: openai/gpt-5-mini
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5-nano
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.05
+    output: 0.4
+    cache_read: 0.005
+    openrouter_id: openai/gpt-5-nano
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.3-codex
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 1.75
+    output: 14
+    cache_read: 0.175
+    openrouter_id: openai/gpt-5.3-codex
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gpt-5.5-pro
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 30
+    output: 180
+    openrouter_id: openai/gpt-5.5-pro
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 272000, input: 60, output: 270}
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.5-flash
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 1.5
+    output: 9
+    cache_read: 0.15
+    cache_write_5m: 0.083333
+    openrouter_id: google/gemini-3.5-flash
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.6-flash
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.75
+    output: 3.75
+    cache_read: 0.075
+    cache_write_5m: 0.041667
+    openrouter_id: google/gemini-3.6-flash
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.7-flash
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.75
+    output: 3.75
+    cache_read: 0.075
+    cache_write_5m: 0.041667
+    openrouter_id: google/gemini-3.7-flash
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.8-flash
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.825
+    output: 4.125
+    cache_read: 0.0825
+    cache_write_5m: 0.041667
+    openrouter_id: google/gemini-3.8-flash
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.1-pro
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 2
+    output: 12
+    cache_read: 0.2
+    cache_write_5m: 0.375
+    openrouter_id: google/gemini-3.1-pro-preview
+    tiers:
+      - {kind: long_context, min_prompt_tokens: 200000, input: 4, output: 18}
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.1-flash-lite
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.25
+    output: 1.5
+    cache_read: 0.025
+    cache_write_5m: 0.083333
+    openrouter_id: google/gemini-3.1-flash-lite
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3.5-flash-lite
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.3
+    output: 2.5
+    cache_read: 0.03
+    cache_write_5m: 0.083333
+    openrouter_id: google/gemini-3.5-flash-lite
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-3-flash
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 0.5
+    output: 3
+    cache_read: 0.05
+    cache_write_5m: 0.083333
+    openrouter_id: google/gemini-3-flash-preview
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+  - model: gemini-4-argon
+    channel: openrouter
+    billing_kind: aggregator
+    provenance: reported
+    source: https://openrouter.ai/api/v1/models
+    as_of: '2026-10-16'
+    input: 2
+    output: 10
+    cache_read: 0.1
+    cache_write_5m: 0.1875
+    openrouter_id: google/gemini-4-argon
+    note: "aggregator price; cache_write is OpenRouter's field, not verified against provider"
+
+databricks_gateway:
+  # Live, read-only: GET /api/2.0/serving-endpoints/<name> (foundation_model.input_price / .price, 'DBUs per 1M tokens')
+  # x system.billing.list_prices (pricing.default, USD per DBU). USD = DBU/MTok x USD/DBU.
+  # Reconciled 2026-10-13 for databricks-claude-sonnet-5-5: gateway tokens x endpoint DBU rates = 36.05 DBU = system.billing.usage 36.0549 DBU.
+  # system.ai_gateway.usage reports cache_read/cache_creation tokens as 0 for Anthropic traffic; no cache rate is published by the endpoint metadata.
+  as_of: '2026-10-16'
+  provenance: reported
+  source: "databricks api get /api/2.0/serving-endpoints/<endpoint> + system.billing.list_prices (profile aidev-cus)"
+  usd_per_dbu:
+    PREMIUM_ANTHROPIC_MODEL_SERVING: 0.105
+    PREMIUM_OPENAI_MODEL_SERVING: 0.07
+    PREMIUM_GEMINI_MODEL_SERVING: 0.07
+    PREMIUM_SERVERLESS_REAL_TIME_INFERENCE_US_CENTRAL: 0.079
+  endpoints:
+    databricks-claude-fable-5-1:   {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 142.85714, dbu_per_mtok_output: 714.28571}
+    databricks-claude-opus-5-5:    {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 57.14285714, dbu_per_mtok_output: 285.7142857}
+    databricks-claude-opus-5:      {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 71.428571, dbu_per_mtok_output: 357.142857}
+    databricks-claude-sonnet-5-5:  {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 28.57142857, dbu_per_mtok_output: 142.8571429}
+    databricks-claude-sonnet-5:    {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 28.5714, dbu_per_mtok_output: 142.857}
+    databricks-claude-haiku-4-5:   {sku: PREMIUM_ANTHROPIC_MODEL_SERVING, dbu_per_mtok_input: 14.286, dbu_per_mtok_output: 71.429}
+    databricks-gpt-6-1-sol:        {sku: PREMIUM_OPENAI_MODEL_SERVING, dbu_per_mtok_input: 28.571429, dbu_per_mtok_output: 142.857143}
+    databricks-gpt-6-astra:        {sku: PREMIUM_OPENAI_MODEL_SERVING, dbu_per_mtok_input: 142.85714, dbu_per_mtok_output: 714.28571}
+    databricks-gpt-5-6-terra:      {sku: PREMIUM_OPENAI_MODEL_SERVING, dbu_per_mtok_input: 28.571, dbu_per_mtok_output: 171.429}
+    databricks-gpt-oss-120b:       {sku: PREMIUM_SERVERLESS_REAL_TIME_INFERENCE_US_CENTRAL, dbu_per_mtok_input: 2.143, dbu_per_mtok_output: 8.571, sku_note: "SKU observed in billing.usage for this endpoint; rate per list_prices"}
+    databricks-gte-large-en:       {sku: PREMIUM_SERVERLESS_REAL_TIME_INFERENCE_US_CENTRAL, dbu_per_mtok_input: 1.857, dbu_per_mtok_output: 1.857}
+  external_model_spend:
+    # system.ai_gateway.external_model_spend carries USD directly (usage_quantity, unit USD, pricing_metadata.service_tier/long_context)
+    # for external (non-Databricks-hosted) providers; seen 2026-10-02..16: provider azure-openai only.
+    provenance: reported
+    table: system.ai_gateway.external_model_spend
+
+unpriced:
+  - model: codex-auto-review
+    reason: "Codex-internal reviewer alias; not a model id in OpenAI pricing, OpenRouter or LiteLLM. Underlying model unknown."
+  - model: ai.gateway.glm
+    reason: "Gateway service alias (codex rows), not a model id; resolve via system.ai_gateway.usage.destination_model, then price the destination."
+  - model: ai.gateway.gpt-5-6-luna
+    reason: "Gateway service alias (codex rows), not a model id; destination is probably gpt-5.6-luna but that mapping is unverified."
+  - model: gte_large_en_v1_5
+    reason: "Embedding. Databricks endpoint databricks-gte-large-en is priced (1.857 DBU/MTok) but the id mapping is an assumption; no public per-token USD list price verified."
+  - model: bge_large_en_v1_5
+    reason: "Embedding; Databricks-hosted; not in OpenRouter; endpoint metadata not read."
+  - model: qwen3-embedding-0-6b
+    reason: "Embedding; not in OpenRouter; endpoint metadata not read."
+  - model: gpt-oss-120b
+    reason: "Open weights; OpenRouter lists 0.15/0.60 (cheapest route) but no first-party price exists. Gateway cost is priced via databricks-gpt-oss-120b DBU rates."
+  - model: gpt-oss-20b
+    reason: "Open weights; no first-party price; endpoint metadata not read."
+  - model: glm-5-3
+    reason: "Open weights; host-dependent price (OpenRouter shows a single cheapest route). Gateway endpoint metadata not read."
+  - model: glm-5-2
+    reason: "Open weights; host-dependent price."
+  - model: glm-5-3-flash
+    reason: "Open weights; host-dependent price."
+  - model: kimi-k3
+    reason: "Open weights; host-dependent price."
+  - model: deepseek-v4-1-flash
+    reason: "OpenRouter price varies by UTC time of day (schedule overrides); no single price."
+  - model: deepseek-v4-flash-0731
+    reason: "Open weights; host-dependent price."
+  - model: qwen35-122b-a10b
+    reason: "Open weights; host-dependent price."
+  - model: qwen3-next-80b-a3b-instruct
+    reason: "Open weights; host-dependent price."
+  - model: gemma-3-12b-it
+    reason: "Open weights; host-dependent price."
+  - model: llama-4-maverick
+    reason: "Open weights; host-dependent price."
+  - model: llama_v3_3_70b_instruct
+    reason: "Open weights; host-dependent price."
+  - model: meta_llama_v3_1_8b_instruct
+    reason: "Open weights; host-dependent price."
+  - model: gemini-3-1-flash-image
+    reason: "Image model; per-image output pricing not modelled in schema v0."
+  - model: gemini-3-pro-image
+    reason: "Image model; per-image output pricing not modelled in schema v0."
+
+
+subscriptions:
+  # Plan prices are cash prices of the seat, not per-token prices. Limits are NOT published as token counts.
+  - plan: claude-pro
+    vendor: anthropic
+    usd_per_month: 20
+    usd_per_month_annual_billing: 17
+    source: https://claude.com/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: claude-max-5x
+    vendor: anthropic
+    usd_per_month: 100
+    note: "5x Pro usage per 5-hour session; billed monthly only; page also lists $100/month API credits for Max 5x"
+    source: https://claude.com/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: claude-max-20x
+    vendor: anthropic
+    usd_per_month: 200
+    note: "20x Pro usage per 5-hour session; billed monthly only"
+    source: https://claude.com/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: claude-team-standard
+    vendor: anthropic
+    usd_per_seat_month: 25
+    usd_per_seat_month_annual_billing: 20
+    source: https://claude.com/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: claude-team-premium
+    vendor: anthropic
+    usd_per_seat_month: 125
+    usd_per_seat_month_annual_billing: 100
+    note: "5x Standard-seat usage"
+    source: https://claude.com/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: chatgpt-plus
+    vendor: openai
+    usd_per_month: 20
+    source: https://learn.chatgpt.com/docs/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: chatgpt-pro-100
+    vendor: openai
+    usd_per_month: 100
+    note: "no 5-hour limit currently; multiplier vs Plus not stated on fetched page"
+    source: https://learn.chatgpt.com/docs/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: chatgpt-pro-200
+    vendor: openai
+    usd_per_month: 200
+    source: https://learn.chatgpt.com/docs/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: chatgpt-pro-500
+    vendor: openai
+    usd_per_month: 500
+    note: "Ultrafast mode only on this tier"
+    source: https://learn.chatgpt.com/docs/pricing
+    as_of: '2026-10-16'
+    provenance: reported
+  - plan: chatgpt-business
+    vendor: openai
+    usd_per_seat_month: 25
+    usd_per_seat_month_annual_billing: 20
+    source: https://learn.chatgpt.com/docs/pricing
+    as_of: '2026-10-16'
+    provenance: reported

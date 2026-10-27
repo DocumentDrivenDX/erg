@@ -1,0 +1,17 @@
+include LICENSE-MIT LICENSE-APACHE CHANGELOG.md CONTRIBUTING.md PRIVACY.md AGENTS.md
+include .helix.yml app.yaml
+recursive-include erg *.py *.json *.html *.mjs
+recursive-include catalog *.yaml *.json
+recursive-include tests *.py *.json *.sha256
+recursive-include scripts *.py
+recursive-include central *.py *.yml *.yaml *.json *.txt *.md
+recursive-include native *.swift
+recursive-include docs *.md
+recursive-include .github *.yml
+include bin/erg
+prune .local-evidence
+prune docs/helix/04-build/evidence
+prune central/databricks/.databricks
+prune build
+prune dist
+global-exclude __pycache__ *.py[cod] *.pyz *.zip *.db *.db-* .DS_Store

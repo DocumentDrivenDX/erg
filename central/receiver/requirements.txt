@@ -1,0 +1,4 @@
+azure-functions>=1.21,<2
+azure-storage-blob>=12.24,<13
+azure-identity>=1.19,<2
+PyJWT[crypto]>=2.10,<3

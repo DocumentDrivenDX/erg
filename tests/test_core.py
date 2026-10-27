@@ -46,14 +46,14 @@ class Store(unittest.TestCase):
         store.ingest(self.db, [self.llm("a", 5)], machine="m2")
         self.assertEqual(self.db.execute("SELECT COUNT(*) FROM llm").fetchone()[0], 2)
 
-    def test_gateway_duplicate_marked(self):
+    def test_gateway_token_similarity_does_not_suppress_calls(self):
         store.ingest(self.db, [self.llm("a", 100, ts=1000)], machine="local")
         gw = {"uid": "g:1", "ts": 1060, "tool": "gateway", "session": "", "requester": "u", "project": "p", "model": "m",
               "kind": "main", "client": "claude-code", "fresh_in": 0, "cache_read": 2, "cache_write": 0, "out": 100, "reasoning": 0}
         other = dict(gw, uid="g:2", out=999)
-        self.assertEqual(store.ingest_gateway(self.db, [gw, other], "databricks"), 1)
+        self.assertEqual(store.ingest_gateway(self.db, [gw, other], "databricks"), 0)
         ds = store.dataset(self.db)
-        self.assertEqual(sum(r[9] for r in ds["llm"]), 100 + 999)  # duplicate excluded
+        self.assertEqual(sum(r[9] for r in ds["llm"]), 100 + 100 + 999)  # similarity alone does not establish identity
 
     def test_rollup_prefers_finest_covering_tier_and_priority(self):
         ev = [{"t": "metric", "src": "istat", "m": "cpu", "ts": 3600 * 5 + i * 60, "iv": 60, "v": 10.0, "pk": None} for i in range(60)]

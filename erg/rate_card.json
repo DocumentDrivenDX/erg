@@ -1,0 +1,576 @@
+{
+  "aliases": {
+    "claude-haiku-4-5-20251001": "claude-haiku-4-5",
+    "gemini-3-1-flash-lite": "gemini-3.1-flash-lite",
+    "gemini-3-1-pro": "gemini-3.1-pro",
+    "gemini-3-5-flash": "gemini-3.5-flash",
+    "gemini-3-5-flash-lite": "gemini-3.5-flash-lite",
+    "gemini-3-6-flash": "gemini-3.6-flash",
+    "gemini-3-7-flash": "gemini-3.7-flash",
+    "gemini-3-8-flash": "gemini-3.8-flash",
+    "gpt-5-1": "gpt-5.1",
+    "gpt-5-2": "gpt-5.2",
+    "gpt-5-3-codex": "gpt-5.3-codex",
+    "gpt-5-4": "gpt-5.4",
+    "gpt-5-4-mini": "gpt-5.4-mini",
+    "gpt-5-4-nano": "gpt-5.4-nano",
+    "gpt-5-5": "gpt-5.5",
+    "gpt-5-5-pro": "gpt-5.5-pro",
+    "gpt-5-6-luna": "gpt-5.6-luna",
+    "gpt-5-6-sol": "gpt-5.6-sol",
+    "gpt-5-6-terra": "gpt-5.6-terra",
+    "gpt-6-1-sol": "gpt-6.1-sol",
+    "qwen3.8-flash-next-chat": "qwen3.8-flash-next",
+    "qwen3.8-flash-next-reasoner": "qwen3.8-flash-next"
+  },
+  "entries": [
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.25,
+      "cache_write_1h": 20.0,
+      "cache_write_5m": 12.5,
+      "channel": "anthropic-api",
+      "input": 10.0,
+      "model": "claude-fable-5-1",
+      "output": 50.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 1.0,
+      "cache_write_1h": 20.0,
+      "cache_write_5m": 12.5,
+      "channel": "anthropic-api",
+      "input": 10.0,
+      "model": "claude-fable-5",
+      "output": 50.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.2,
+      "cache_write_1h": 8.0,
+      "cache_write_5m": 5.0,
+      "channel": "anthropic-api",
+      "input": 4.0,
+      "model": "claude-opus-5-5",
+      "output": 20.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.5,
+      "cache_write_1h": 10.0,
+      "cache_write_5m": 6.25,
+      "channel": "anthropic-api",
+      "input": 5.0,
+      "model": "claude-opus-5",
+      "output": 25.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.1,
+      "cache_write_1h": 4.0,
+      "cache_write_5m": 2.5,
+      "channel": "anthropic-api",
+      "input": 2.0,
+      "model": "claude-sonnet-5-5",
+      "output": 10.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.2,
+      "cache_write_1h": 4.0,
+      "cache_write_5m": 2.5,
+      "channel": "anthropic-api",
+      "input": 2.0,
+      "model": "claude-sonnet-5",
+      "output": 10.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.3,
+      "cache_write_1h": 6.0,
+      "cache_write_5m": 3.75,
+      "channel": "anthropic-api",
+      "input": 3.0,
+      "model": "claude-sonnet-4-6",
+      "output": 15.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.5,
+      "cache_write_1h": 10.0,
+      "cache_write_5m": 6.25,
+      "channel": "anthropic-api",
+      "input": 5.0,
+      "model": "claude-opus-4-8",
+      "output": 25.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.3,
+      "cache_write_1h": 6.0,
+      "cache_write_5m": 3.75,
+      "channel": "anthropic-api",
+      "input": 3.0,
+      "model": "claude-sonnet-4-5",
+      "output": 15.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.1,
+      "cache_write_1h": 2.0,
+      "cache_write_5m": 1.25,
+      "channel": "anthropic-api",
+      "input": 1.0,
+      "model": "claude-haiku-4-5",
+      "output": 5.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.01,
+      "cache_write_1h": 0.2,
+      "cache_write_5m": 0.125,
+      "channel": "anthropic-api",
+      "input": 0.1,
+      "model": "claude-haiku-5-5",
+      "output": 0.5,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.05,
+          "cache_write_1h": 1.0,
+          "cache_write_5m": 0.625,
+          "input": 0.5,
+          "min_prompt_tokens": 100000.0,
+          "output": 2.5
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.1,
+      "cache_write_5m": 2.5,
+      "channel": "openai-api",
+      "input": 2.0,
+      "model": "gpt-6.1-sol",
+      "output": 10.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.2,
+          "cache_write": 5.0,
+          "input": 4.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 15.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.2,
+      "cache_write_5m": 2.5,
+      "channel": "openai-api",
+      "input": 2.0,
+      "model": "gpt-6-sol",
+      "output": 10.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.4,
+          "cache_write": 5.0,
+          "input": 4.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 15.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 1.0,
+      "cache_write_5m": 12.5,
+      "channel": "openai-api",
+      "input": 10.0,
+      "model": "gpt-6-astra",
+      "output": 50.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 2.0,
+          "cache_write": 25.0,
+          "input": 20.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 75.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.01,
+      "cache_write_5m": 0.125,
+      "channel": "openai-api",
+      "input": 0.1,
+      "model": "gpt-6-luna",
+      "output": 0.5,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.02,
+          "cache_write": 0.25,
+          "input": 0.2,
+          "min_prompt_tokens": 272000.0,
+          "output": 0.75
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.4,
+      "cache_write_5m": 5.0,
+      "channel": "openai-api",
+      "input": 4.0,
+      "model": "gpt-5.6-sol",
+      "output": 20.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.8,
+          "cache_write": 10.0,
+          "input": 8.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 30.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.2,
+      "cache_write_5m": 2.5,
+      "channel": "openai-api",
+      "input": 2.0,
+      "model": "gpt-5.6-terra",
+      "output": 12.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.4,
+          "cache_write": 5.0,
+          "input": 4.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 18.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.02,
+      "cache_write_5m": 0.25,
+      "channel": "openai-api",
+      "input": 0.2,
+      "model": "gpt-5.6-luna",
+      "output": 1.2,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 0.04,
+          "cache_write": 0.5,
+          "input": 0.4,
+          "min_prompt_tokens": 272000.0,
+          "output": 1.8
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.5,
+      "channel": "openai-api",
+      "input": 5.0,
+      "model": "gpt-5.5",
+      "output": 30.0,
+      "source": "https://developers.openai.com/api/docs/pricing",
+      "tiers": [
+        {
+          "cache_read": 1.0,
+          "input": 10.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 45.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.075,
+      "channel": "openrouter",
+      "input": 0.75,
+      "model": "gpt-5.4-mini",
+      "output": 4.5,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.02,
+      "channel": "openrouter",
+      "input": 0.2,
+      "model": "gpt-5.4-nano",
+      "output": 1.25,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.25,
+      "channel": "openrouter",
+      "input": 2.5,
+      "model": "gpt-5.4",
+      "output": 15.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": [
+        {
+          "input": 5.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 22.5
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.175,
+      "channel": "openrouter",
+      "input": 1.75,
+      "model": "gpt-5.2",
+      "output": 14.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.125,
+      "channel": "openrouter",
+      "input": 1.25,
+      "model": "gpt-5.1",
+      "output": 10.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.125,
+      "channel": "openrouter",
+      "input": 1.25,
+      "model": "gpt-5",
+      "output": 10.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.025,
+      "channel": "openrouter",
+      "input": 0.25,
+      "model": "gpt-5-mini",
+      "output": 2.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.005,
+      "channel": "openrouter",
+      "input": 0.05,
+      "model": "gpt-5-nano",
+      "output": 0.4,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.175,
+      "channel": "openrouter",
+      "input": 1.75,
+      "model": "gpt-5.3-codex",
+      "output": 14.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "channel": "openrouter",
+      "input": 30.0,
+      "model": "gpt-5.5-pro",
+      "output": 180.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": [
+        {
+          "input": 60.0,
+          "min_prompt_tokens": 272000.0,
+          "output": 270.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.15,
+      "cache_write_5m": 0.083333,
+      "channel": "openrouter",
+      "input": 1.5,
+      "model": "gemini-3.5-flash",
+      "output": 9.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.075,
+      "cache_write_5m": 0.041667,
+      "channel": "openrouter",
+      "input": 0.75,
+      "model": "gemini-3.6-flash",
+      "output": 3.75,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.075,
+      "cache_write_5m": 0.041667,
+      "channel": "openrouter",
+      "input": 0.75,
+      "model": "gemini-3.7-flash",
+      "output": 3.75,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.0825,
+      "cache_write_5m": 0.041667,
+      "channel": "openrouter",
+      "input": 0.825,
+      "model": "gemini-3.8-flash",
+      "output": 4.125,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.2,
+      "cache_write_5m": 0.375,
+      "channel": "openrouter",
+      "input": 2.0,
+      "model": "gemini-3.1-pro",
+      "output": 12.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": [
+        {
+          "input": 4.0,
+          "min_prompt_tokens": 200000.0,
+          "output": 18.0
+        }
+      ]
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.025,
+      "cache_write_5m": 0.083333,
+      "channel": "openrouter",
+      "input": 0.25,
+      "model": "gemini-3.1-flash-lite",
+      "output": 1.5,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.03,
+      "cache_write_5m": 0.083333,
+      "channel": "openrouter",
+      "input": 0.3,
+      "model": "gemini-3.5-flash-lite",
+      "output": 2.5,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.05,
+      "cache_write_5m": 0.083333,
+      "channel": "openrouter",
+      "input": 0.5,
+      "model": "gemini-3-flash",
+      "output": 3.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-16",
+      "cache_read": 0.1,
+      "cache_write_5m": 0.1875,
+      "channel": "openrouter",
+      "input": 2.0,
+      "model": "gemini-4-argon",
+      "output": 10.0,
+      "source": "https://openrouter.ai/api/v1/models",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-26",
+      "basis": "market_comparison",
+      "cache_read": 0.05,
+      "cache_write_5m": 0.2,
+      "channel": "lyceum-api",
+      "input": 0.2,
+      "model": "qwen3.8-flash-next",
+      "note": "Local ds4 aliases identify Qwen3.8 Flash Next. Lyceum public API comparison; not local electricity/hardware expense. Cache creation valued at fresh input.",
+      "output": 0.5,
+      "source": "https://lyceum.technology/models/",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-26",
+      "basis": "market_comparison",
+      "cache_read": 0.05,
+      "cache_write_5m": 0.2,
+      "channel": "lyceum-api",
+      "input": 0.2,
+      "model": "glm-5-3-flash",
+      "output": 0.5,
+      "source": "https://lyceum.technology/models/",
+      "tiers": []
+    },
+    {
+      "as_of": "2026-10-26",
+      "basis": "market_comparison",
+      "cache_read": 0.75,
+      "cache_write_5m": 3,
+      "channel": "lyceum-api",
+      "input": 3,
+      "model": "kimi-k3",
+      "output": 15,
+      "source": "https://lyceum.technology/models/",
+      "tiers": []
+    }
+  ],
+  "reviewer_valuation": "observed_parent_model_range.v1",
+  "source_file": "catalog/prices.yaml",
+  "source_sha256": "068c160765d255e5c73e753aedd0d40c7c5e9200b76b8c60428c7325bcd46c03",
+  "version": 1
+}

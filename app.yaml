@@ -1,0 +1,6 @@
+# Destination intentionally unset until private production access is verified.
+# The deployment script supplies ERG_NAMESPACE and ERG_WAREHOUSE_ID explicitly.
+command: ['python', '-m', 'erg.cli', 'serve', '--bind', '0.0.0.0', '--backend', 'databricks']
+env:
+  - name: ERG_AUTH_MODE
+    value: user

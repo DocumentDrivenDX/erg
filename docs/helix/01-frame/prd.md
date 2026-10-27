@@ -38,15 +38,34 @@ Answering "what did last week's agent work cost per unit of delivered work, and 
 | Tokens costed as reported, configured or estimated | 90% or more | Price coverage report |
 | Agents captured with a normalized session record | 3 at P0 (Claude Code, Codex, Fizeau); more as research confirms | Adapter count and fixture tests |
 | Time to first report on a new machine | Under 5 minutes | Timed install in CI |
-| Capture overhead on the host | Under 1% of one core, averaged | Sampler self-measurement |
+| Resource use and recovery | Demand-proportional idle/steady use; up to one core during catch-up; at least 10x representative input capacity | Process-tree CPU, records/bytes per second, backlog and recovery tests |
+
+### Demand-driven processing and catch-up
+
+When data arrives slowly, collector and reporter resource use must fall with demand.
+During catch-up, the operator permits up to one core across erg components and
+helpers. The earlier 10% limit must not force hours of avoidable backlog. Keep
+bounded transactions, independent durable capture, and idle/retry backoff; avoid
+redundant scans, repricing, decoding and writes. Do not spin on empty queues.
+
+Capture, projection and eventual upload must demonstrate at least 10x representative
+arrival-rate capacity in both records and bytes. Include bursts, large events,
+revisions and outage recovery. Report actual source, accepted, materialized and
+projected lag separately. Filtering work-neutral events must preserve raw traces
+and must not make an input-capacity test appear to pass by narrowing its denominator.
+Measure process-tree CPU over sustained busy and idle windows; instantaneous CPU
+or a parent-only sample does not establish efficient resource use. Report the
+observed workload and unsupported paths; no universal coverage claim follows from
+one benchmark. Runtime measurements belong in iteration evidence.
 
 ### Non-Goals
 
 - Billing-grade metering or chargeback; cost is estimation-grade with provenance (concern `usage-metering` is not selected).
+- A general telemetry SaaS or arbitrary multi-tenant authorization product. An enrollment-scoped write-only ingestion broker supports the private Databricks corpus.
 - An agent runtime or benchmark harness; Fizeau owns agents and measurement, erg archives what they publish.
 - LLM-application observability (prompt management, evals).
-- Storing prompt or response text or credentials; content capture is never on by default.
-- Keystroke logging, a hosted service, or multi-user authentication.
+- Implicit content collection or credential-file capture. Full conversation/tool content requires explicit managed enrollment; transport credentials are excluded.
+- Keystroke logging, a managed erg SaaS, or custom multi-user authentication.
 - Defining the work-unit research or price research inside the tool: those are separate versioned data artifacts that erg consumes.
 - Deployment orchestration to specific machines; erg must install and run on a variety of hosts, but rollout is outside this product.
 
@@ -95,7 +114,7 @@ Deferred items tracked in `docs/helix/parking-lot.md`.
 - **FR-1** — Each supported agent yields a normalized session record with the same usage buckets (fresh input, cache read, cache write, output) regardless of source.
 - **FR-2** — Capture is idempotent: re-reading the same source never changes totals, and streamed, forked or resumed sessions are counted once.
 - **FR-3** — Capture works from agent session logs when an agent emits no telemetry, and from native telemetry when it does, producing the same record either way.
-- **FR-4** — Prompt and response text is measured (size) and discarded unless the operator explicitly enables content capture.
+- **FR-4** — Prompt and response text is measured and discarded unless the operator explicitly enables content capture. The operator has enabled local session-content capture for this deployment. Store conversation and tool-call history privately in the local ledger; central content export remains disabled until the private destination and content policy are verified.
 
 ### Subsystem: Gateway Accounting
 
@@ -104,6 +123,8 @@ Deferred items tracked in `docs/helix/parking-lot.md`.
 - **FR-7** — The report shows which days or machines have gateway usage but no local capture.
 
 ### Subsystem: Host Telemetry
+
+- **FR-40** — Add optional macOS desktop activity as independent linked intervals under FEAT-001. Preserve no-new-prompt capture, independent signal uncertainty, portable agent collection and resource-scoped retention/backpressure; desktop history must not alter agent accounting or agent-content retention. Delivery remains explicitly enrolled and governed by the private destination hold.
 
 - **FR-8** — CPU, memory, disk, network, GPU and thermal state are captured at hourly or finer resolution from the best available source on the host, and the source is recorded.
 - **FR-9** — Short-lived upstream history (ring buffers) is archived before it expires.
@@ -120,13 +141,45 @@ Deferred items tracked in `docs/helix/parking-lot.md`.
 - **FR-14** — Every cost carries provenance: reported, configured, estimated or unknown; unknown cost is never summed as zero.
 - **FR-15** — Prices are dated; a call is costed at the price in force when it happened.
 - **FR-16** — A committed fallback price set exists, so reports work offline; update scripts refresh it from industry sources, and live gateway pricing overrides it where available.
-- **FR-17** — Subscription traffic is shown at pay-as-you-go-equivalent cost and as zero cash spend.
+- **FR-17** — Subscription token value is shown as a dated API-equivalent estimate, separately from subscription charges and any metered charges. Plan names do not imply prices, zero cash spend or billing ownership.
+
+- **FR-28** — Discover provider/account identities and subscription entitlements dynamically from available metadata. Preserve account/plan changes and provenance; exact account IDs and email aliases may join evidence, while conflicting identities remain unknown. Creator identity and billing ownership are distinct.
+- **FR-29** — Retain quota windows, reset schedules, observed reset transitions, reset-credit availability and explicit limit-hit events where providers expose them. The monitor does not consume resets or start login/inference.
+- **FR-30** — Support later, replay-safe billing and association metadata. Compare known API-equivalent value with subscription spend by account, subscription and billing period; report unknown attribution/prices and currency conversions. A fixed up-front subscription list is not required.
+- **FR-31** — Report cumulative observed session token usage and peak observed request input/total tokens separately. Repeated/cache context and reasoning subsets are explicit; row-display caps do not truncate summaries.
+- **FR-32** — Link sessions to verified commits first, including commits with no PR. Layer verified PR membership above commits. Ambiguous commit batches and uncertain work/PR associations remain unknown.
+- **FR-33** — Capture explicit native session owners separately from inference accounts, including untimestamped session-scoped ownership records. Backfill supported metadata without assigning current plans or routes to historical usage.
+- **FR-34** — Discover session-time endpoints, provider/profile, workspace/region and inference account metadata through native agents and wrappers. Preserve evidence scope and timestamps; report call coverage, conflicts and specific unknown reasons. Current configuration, provider/model names and shared email alone do not prove historical routes or billing.
+
+### Subsystem: Durable History and Capture Proof
+
+- **FR-35** — Preserve native conversation and tool-call events in one local store, with stable source identities, compressed content, source progress committed atomically with events, and replay-safe forward capture from enrollment. Existing historical files are not backfilled. Imported history is retained as history, never inferred to be new metered requests.
+- **FR-36** — Continuously reconcile discovered native and orchestrated sessions with archived history and usage. Expose missing sources, partial records, parse failures, unsupported formats and uninstrumented local endpoints. A healthy worker is not proof of complete history.
+- **FR-37** — Capture direct local inference through enrolled server instrumentation or an explicitly configured capture endpoint. Preserve request/response identities, streaming completion and errors, unknown usage, latency and model evidence. Agent and server observations reconcile only through exact shared identity; ambiguous overlap remains visible.
+- **FR-38** — Browse all retained sessions by native ID, project and time; paginate conversation/tool events and distinguish archived, usage-only, reconstructed and expired content. Retention supports explicit expiration with a dry-run inventory and durable expiration evidence; no automatic deletion is enabled without an operator-selected retention period.
+- **FR-39** — Package background collection, local reporting and endpoint enrollment for the standard system distribution. Align inference records with published Databricks inference-table fields and preserve erg-specific session, provenance, coverage and retention extensions. Export remains durable, resumable and subject to FR-27 access restrictions.
 
 ### Subsystem: Reporting
 
-- **FR-18** — The dashboard answers tokens, cost, output and load by hour and day, grouped by project, model, agent and machine.
+- **FR-18** — The dashboard answers tokens, cost, output and load by hour and day, grouped by human project, folder/agent project, model, agent and machine. Project allocation is shared across Usage, Work, Costs and session drill-down; Costs is not a separate accounting silo.
 - **FR-19** — Correlation views relate host load to agent activity, including lagged relationships.
 - **FR-20** — Efficiency (tokens, cost and energy per work unit) is shown with sample size and the share of unknown cost.
+
+### Subsystem: Project Cost Accounting
+
+- **FR-41** — Maintain a local catalog of human projects with stable IDs, names and archived state. Sessions roll up to observed folders or agent projects, which roll up through explicit bindings to these human projects. Initially local administration owns this table; later sync receives master projects from Databricks. Renames and upstream identity reconciliation preserve existing assignments. Project names, folder basenames and free-text titles are not identity keys.
+- **FR-42** — Support versioned configuration bindings from observed resources to catalog projects, beginning with repositories, machine-scoped directories, machine-and-agent-scoped native project IDs and sessions, then verified tasks/commits/PRs and other typed resources. Preserve captured project hints independently. Preview rule changes; overlapping conflicting assignments remain unresolved, and unmatched usage remains unassigned.
+- **FR-43** — Resolve project allocation per canonical usage observation and effective time, and apply the same hierarchy and allocation policy to work, usage, input and edit reporting. A session that changes folder or binding over time can contribute to several parents; never relabel its full history using only its latest folder. Support explicit weighted splits and partial/unassigned portions without duplicating usage, and preserve rule/evidence/version provenance. Session summaries may span projects; a session-level label must not charge every project for the full session.
+- **FR-44** — Keep prices, observed/reported cost evidence, billed usage and subscription charges in erg. Project views distinguish these bases, pricing coverage, assignment coverage and policy-based fixed-charge allocation. Estimates and subscription fees are never added as though they were separate incurred usage charges.
+- **FR-45** — Support eventual master-project download and replay-safe publication of project assignment revisions/tombstones to Databricks, including session links and call-level allocations needed for shared dashboards. Remain useful offline with a versioned local catalog snapshot; do not enable central export before FR-27 is satisfied.
+
+### Subsystem: Deployment and Reporting Backends
+
+- **FR-23** — The collector runs once under cron or continuously as a service through the same collection pipeline. The reporter runs independently and never schedules collection.
+- **FR-24** — A collector persists full enrolled traces locally and delivers them through a versioned write-only ingestion interface to the private Databricks data plane. Central outages do not prevent local collection or reporting; export resumes from durable progress.
+- **FR-25** — The same reporting UI and report semantics work against local SQLite and governed Unity Catalog data. The reporter may run locally in either mode; central UI hosting is optional.
+- **FR-26** — Central reports combine agent-session evidence, gateway usage, work evidence and host metrics without counting observations of the same call or commit as separate work or usage. Capture and export retries do not change totals; late evidence can update reconciliation.
+- **FR-27** — The first central deployment captures full forward session content from every Intune-managed Mac receiving as-agent, with an explicitly designated operator as the only ordinary human reader/administrator. Collectors authenticate to the central sink; Databricks query authorization remains governed by Unity Catalog. Prompt and response bodies are excluded by default, and transport credential fields are excluded from telemetry; secrets typed into explicitly enrolled content may remain in that content. Central session data must use a new private erg catalog/schema in the production workspace, with effective access checked for inherited grants. Central export and deployment remain paused until the required permissions are available; a developer-readable catalog is not an acceptable fallback. Processing identities have narrowly scoped service privileges; platform administrators retain privileged recovery capabilities. Content retention and any upload of already-retained local events require explicit rollout policy.
 
 ### Subsystem: Centralization
 
@@ -149,8 +202,8 @@ Deferred items tracked in `docs/helix/parking-lot.md`.
 Current decisions, recorded without making them (rationale belongs in ADRs).
 
 - **Language/Runtime**: Python 3.8+ floor, standard library only, single-file collector (see concerns override).
-- **Data/Storage**: SQLite locally; Delta tables in Databricks for centralization (open).
-- **APIs**: Databricks CLI and SQL statements API for gateway reads; OTLP over HTTP (protobuf) for trace export.
+- **Data/Storage**: SQLite locally; Unity Catalog Delta tables for centralized observations and reporting.
+- **APIs**: Databricks SQL for central reporting and gateway reads; CONTRACT-006 JSON/HTTPS to a durable private broker, then selected Zerobus REST into owned staging and canonical tables. Optional OTel interoperability is separate from fleet delivery.
 - **Platform Targets**: macOS and Linux hosts.
 - **Trace model**: the Fizeau telemetry contract (OpenTelemetry GenAI conventions plus `ddx.*` fields) is the proposed canonical shape.
 
@@ -158,7 +211,7 @@ Current decisions, recorded without making them (rationale belongs in ADRs).
 
 ### Constraints
 
-- **Technical**: collector runs on stock macOS Python; no third-party packages; the Databricks trace collector accepts traces only, as protobuf.
+- **Technical**: portable collection and JSON/HTTPS delivery run on stock macOS Python without third-party packages. Cloud SDKs are central-only. Exact persisted UTF-8 bytes, bounded chunks and separate accepted/materialized/projected receipts govern delivery. Device enrollment, private storage access and scoped Zerobus OAuth require qualification; a missing credential never causes a broader fallback.
 - **Business**: single maintainer; open source, MIT OR Apache-2.0.
 - **Legal/Compliance**: no prompt content leaves the machine by default.
 

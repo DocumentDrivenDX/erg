@@ -11,7 +11,7 @@
 header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
 h1{font-size:16px;margin:0 8px 0 0;font-weight:650}
 .ctl{display:flex;gap:6px;align-items:center;color:var(--mute);font-size:12px}
-select,button,input.num{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit;font-size:13px}
+select,button,input.num,input[type="search"],input[type="datetime-local"]{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit;font-size:13px}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .seg button{border:0;border-radius:0;border-right:1px solid var(--line)}.seg button:last-child{border:0}
 .seg button.on{background:var(--accent);color:#fff}
@@ -27,73 +27,142 @@ svg text{fill:var(--mute);font-size:11px}svg .grid{stroke:var(--grid)}svg .axis{
 #tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 14px #0003;display:none;z-index:9;max-width:320px}
 #tip b{display:block;margin-bottom:3px}#tip div{display:flex;justify-content:space-between;gap:14px}#tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
 table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:right;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th:first-child,td:first-child{text-align:left}
+#source-table th,#source-table td{white-space:normal;text-align:left}#source-table td:last-child{min-width:200px;max-width:330px}
 th{color:var(--mute);font-weight:500;cursor:pointer;font-size:12px}th.sorted{color:var(--fg)}
 .heat{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;font-size:11px;color:var(--mute)}.heat div{min-height:20px;border-radius:3px;text-align:center}
 .note{color:var(--mute);font-size:12px;padding:8px 0}code{background:var(--grid);padding:1px 5px;border-radius:4px}
 .corr{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}.corr span{background:var(--grid);border-radius:6px;padding:3px 9px;font-size:12px}
+
+#attribution-cohorts,#attribution-table{table-layout:fixed;width:100%}
+#attribution-cohorts td,#attribution-cohorts th,#attribution-table td,#attribution-table th{white-space:normal;overflow-wrap:anywhere;vertical-align:top;text-align:left}
+#attribution-cohorts th:first-child{width:21%}#attribution-cohorts th:last-child{width:35%}
+#attribution-table th:nth-child(1){width:14%}#attribution-table th:nth-child(2){width:18%}#attribution-table th:nth-child(3){width:36%}
+h2{scroll-margin-top:145px}
+
+[hidden]{display:none!important}
+header{padding:14px 24px;gap:12px;min-height:64px}header h1 span{display:none}
+.view-nav{display:flex;gap:6px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--bg);overflow:auto}
+.view-nav button{border:0;border-radius:0;background:transparent;padding:12px 16px;color:var(--mute);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+.view-nav button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent);font-weight:650}
+main{max-width:1400px;padding:20px 24px 48px}.view-heading{margin:22px 0 20px}.view-heading h2{font-size:25px;letter-spacing:-.5px;margin:0 0 4px}.view-heading p{color:var(--mute);margin:0;max-width:820px;font-size:13px}
+.health-strip{display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:12px;color:var(--mute)}.health-strip button{font-size:12px;cursor:pointer}.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#59a14f;margin-right:7px}.status-dot.warn{background:#d49a31}
+.card{padding:18px 20px;margin-bottom:18px}.card h2{font-size:15px;margin-bottom:6px}.card .sub{line-height:1.6;max-width:1000px;margin-bottom:12px}.kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.kpi{padding:16px 18px}.kpi .v{font-size:28px;margin:5px 0}
+summary{cursor:pointer;color:var(--mute);padding:8px 0;font-size:12px}details[open]>summary{color:var(--fg);margin-bottom:8px}.disclosure>summary{font-size:14px;color:var(--fg);font-weight:600}.filter-options{position:relative}.filter-options summary{padding:4px 8px;border:1px solid var(--line);border-radius:6px;white-space:nowrap}.filter-body{position:absolute;right:0;top:36px;width:440px;padding:18px;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 30px #0003;display:flex;flex-wrap:wrap;gap:14px;z-index:8}.filter-body .ctl{flex-wrap:wrap}
+.empty-state{padding:24px 12px;color:var(--mute);font-size:13px;text-align:left}.table-note{font-size:12px;color:var(--mute);margin:10px 0}td{padding:10px 8px}th{padding:10px 8px}td details{text-align:left;white-space:normal}td details pre{max-width:700px;max-height:280px;overflow:auto;font-size:11px}.cell-meta{display:block;font-size:11px;color:var(--mute);margin-top:3px}.coverage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:20px 0}.coverage-item strong{display:block;font-size:22px;font-weight:600}.coverage-item span{color:var(--mute);font-size:12px}.coverage-track{height:4px;border-radius:4px;background:var(--grid);margin:9px 0}.coverage-track i{display:block;height:4px;border-radius:4px;background:var(--accent)}
+#attribution-cohorts{table-layout:auto}#attribution-cohorts th:first-child{width:auto}#attribution-cohorts th:last-child{width:auto}
+@media(max-width:760px){header{position:relative;padding:12px 16px}#gen{width:100%;margin:0!important}.view-nav{padding:0 8px}.view-nav button{padding:12px 10px;font-size:12px}main{padding:16px}.kpis,.coverage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:14px}.filter-body{position:fixed;left:16px;right:16px;top:120px;width:auto;max-height:65vh;overflow:auto}}
+#pr-table td:first-child,#session-table td:first-child,#history-sessions td:first-child{white-space:normal;min-width:200px;max-width:380px;overflow-wrap:anywhere}
+#session-table td:first-child button,#history-sessions td:first-child button{white-space:normal;text-align:left;max-width:100%;overflow-wrap:anywhere}
+#history-reader-title{overflow-wrap:anywhere}
+header [hidden]{display:none!important}
+
+.project-form{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:16px 0}.project-form label{display:flex;flex-direction:column;gap:6px;color:var(--mute);font-size:12px;flex:1;min-width:180px}.project-form input,.project-form select{width:100%;padding:8px 10px;background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:6px;font-size:13px}#binding-preview{border-left:3px solid var(--accent);padding:6px 16px;margin-top:12px}
+.chart-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px}.chart-heading h2{margin:0}.breadcrumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 16px;color:var(--mute);font-size:13px}.breadcrumbs button{border:0;background:none;color:var(--accent);padding:0;cursor:pointer}.allocation-row{display:grid;grid-template-columns:minmax(180px,1fr) 110px 130px 150px;gap:18px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line)}.allocation-row:last-child{border-bottom:0}.allocation-name{border:0;background:transparent;text-align:left;padding:0;color:var(--fg);font-size:15px;font-weight:600;cursor:pointer;overflow-wrap:anywhere}.allocation-name:hover{color:var(--accent)}.allocation-number{text-align:right;font-variant-numeric:tabular-nums}.allocation-number small{display:block;color:var(--mute);font-size:11px;margin-bottom:4px}.allocation-track{height:5px;background:var(--grid);border-radius:5px;margin-top:10px;max-width:300px}.allocation-track i{display:block;height:5px;background:var(--accent);border-radius:5px}.money-note{color:var(--mute);font-size:12px}.cost-link{color:var(--accent);border:0;background:none;padding:0;cursor:pointer;font:inherit}.scope-filter select{max-width:230px}#cost-session-table td:first-child{white-space:normal;overflow-wrap:anywhere;max-width:430px}#cost-session-table td button{white-space:normal;text-align:left}.scope-note{color:var(--mute);font-size:12px}.allocation-empty{padding:28px 0;max-width:680px;color:var(--mute)}
+@media(max-width:760px){.allocation-row{grid-template-columns:1fr 1fr;gap:14px}.allocation-row>div:first-child{grid-column:1/-1}.allocation-number{text-align:left}.chart-heading{align-items:flex-start;flex-wrap:wrap}.scope-filter{flex:1;min-width:160px}.scope-filter select{max-width:100%;width:100%}}
 </style>
 </head>
 <body>
 <header>
+  <a href="/databricks/traces" id="sync-health" class="sub">Databricks sync</a>
+  <a id="report-backend" href="/databricks" class="sub">Databricks dashboard</a>
+  <span id="cloud-report-status" class="sub" role="status"></span>
   <h1>erg <span style="font-weight:400;color:var(--mute);font-size:13px">agent usage monitor</span></h1>
-  <div class="ctl">Range <div class="seg" id="range"></div></div>
-  <div class="ctl">Bucket <div class="seg" id="bucket"></div></div>
-  <div class="ctl">Group by <select id="group"></select></div>
-  <div class="ctl">Tokens <select id="measure"></select></div>
-  <div class="ctl">Project <select id="project"></select></div>
-  <div class="ctl">Machine <select id="machine"></select></div>
+  <div class="ctl scope-filter">Range <div class="seg" id="range"></div></div>
+  <div class="ctl scope-filter">Human project <select id="project" aria-label="Human project"></select></div>
+  <div class="ctl scope-filter">Folder / agent project <select id="folder" aria-label="Folder or agent project"></select></div>
+  <div class="ctl scope-filter">Machine <select id="machine"></select></div>
+  <details class="filter-options"><summary>More filters</summary><div class="filter-body">  <div class="ctl usage-only">Bucket <div class="seg" id="bucket"></div></div>
+  <div class="ctl usage-only">Group by <select id="group"></select></div>
+  <div class="ctl usage-only">Tokens <select id="measure"></select></div>
   <div class="ctl">Whose <select id="requester"></select></div>
   <div class="ctl" id="toolchips"></div>
   <div class="ctl" id="kindchips"></div>
-  <span class="ctl" id="gen" style="margin-left:auto"></span>
+</div></details>
+  <button id="refresh-report" type="button">Refresh data</button><span class="ctl" id="gen" style="margin-left:auto"></span><span class="ctl" id="report-lag" role="status"></span>
 </header>
-<main>
-  <div class="kpis" id="kpis"></div>
-  <div class="card"><h2>Tokens</h2><div class="sub" id="sub-tokens"></div><div id="c-tokens"></div><div class="legend" id="l-tokens"></div></div>
-  <div class="grid2">
+<nav class="view-nav" aria-label="Dashboard views"><button data-view="usage" aria-controls="view-usage" aria-pressed="true">Usage</button><button data-view="history" aria-controls="view-history" aria-pressed="false">Session history</button><button data-view="work" aria-controls="view-work" aria-pressed="false">Work</button><button data-view="costs" aria-controls="view-costs" aria-pressed="false">Costs</button><button data-view="accounts" aria-controls="view-accounts" aria-pressed="false">Accounts & spend</button><button data-view="capture" aria-controls="view-capture" aria-pressed="false">Capture</button><button data-view="machine" aria-controls="view-machine" aria-pressed="false">Machine</button></nav>
+<main><section class="card" id="money-overview" aria-label="Rack-rate value and effective cost"><div class="kpis" id="money-kpis"></div><p class="sub" id="money-note" role="status">Loading cost accounting…</p></section><div class="note" id="report-warnings"></div><div class="health-strip"><span id="capture-health">Checking capture…</span><button id="open-capture">View capture</button></div><section id="view-usage" class="view" aria-labelledby="title-usage"><div class="view-heading"><h2 id="title-usage">Usage</h2><p>Tokens, estimated token value and work across your agents. Sessions roll up through folders to human projects; all views use the same project allocation.</p></div><div class="kpis" id="kpis"></div>
+<div class="card"><div class="chart-heading"><h2 id="usage-chart-title">Tokens</h2><div class="seg" id="usage-metric"><button type="button" data-usage-metric="tokens" class="on">Tokens</button><button type="button" data-usage-metric="value">Token value · est.</button></div></div><div class="sub" id="sub-tokens"></div><div id="c-tokens"></div><div class="legend" id="l-tokens"></div></div>
+<div class="card"><h2>Breakdown <span class="seg" id="tabdim" style="margin-left:8px"></span></h2><div style="overflow-x:auto"><table id="tbl"></table></div></div><details class="card disclosure"><summary>Activity, input and time-of-day charts</summary><div class="grid2">
     <div class="card"><h2>Commits</h2><div class="sub">git history by author date, attributed via Co-Authored-By trailers</div><div id="c-commits"></div><div class="legend" id="l-commits"></div></div>
     <div class="card"><h2>Lines added in commits (code)</h2><div class="sub">lockfiles, data files and generated assets excluded</div><div id="c-lines"></div><div class="legend" id="l-lines"></div></div>
-  </div>
-  <div class="grid2">
+  </div><div class="grid2">
     <div class="card"><h2>Documents: doc lines added in commits</h2><div class="sub">.md .mdx .rst .txt .adoc …</div><div id="c-docs"></div><div class="legend" id="l-docs"></div></div>
     <div class="card"><h2>Lines written by agents (Edit / Write / apply_patch)</h2><div class="sub">activity measure; includes churn that never reaches a commit</div><div id="c-edits"></div><div class="legend" id="l-edits"></div></div>
+  </div><div class="grid2">
+    <div class="card"><h2>Observed input: estimated tokens</h2><div class="sub">estimated tokens (chars ÷ 4) of captured input messages; human origin may be unknown; text is never stored</div><div id="c-typed"></div><div class="legend" id="l-typed"></div></div>
+    <div class="card"><h2>Observed input &amp; machine-active time</h2><div class="sub">captured input message count (bars) and observed machine-active minutes (line; sampled from HID idle &lt; 2 min)</div><div id="c-active"></div><div class="legend" id="l-active"></div></div>
   </div>
-  <div class="grid2">
-    <div class="card"><h2>Your input: tokens typed</h2><div class="sub">estimated tokens (chars ÷ 4) of prompts you sent; text itself is never stored</div><div id="c-typed"></div><div class="legend" id="l-typed"></div></div>
-    <div class="card"><h2>Your input: prompts &amp; active time</h2><div class="sub">prompt count (bars) and minutes at the keyboard (line; from HID idle &lt; 2 min, needs the sampler)</div><div id="c-active"></div><div class="legend" id="l-active"></div></div>
-  </div>
-  <div class="card"><h2>Machine load vs. agent activity</h2>
+<div class="card"><h2>When you burn tokens</h2><div class="sub">local day-of-week × hour of day, selected range</div><div class="heat" id="heat"></div></div></details></section>
+<section id="view-history" class="view" aria-labelledby="title-history" hidden>
+<div class="view-heading"><h2 id="title-history">Session history</h2><p>Private conversation and tool events, grouped by the same human project and folder hierarchy. The filters above select matching records; opening a session shows its full retained history.</p></div>
+<div class="card"><h2>Databricks sync</h2><p id="sync-summary" class="sub">Loading sync status…</p><a href="/databricks">Browse sessions in Databricks</a><details><summary>Sync evidence</summary><pre id="sync-detail" style="white-space:pre-wrap"></pre></details></div>
+<div class="card"><h2>Forward capture</h2><p class="sub" id="history-health">Loading capture evidence…</p><details><summary>Coverage evidence and gaps</summary><button id="history-audit">Run full ledger reconciliation</button><p class="sub" id="history-audit-status">Full reconciliation scans retained metadata and runs only on request.</p><pre id="history-coverage" style="white-space:pre-wrap;max-height:240px;overflow:auto"></pre></details></div>
+<div class="card"><form id="history-filters" style="display:flex;flex-wrap:wrap;gap:12px;align-items:end">
+<label>Session ID<br><input id="history-id" type="search" placeholder="Exact native session ID"></label>
+
+
+<button type="submit">Find sessions</button></form>
+<p class="sub" id="history-list-status" role="status"></p><div style="overflow:auto"><table id="history-sessions"></table></div><button id="history-more" hidden>More sessions</button></div>
+<div class="card" id="history-reader" hidden><h2 id="history-reader-title">Conversation</h2><p class="sub">Native records preserve their roles and tool-call structure. Reconstructed context and expired content are labelled.</p><div id="history-cost-summary" class="kpis"></div><details><summary>Usage, costs and account evidence</summary><pre id="history-metrics" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details><div id="history-events"></div><button id="history-events-more" hidden>More events</button></div>
+</section>
+<section id="view-work" class="view" aria-labelledby="title-work" hidden><div class="view-heading"><h2 id="title-work">Work</h2><p>Commits and pull requests linked to the same allocated sessions as Usage. Filters above scope tokens, inputs and estimated value; PR diff sizes remain whole-PR evidence.</p></div>
+<div class="kpis" id="work-kpis"></div><div class="card"><h2>Pull requests</h2><div class="sub" id="pr-summary">Loading PR evidence…</div><div class="sub">Counts cover allocated observations only. A dash means evidence is unavailable; missing usage and costs are never treated as zero. Expand a PR for attribution and input coverage.</div><div style="overflow-x:auto"><table id="pr-table"></table></div><button id="more-prs" hidden>Show more linked PRs</button><details id="unlinked-prs"><summary>PRs without captured usage</summary><div id="unlinked-pr-list" class="note"></div></details><details><summary>Attribution and input coverage</summary><pre id="pr-coverage" style="white-space:pre-wrap;max-height:400px;overflow:auto;font-size:12px"></pre></details></div><details class="card disclosure"><summary>Commit attribution</summary><div class="sub" id="commit-summary">Loading commit evidence…</div><div style="overflow:auto;max-height:360px"><table id="commit-table"></table></div></details></section>
+<section id="view-costs" class="view" aria-labelledby="title-costs" hidden>
+<div class="view-heading"><h2 id="title-costs">Projects &amp; costs</h2><p>Follow the same usage from human project to folder to session. Use the shared filters above.</p></div>
+<div id="cost-breadcrumbs" class="breadcrumbs" aria-label="Project hierarchy"></div>
+<p class="note" id="cost-status" role="status">Loading project allocation…</p><div class="kpis" id="cost-kpis"></div>
+<div class="card"><div class="chart-heading"><h2 id="cost-rollup-title">Human projects</h2><button type="button" id="cost-clear">Clear project filters</button></div><p class="sub" id="cost-rollup-note">Each row is a share of the same canonical usage shown in Usage and Work.</p><div id="cost-project-list" class="allocation-list"></div></div>
+<div class="card"><h2>Sessions in this scope</h2><p class="sub" id="cost-sessions-note"></p><div style="overflow:auto"><table id="cost-session-table"></table></div></div>
+<details class="card disclosure"><summary>Allocation &amp; price coverage</summary><p class="sub" id="cost-config-note"></p><p class="sub">Token value is a standard API-equivalent estimate, not a bill. Native reported estimates, subscription charges and billed spend remain separate. Split bindings allocate tokens and value by the same weights; distinct session counts across projects are not additive.</p><button type="button" id="cost-accounts">Accounts &amp; subscriptions</button></details>
+<details class="card disclosure" id="project-setup"><summary>Human projects &amp; folder assignments</summary><p class="sub">Create a human project, then assign observed folders or agent projects. Preview shows the effect on retained usage before applying. The same assignment is used everywhere.</p>
+<form id="project-create" class="project-form"><label>New human project<input id="project-name" type="text" maxlength="200" placeholder="Project name" required></label><button type="submit" id="project-create-button">Create project</button></form>
+<form id="folder-bind" class="project-form"><label>Folder / agent project<select id="binding-folder" required></select></label><label>Human project<select id="binding-project" required></select></label><button type="submit" id="binding-preview-button">Preview assignment</button></form>
+<p class="sub">Assignments apply to retained observations from the selected folder, using their recorded context. They do not move or alter captured sessions. Advanced effective dates, priorities and splits remain available through project configuration.</p>
+<p id="project-admin-status" class="note" role="status" aria-live="polite"></p><div id="binding-preview" hidden><p id="binding-preview-text"></p><button type="button" id="binding-apply">Apply this assignment</button><button type="button" id="binding-cancel">Cancel</button></div>
+</details>
+</section>
+<section id="view-accounts" class="view" aria-labelledby="title-accounts" hidden><div class="view-heading"><h2 id="title-accounts">Accounts & spend</h2><p>Observed accounts, token value and subscription charges. Token usage follows the shared filters. Charges are whole-period account records; quotas and identity evidence are account-wide.</p></div>
+<div class="card"><h2>Token value and subscription spend</h2><div class="sub" id="value-summary"></div><div class="sub">API-equivalent token value is an estimate, separate from subscription spend and billed charges. A dash means evidence is unavailable; missing amounts are never treated as zero. Account-owner evidence alone does not prove which subscription paid.</div><p class="sub" id="billing-capture-status" role="status"></p><div style="overflow:auto;max-height:200px"><table id="account-table"></table></div><div style="overflow:auto;max-height:220px"><table id="subscription-table"></table></div><details><summary>Quota windows, reset history and limit hits</summary><div class="sub" id="quota-summary"></div><div style="overflow:auto"><table id="reset-history-table"></table></div><div style="overflow:auto;max-height:300px"><table id="quota-table"></table></div></details></div><details class="card"><summary>Plan prices, subscription charges and purchased resets</summary><div class="project-form"><label>Observed billing account<select id="billing-account" required></select></label></div><form id="plan-price-form" class="project-form"><label>Observed plan name<input id="plan-price-name" required maxlength="128"></label><label>Displayed USD / month<input id="plan-price-usd" type="number" min="0" step="0.01" required></label><button type="submit">Record observed plan price</button></form><p class="sub">Uses the billing account selected below. Plan prices accrue an expense estimate from observation onward, prorated by calendar month; they do not create invoices or assume billing dates.</p><p class="sub">Enter the actual charge and its billing period. Reusing the receipt ID corrects that charge. Ordinary allowance resets have no new expense. This writes approved billing metadata locally and syncs it to Databricks.</p><form id="payer-binding-form" class="project-form"><label>Session<select id="payer-session" required></select></label><label>Payer association from<input id="payer-start" type="datetime-local" required></label><label>Until (exclusive)<input id="payer-end" type="datetime-local" required></label><button type="submit">Bind session to selected billing account</button></form><p class="sub">This records your explicit payer association for one session and interval. Uses the account selected below, and the subscription identifier if entered. Ownership alone never creates this binding.</p><form id="billing-form" class="project-form"><label>Subscription identifier<input id="billing-subscription" required maxlength="128" placeholder="Invoice subscription / seat ID"></label><label>Receipt / line identifier<input id="billing-receipt" required maxlength="128"></label><label>Charge type<select id="billing-kind"><option value="subscription">Subscription</option><option value="purchased_reset">Purchased reset</option><option value="overage">Overage</option></select></label><label>Period start<input id="billing-start" type="date" required></label><label>Period end (exclusive)<input id="billing-end" type="date" required></label><label>Actual USD charge<input id="billing-usd" type="number" min="0" step="0.01" required></label><label>Reset time (optional)<input id="billing-reset" type="datetime-local"></label><button type="submit">Record charge</button></form><p id="billing-status" class="sub" role="status"></p><p class="sub">Account ownership alone does not establish subscription payment. Explicit session or installation associations can be imported with <code>erg accounts import --file metadata.json</code>. Plan labels never create charges.</p></details></section>
+<section id="view-capture" class="view" aria-labelledby="title-capture" hidden><div class="view-heading"><h2 id="title-capture">Capture</h2><p>Collection health, session inventory and evidence coverage. Sessions use the filters above; coverage covers all retained history.</p></div>
+<div class="card"><h2>Captured sessions</h2><div class="sub" id="capture-service"></div><div class="sub" id="session-summary"></div><p class="sub">Select a session to read its full usage and costs. <button id="load-capture-metrics" type="button">Load session &amp; identity metrics</button></p><details open><summary>Recent sessions</summary><div style="overflow:auto;max-height:320px"><table id="session-table"></table></div></details><details><summary>Selected session details (metadata only)</summary><pre id="session-detail" style="white-space:pre-wrap;max-height:480px;overflow:auto;font-size:12px"></pre></details></div>
+<div class="card"><h2>Agent capture coverage</h2><div class="sub">Orchestrator rows overlap their native agent rows; they do not add sessions or usage to the report total.</div><div style="overflow-x:auto"><table id="source-table"></table></div></div>
+<div class="card"><h2>Identity & route coverage</h2><div class="sub" id="attribution-summary">Full-history identity and route coverage loads on demand.</div><div id="coverage-overview" class="coverage-grid"></div><details><summary>Coverage by agent and route</summary><div style="overflow:auto;max-height:320px"><table id="attribution-cohorts"></table></div></details><details><summary>Session evidence and reasons for unknowns</summary><div class="sub">Recent sessions plus representative owner and route sources. Configuration observations do not establish historical routes. Owner IDs do not identify the inference payer.</div><div style="overflow:auto;max-height:400px"><table id="attribution-table"></table></div></details></div><details class="card disclosure"><summary>Daily source comparison</summary><div class="sub">tokens per day by source, ignoring filters (excl. cache reads). Days where the gateway shows usage but local logs do not come from machines not scraped here.</div>
+    <div style="overflow-x:auto"><table id="cov"></table></div></details></section>
+<section id="view-machine" class="view" aria-labelledby="title-machine" hidden><div class="view-heading"><h2 id="title-machine">Machine</h2><p>Host load alongside agent activity. Uses the selected range and machine; activity also follows the other filters.</p></div>
+<div class="card"><h2>Machine load vs. agent activity</h2>
     <div class="sub">Pearson r between each machine metric and hourly agent activity over the selected range (machine metrics are machine-wide; project filter applies to the activity side). Warm = rises with activity.</div>
     <div style="overflow-x:auto"><table id="matrix"></table></div><div class="note" id="perfnote"></div></div>
-  <div class="card"><h2>Lagged correlation <span class="ctl">activity <select id="lagvar"></select></span></h2>
+<div class="card"><h2>Lagged correlation <span class="ctl">activity <select id="lagvar"></select></span></h2>
     <div class="sub">r between hourly activity at <i>t</i> and each machine metric at <i>t + lag</i>. Positive lag = the machine reacts after the agents; negative = load leads (e.g. builds that precede prompts). Outlined cell = strongest per metric.</div>
     <div style="overflow-x:auto"><table id="lagtbl"></table></div></div>
-  <div class="card"><h2>Load without agents</h2>
+<div class="card"><h2>Load without agents</h2>
     <div class="sub">hours where the machine was busy but agents were not: metric ≥ the chosen percentile of its own range, agent tokens ≤ the chosen percentile of activity, and no prompts from you. Red bars mark flagged hours.</div>
     <div class="ctl" style="margin:4px 0 8px;flex-wrap:wrap">metric <select id="idlemetric"></select> busy ≥ P<input id="idlehi" type="number" min="50" max="99" style="width:56px" class="num"> agents ≤ P<input id="idlelo" type="number" min="0" max="75" style="width:56px" class="num"></div>
     <div id="idle-sum" class="note" style="color:var(--fg)"></div><div id="c-idle"></div><div class="legend" id="l-idle"></div>
     <div style="overflow-x:auto"><table id="idletbl"></table></div></div>
-  <div class="card"><h2>Scatter <span class="ctl"><select id="perfmetric"></select></span></h2><div class="sub">one dot per hour: x = tokens that hour, y = machine metric</div><div id="c-scatter"></div></div>
-  <div class="card"><h2>Machine metrics by time, with tokens</h2><div class="sub">line = hourly average (dashed = hourly peak where known), bars = tokens (right axis)</div><div class="grid2" id="pm-grid"></div></div>
-  <div class="card"><h2>What each project costs the machine</h2><div class="sub">token-weighted average machine state during hours the project was active (concurrency means this is attribution-by-association, not accounting)</div><div style="overflow-x:auto"><table id="ptbl"></table></div></div>
-  <div class="card"><h2>Sources &amp; coverage</h2><div class="sub">tokens per day by source, ignoring filters (excl. cache reads). Days where the gateway shows usage but local logs do not come from machines not scraped here.</div>
-    <div style="overflow-x:auto"><table id="cov"></table></div></div>
-  <div class="card"><h2>When you burn tokens</h2><div class="sub">local day-of-week × hour of day, selected range</div><div class="heat" id="heat"></div></div>
-  <div class="card"><h2>Breakdown <span class="seg" id="tabdim" style="margin-left:8px"></span></h2><div style="overflow-x:auto"><table id="tbl"></table></div></div>
+<div class="card"><h2>Scatter <span class="ctl"><select id="perfmetric"></select></span></h2><div class="sub">one dot per hour: x = tokens that hour, y = machine metric</div><div id="c-scatter"></div></div>
+<div class="card"><h2>Machine metrics by time, with tokens</h2><div class="sub">line = hourly average (dashed = hourly peak where known), bars = tokens (right axis)</div><div class="grid2" id="pm-grid"></div></div>
+<div class="card"><h2>What each project costs the machine</h2><div class="sub">token-weighted average machine state during hours the project was active (concurrency means this is attribution-by-association, not accounting)</div><div style="overflow-x:auto"><table id="ptbl"></table></div></div></section>
 </main>
 <div id="tip"></div>
 <script>
 "use strict";
+const CLOUD=(location.pathname||'').replace(/\/$/,'')==='/databricks';
+const nativeFetch=fetch;
+function apiFetch(path,options){if(CLOUD&&path.startsWith('/api/')&&!path.startsWith('/api/delivery/')&&!path.startsWith('/api/cloud/'))path+=(path.includes('?')?'&':'?')+'report_backend=databricks';return nativeFetch(path,options)}
+
 const PAL=['#4e79a7','#f28e2b','#59a14f','#e15759','#b07aa1','#76b7b2','#edc948','#9c755f','#ff9da7','#86bc86'],OTHER='#9aa0a6';
 const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MEASURES={all:['All tokens (incl. cache reads)',r=>r.fresh_in+r.cache_read+r.cache_write+r.out],
   nocache:['Excl. cache reads',r=>r.fresh_in+r.cache_write+r.out],
   io:['Fresh input + output',r=>r.fresh_in+r.out],out:['Output only',r=>r.out],cache:['Cache reads only',r=>r.cache_read]};
-const GROUPS={none:'Nothing (total)',project:'Project',model:'Model',tool:'Agent (claude / codex)',machine:'Machine',kind:'Session kind'};
+const GROUPS={none:'Nothing (total)',project:'Human project',folder:'Folder / agent project',model:'Model',tool:'Agent',machine:'Machine',kind:'Session kind'};
 const RANGES={'24h':24,'3d':72,'7d':168,'30d':720,'90d':2160,'All':0};
-const S={range:'7d',bucket:'hour',group:'project',measure:'nocache',project:'*',machine:'*',tools:new Set(['claude','codex','gateway','none']),requester:'me',kinds:new Set(['main','subagent','review']),dim:'project',sort:'tokens',perf:'cpu',lagvar:'tokens',idlemetric:'cpu',idlehi:75,idlelo:25};
+const S={anchor:Math.floor(Date.now()/3600000),range:'7d',bucket:'hour',group:'folder',metric:'tokens',folder:'*',toolsAll:true,kindsAll:true,measure:'nocache',project:'*',machine:'*',tools:new Set(),requester:'all',kinds:new Set(['main','subagent','review']),dim:'folder',sort:'tokens',perf:'cpu',lagvar:'tokens',idlemetric:'cpu',idlehi:75,idlelo:25};
 let D=null, T={}; // dataset, derived
-const fmt=n=>{n=+n||0;const a=Math.abs(n);return a>=1e9?(n/1e9).toFixed(2)+'B':a>=1e6?(n/1e6).toFixed(2)+'M':a>=1e4?(n/1e3).toFixed(1)+'k':a>=1e3?(n/1e3).toFixed(2)+'k':Math.round(n).toLocaleString()};
+const scopeCatalog={revision:0,projects:[],folders:new Map(),machines:new Set(),tools:new Set()};
+const fmt=n=>{n=+n||0;const a=Math.abs(n);return a>=1e9?(n/1e9).toFixed(2)+'B':a>=1e6?(n/1e6).toFixed(2)+'M':a>=1e4?(n/1e3).toFixed(1)+'k':a>=1e3?(n/1e3).toFixed(2)+'k':n.toLocaleString(undefined,{maximumFractionDigits:2})};
 const fbytes=n=>{n=+n||0;const u=['B/s','KB/s','MB/s','GB/s'];let i=0;while(n>=1024&&i<3){n/=1024;i++}return n.toFixed(n<10?1:0)+' '+u[i]};
 
 function modelLabel(m){
@@ -104,37 +173,196 @@ function modelLabel(m){
 }
 function objs(cols,rows){return rows.map(r=>{const o={};cols.forEach((c,i)=>o[c]=r[i]);return o})}
 
-async function load(){
-  const d=await (await fetch('/api/data')).json();D=d;
+async function load(refresh=false){
+  const response=await apiFetch('/api/data?days=0'+(refresh?'&refresh=1':''));if(!response.ok)throw new Error('Reporting backend unavailable ('+response.status+')');const d=await response.json();if(d.project_revision!==undefined&&d.project_revision<scopeCatalog.revision&&!d.rollup_status?.stale_policy&&!(d.rollup_status?.enabled&&!d.rollup_status?.ready)){if(['usage','capture','machine'].includes(activeView))return load(true);return}requireCurrentPublication(d);D=d;
   T.llm=objs(d.llm_cols,d.llm);T.edits=objs(d.edit_cols,d.edits);T.prompts=objs(d.prompt_cols,d.prompts);
   T.commits=objs(d.commit_cols,d.commits).map(c=>(c.tool=c.agent,c.model=modelLabel(c.model),c));
-  T.metrics=objs(d.metric_cols,d.metrics);T.notes=objs(d.note_cols,d.notes);
+  T.metrics=objs(d.metric_cols,d.metrics);T.notes=objs(d.note_cols,d.notes);T.sessions=objs(d.session_cols,d.sessions).map(r=>({...r,title:(d.session_titles||[]).find(t=>t.machine===r.machine&&t.tool===r.tool&&t.session===r.session)?.title}));T.sources=objs(d.source_cols,d.sources);
   [T.llm,T.edits,T.prompts].forEach(t=>t.forEach(r=>r.model=modelLabel(r.model)));
-  $('#gen').textContent='data as of '+new Date(d.generated*1000).toLocaleString();
-  buildControls();render();
+  $('#gen').textContent=reportCaption(d);$('#report-warnings').textContent=(d.warnings||[]).join(' ');
+  const membership=new Map((d.session_allocations||[]).map(r=>[[r.machine,r.tool,r.session].join('\u0001'),r]));T.sessions=T.sessions.map(r=>({...r,...(membership.get([r.machine,r.tool,r.session].join('\u0001'))||{project_keys:['@unassigned'],folder_keys:[]})}));
+  updateScope(d);renderCapture(d.capture_service);buildControls();render();
 }
 
+let moneyData=null,moneyRequest=0,moneyScope='';
+const effectiveCost=r=>!r?'Awaiting billing evidence':r.effective_cost_usd==null?(r.effective_cost_calls?money(r.known_effective_cost_usd)+' allocated · incomplete':'Awaiting billing evidence'):money(r.effective_cost_usd);
+function showMoney(data){
+ moneyScope=scopeQuery().toString();moneyData=data;const t=data.totals;if(!data.available||!t){$('#money-note').textContent=data.reason||'Cost accounting is warming';return}
+ const rack=t.rack_rate_low_usd===t.rack_rate_high_usd?money(t.rack_rate_low_usd):money(t.rack_rate_low_usd)+'–'+money(t.rack_rate_high_usd);
+ $('#money-kpis').innerHTML=[['Rack-rate value · estimate',rack],['Effective expense · allocated',effectiveCost(t)]].map(([l,v])=>'<div class="kpi"><div class="l">'+esc(l)+'</div><div class="v">'+esc(v)+'</div></div>').join('');
+ const reasons={billing_account_unverified:'verify the paying account / subscription association',subscription_charge_missing_or_ambiguous:'record the subscription charge and billing period',charge_currency_or_amount_unresolved:'resolve the recorded charge amount or currency',rack_rate_resolution_required:'resolve the model rate',billing_period_has_no_valued_usage:'wait for the billing period usage publication'};
+ $('#money-note').textContent='Allocated over the whole observed billing-period corpus, using rack-value midpoint weights. Current periods and partial account coverage are provisional. '+(t.rack_rate_missing_calls?fmt(t.rack_rate_missing_calls)+' requests need a rate mapping. ':'')+Object.entries(t.missing_reasons).map(([k,n])=>fmt(n)+' requests: '+(reasons[k]||k)).join('; ')+'. Reviewer comparisons use the observed parent-model range; local model values use a market hosting comparison.';
+}
+async function loadMoney(){
+ const scope=scopeQuery().toString(),request=++moneyRequest;moneyScope=scope;
+ try{const response=await apiFetch('/api/money?'+scope);if(!response.ok)throw new Error('Cost accounting unavailable ('+response.status+')');const data=await response.json();if(request!==moneyRequest||scope!==scopeQuery().toString())return;showMoney(data);if(activeView==='usage'&&D)table(span(),MEASURES[S.measure][1])}
+ catch(e){if(request===moneyRequest){moneyData=null;$('#money-kpis').innerHTML='';$('#money-note').textContent=e.message}}
+}
+let cloudReportSource=null;
+function renderCapture(capture){
+  if(CLOUD){const source=cloudReportSource||D?.report_source;$('#capture-health').textContent='Databricks reporting cache'+(source?' · '+fmt(source.records||0)+' verified records':' · warming');return}
+
+  const workerIssues=Object.entries(capture?.workers||{}).filter(([,w])=>['error','stale'].includes(w.state)).map(([name,w])=>name.replaceAll('_',' ')+' '+w.state);
+  $('#capture-service').textContent=capture?(capture.running?'Continuous capture '+(capture.capture_state||capture.state)+' · fast poll '+capture.poll+'s · broad scan '+Math.round(capture.interval/60)+' min · Pi snapshots '+capture.pi_snapshots+(capture.last_fast_error?' · fast capture error: '+capture.last_fast_error:'')+(capture.last_full_error?' · scan error: '+capture.last_full_error:'')+(capture.last_context_error?' · input/context capture error: '+capture.last_context_error:'')+(capture.last_usage_error?' · native usage capture error: '+capture.last_usage_error:'')+(capture.enrichment_deferred_reason?' · Repository/PR and historical host enrichment waiting for projection catch-up':'')+(capture.last_pr_error?' · PR enrichment: '+(capture.last_pr_errors||[capture.last_pr_error]).join('; '):'')+(workerIssues.length?' · Worker issues: '+workerIssues.join(', '):'')+(capture.last_pr_unavailable?.length?' · '+capture.last_pr_unavailable.length+' remote commit/PR lookups unavailable (attribution remains unassigned)':''):'Continuous capture is not running') : '';
+  const healthy=capture?.running&&(capture.capture_state||capture.state)==='running';
+  $('#capture-health').innerHTML='<i class="status-dot'+(healthy?'':' warn')+'"></i>'+esc(capture?(capture.running?(healthy?'Continuous capture active':'Capture needs attention'+(workerIssues.length?' ('+workerIssues.join(', ')+')':'')):'Collector stopped'):'Capture status unavailable')+(D?' · '+fmt(D.session_count)+' retained sessions':'')+(capture?.last_pr_error?' · PR enrichment needs attention':'')+(capture?.enrichment_deferred_reason?' · Git/PR metadata waiting for catch-up':'');
+}
+
+let workReport=null;const workReports={},workLoading={},workLoadedAt={};
+let showAllPRs=false;
+function money(v){if(v==null)return '—';const n=Number(v);return n>0&&n<.000001?'<$0.000001':'$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:Math.abs(n)<1?6:2})}
+function tokenValue(v){if(!v||!v.priced_calls)return '—';const lo=v.known_value_low_usd,hi=v.known_value_high_usd;return (lo===hi?money(lo):money(lo)+'–'+money(hi))+(v.unpriced_calls?' + rate mapping needed':'')}
+const reasonLabels={owner_not_recorded:'No owner ID',conflicting_owner_ids:'Conflicting owner IDs',route_not_recorded:'No native route record',session_time_endpoint_not_recorded:'No endpoint recorded during requests',partial_session_time_endpoint_coverage:'Endpoint recorded for part of the session',current_configuration_is_not_historical_route_proof:'Current config only; no historical route proof',session_time_region_not_recorded:'Region absent',inference_account_not_recorded:'Inference payer absent',owner_identity_is_not_billing_evidence:'Owner known; payer unverified',subscription_id_not_recorded:'Subscription ID absent',no_call_history:'No request history',conflicting_session_routes:'Conflicting simultaneous routes'};
+function reasonLabel(k){return reasonLabels[k]||k.replaceAll('_',' ')}
+function routeLines(s){const groups=new Map();for(const r of s.route_evidence){const label=[r.provider,r.endpoint_host,r.region,r.profile||'',r.account_key?'inference account '+r.account_key.slice(0,12):'',r.scope,r.provenance].filter(Boolean).join(' · ');let g=groups.get(label);if(!g){g={n:0,first:r.ts,last:r.ts};groups.set(label,g)}g.n++;g.first=Math.min(g.first,r.ts);g.last=Math.max(g.last,r.ts)}return [...groups].map(([label,g])=>esc(label+' · '+g.n+' observation'+(g.n===1?'':'s')+' · '+new Date(g.first*1000).toLocaleString()+(g.first===g.last?'':' – '+new Date(g.last*1000).toLocaleString()))).join('<br><br>')||'—'}
+function captureViews(data){
+  workReport=data;if(D)sessionSection(span());$('#load-capture-metrics').textContent='Refresh session & identity metrics';
+  const groups=new Map();
+  for(const s of data.sessions){const key=[s.tool,s.orchestrator||'direct / unmarked',s.inference_route?.label||s.provider||s.route_evidence?.find(r=>r.provider)?.provider||'unknown'].join(' / ');let g=groups.get(key);if(!g){g={n:0,owners:0,calls:0,endpoints:0,payers:0,why:new Map()};groups.set(key,g)}g.n++;g.owners+=s.accounts.length?1:0;g.calls+=s.calls;g.endpoints+=s.route_call_coverage.endpoint_known_calls;g.payers+=s.billing_account?1:0;for(const why of s.unknown_reasons)g.why.set(why,(g.why.get(why)||0)+1)}
+  const totalCalls=data.sessions.reduce((n,s)=>n+s.calls,0),owned=data.sessions.filter(s=>s.accounts.length).length,routed=data.sessions.reduce((n,s)=>n+s.route_call_coverage.endpoint_known_calls,0),paid=data.sessions.filter(s=>s.billing_account).length;
+  $('#attribution-summary').textContent='Coverage across '+fmt(data.sessions.length)+' sessions · as of '+new Date(data.generated*1000).toLocaleString()+'. Missing evidence stays unassigned; a known route does not establish its paying account.';
+  $('#coverage-overview').innerHTML=[['Sessions with owner',owned,data.sessions.length],['Calls with endpoint',routed,totalCalls],['Sessions with billing identity',paid,data.sessions.length],['Subscription charge periods',(data.subscription_period_count??data.subscription_periods?.length??0),null]].map(([label,n,total])=>`<div class="coverage-item"><strong>${fmt(n)}${total!=null?' <span>/ '+fmt(total)+'</span>':''}</strong><div class="coverage-track"><i style="width:${total?Math.min(100,n/total*100):0}%"></i></div><span>${esc(label)}</span></div>`).join('');
+  $('#attribution-cohorts').innerHTML='<tr><th>Agent / orchestrator / route</th><th>Sessions</th><th>With owner</th><th>Endpoint calls</th><th>With billing identity</th></tr>'+[...groups].map(([key,g])=>`<tr><td>${esc(key.replace(/unknown/g,'unrecorded'))}</td><td>${fmt(g.n)}</td><td>${fmt(g.owners)}</td><td>${fmt(g.endpoints)} / ${fmt(g.calls)}</td><td>${fmt(g.payers)}</td></tr>`).join('');
+  const representatives=new Map();for(const s of data.sessions){const key=[s.tool,s.provider,s.orchestrator,s.account_sources.join(','),s.route_evidence.map(r=>r.provenance).sort().join(',')].join('|');if(!representatives.has(key))representatives.set(key,s)}
+  const sample=[...new Map([...representatives.values(),...data.sessions.slice(0,100)].map(s=>[s.tool+':'+s.session,s])).values()];
+  $('#attribution-table').innerHTML='<tr><th>agent / session</th><th>owner / source</th><th>route evidence</th><th>unknown reasons</th></tr>'+sample.map(s=>`<tr><td>${esc(s.tool)}<br><code>${esc(s.session.slice(0,16))}</code></td><td>${esc(s.accounts.map(a=>a.slice(0,12)).join(', ')||'—')}<br>${esc(s.account_sources.join(', '))}</td><td>${s.inference_route?esc(s.inference_route.label)+'<br><br>':''}${routeLines(s)}</td><td>${esc(s.unknown_reasons.map(reasonLabel).join('; '))}</td></tr>`).join('');
+}
+function billingReads(value){
+  try{const s=JSON.parse(value),ok=['usage','reset_inventory','reset_history'].every(k=>s[k]==='ok');
+    if(s.pricing==='http_403'&&s.subscription==='http_403')return (ok?'Usage and reset history captured. ':'')+'Plan pricing and invoice reads denied (403).';
+    return Object.entries(s).map(([k,v])=>k.replaceAll('_',' ')+': '+(v==='ok'?'captured':v.replaceAll('_',' '))).join(' · ');
+  }catch{return 'Automatic billing status unavailable'}
+}
+function accountViews(data){
+  if(data.monetary)showMoney(data.monetary);
+  updateScope(data);buildScopeControls();
+  $('#value-summary').textContent='Observed token value: '+tokenValue(data.valuation)+' in the selected scope at dated standard API reference rates. '+fmt(data.valuation.priced_calls)+' priced calls; '+fmt(data.valuation.unpriced_calls)+' need rate mapping. Rate snapshots: '+data.valuation.rate_card_dates.join(', ')+'. This is a valuation estimate, not a historical invoice. Cache-write duration uncertainty appears as a range.';
+  const previousPayerSession=$('#payer-session').value,previousBillingAccount=$('#billing-account').value;
+  $('#payer-session').innerHTML=(data.monetary?.rows||[]).filter(r=>r.kind==='session').slice(0,1000).map(r=>{const sk=JSON.parse(r.key);return '<option value="'+esc(r.key)+'" data-first="'+r.first_ts+'" data-last="'+r.last_ts+'">'+esc(sk[1]+' · '+sk[2])+'</option>'}).join('');
+  $('#payer-session').onchange=()=>{const o=$('#payer-session').selectedOptions?.[0];if(!o)return;const local=ts=>{const d=new Date(ts*1000);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};$('#payer-start').value=local(Math.floor(Number(o.dataset.first)/60)*60);$('#payer-end').value=local(Math.ceil((Number(o.dataset.last)+1)/60)*60)};if((data.monetary?.rows||[]).some(r=>r.kind==='session'&&r.key===previousPayerSession))$('#payer-session').value=previousPayerSession;else $('#payer-session').onchange();
+  $('#billing-account').innerHTML=(data.account_registry||data.accounts||[]).map(a=>'<option value="'+esc(a.account_key)+'" data-provider="'+esc(a.provider)+'">'+esc(a.provider+' / '+(a.email_hint||a.account_key.slice(0,12))+' / '+(a.plan||''))+'</option>').join('');
+  if((data.account_registry||data.accounts||[]).some(a=>a.account_key===previousBillingAccount))$('#billing-account').value=previousBillingAccount;
+  const usage=new Map((data.account_usage||[]).map(a=>[a.account_key,a]));const accounts=new Map();(data.account_registry||data.accounts).forEach(a=>{const old=accounts.get(a.account_key);if(!old)accounts.set(a.account_key,{...a,email_hint_ts:a.email_hint_ts??a.ts,plan_ts:a.plan_ts??a.ts,plan_source:a.plan_source??a.provenance});else{for(const k of ['email_hint','plan'])if(a[k]&&(!old[k]||a.ts>(old[k+'_ts']||0))){old[k]=a[k];old[k+'_ts']=a.ts;old[k+'_source']=a.provenance}if(a.ts>old.ts){old.ts=a.ts;old.provenance=a.provenance}}});
+  for(const [key,a] of usage)if(key!=='@unknown'&&!accounts.has(key))accounts.set(key,{account_key:key,provider:a.provider||'Account',plan:'',provenance:'Session-time attribution; identity details unrecorded',ts:null});
+  $('#account-table').innerHTML='<tr><th>provider / account</th><th>observed plan</th><th>Selected usage</th><th>Rack-rate value · est.</th><th>Effective expense · allocated</th><th>identity source</th><th>observed at</th></tr>'+[...accounts.values()].map(a=>`<tr><td>${esc(a.provider)} / ${esc(a.email_hint||a.account_key.slice(0,12))}</td><td>${esc(a.plan||'—')}</td><td>${fmt(usage.get(a.account_key)?.calls||0)} calls · ${fmt(usage.get(a.account_key)?.tokens||0)} tokens</td><td>${tokenValue(usage.get(a.account_key)?.valuation)}</td><td>${esc(effectiveCost(usage.get(a.account_key)))}</td><td>${esc(a.provenance)}${a.billing_status?'<br>'+esc(billingReads(a.billing_status)):''}${a.plan_source?' · plan: '+esc(a.plan_source):''}</td><td>${a.ts?esc(new Date(a.ts*1000).toLocaleString()):'—'}</td></tr>`).join('');
+  if(usage.has('@unknown')){const a=usage.get('@unknown');$('#account-table').innerHTML+=`<tr><td>Unassigned account</td><td>—</td><td>${fmt(a.calls)} calls · ${fmt(a.tokens)} tokens</td><td>${tokenValue(a.valuation)}</td><td colspan="2">${esc(a.reason)}</td></tr>`}
+  $('#subscription-table').innerHTML='<tr><th>subscription / billing period</th><th>Subscription + resets + overage</th><th>attributed calls</th><th>API-equivalent value (estimate)</th><th>known value / subscription dollar</th></tr>'+data.subscription_periods.map(p=>`<tr><td>${esc(p.observed_plan||p.subscription_key.slice(0,12))}<br>${esc(new Date(p.period_start*1000).toLocaleDateString())}–${p.expense_basis?'ongoing plan observation':esc(new Date(p.period_end*1000).toLocaleDateString())}</td><td>${p.expense_basis?money(p.monthly_usd)+'/month · observed plan; '+money(p.plan_accrued_estimate_usd)+' accrued estimate':money(p.subscription_spend_usd)}<br>${p.expense_basis?'Invoice and reset charges not recorded':'Base '+money(p.base_subscription_usd)+' · recorded resets '+money(p.purchased_reset_usd)+' · recorded overage '+money(p.overage_usd)}<br>${esc(Object.entries(p.currency_amounts||{}).map(([c,a])=>c+' '+a.toFixed(2)).join(', '))}<br>${esc(p.charge_provenance.join(', '))}</td><td>${p.calls}</td><td>${tokenValue(p.valuation)}</td><td>${p.known_value_per_subscription_dollar_low==null?'unknown':p.known_value_per_subscription_dollar_low.toFixed(2)+'–'+p.known_value_per_subscription_dollar_high.toFixed(2)+'× (selected rack value / period expense)'}</td></tr>`).join('');
+  if(!data.subscription_periods.length)$('#subscription-table').innerHTML='<tr><td>No subscription charges recorded. Add billing records to compare token value with subscription spend. Plan names alone do not establish a price.</td></tr>';
+  $('#quota-summary').textContent=fmt(data.quota_counts.limit_reached||0)+' explicit limit-hit records; '+fmt(data.quota_counts.window_exhausted||0)+' exhausted-window observations; '+fmt(data.quota_counts.reset_observed||0)+' observed reset transitions; '+fmt(data.quota_counts.reset_credit_used||0)+' provider-recorded reset uses. Scheduled reset times are separate from observed resets. '+fmt(data.quota_latest.filter(q=>!q.account_key).length)+' recent session-only snapshots lack account attribution and remain in captured evidence.';
+  $('#quota-table').innerHTML='<tr><th>agent / account or session</th><th>observed plan</th><th>window</th><th>used</th><th>scheduled reset</th><th>reset credits available</th><th>event</th></tr>'+data.quota_latest.filter(q=>q.account_key).slice(0,30).map(q=>`<tr><td>${esc(q.tool)} / ${esc((q.account_key||q.session).slice(0,12))}${q.account_key?'':' (account unknown)'}</td><td>${esc(q.plan||'—')}</td><td>${esc(q.window)} · ${q.window_minutes==null?'—':q.window_minutes+' min'}</td><td>${q.used_percent==null?'—':q.used_percent+'%'}</td><td>${q.resets_at?esc(new Date(q.resets_at*1000).toLocaleString()):'—'}</td><td>${q.reset_credits_available==null?'—':q.reset_credits_available}</td><td>${esc(q.event)}</td></tr>`).join('');
+  $('#reset-history-table').innerHTML='<tr><th>Provider reset event</th><th>Occurred</th><th>Account</th></tr>'+(data.reset_history||[]).map(q=>`<tr><td>${esc(q.event.replace('reset_credit_','Reset ').replaceAll('_',' '))}</td><td>${esc(new Date(q.occurred_at*1000).toLocaleString())}</td><td>${esc(q.account_key.slice(0,12))}</td></tr>`).join('');
+  $('#billing-capture-status').textContent=[...accounts.values()].filter(a=>a.billing_status).map(a=>a.provider+': '+billingReads(a.billing_status)).join(' ');
+
+
+}
+function priceCoverage(value){const priced=value?.priced_calls||0,unpriced=value?.unpriced_calls||0,total=priced+unpriced;return total?Math.round(priced/total*100)+'% priced'+(unpriced?' · '+fmt(unpriced)+' need rate mapping':''):'No usage'}
+function rollupValue(rows){return rows.reduce((a,r)=>({priced_calls:a.priced_calls+(r.priced_calls||0),unpriced_calls:a.unpriced_calls+(r.unpriced_calls??r.calls??0),known_value_low_usd:a.known_value_low_usd+(r.value_low_usd||0),known_value_high_usd:a.known_value_high_usd+(r.value_high_usd||0)}),{priced_calls:0,unpriced_calls:0,known_value_low_usd:0,known_value_high_usd:0})}
+function workViews(data){
+  updateScope(data);buildScopeControls();const value=data.valuation;
+  $('#work-kpis').innerHTML=[['Token value · est.',tokenValue(value),priceCoverage(value)],['PR-linked usage',fmt(data.attributed_calls),fmt(data.total_calls)+' request equivalents in scope'],['Commit-linked usage',fmt(data.commit_attributed_calls),'Verified commit intervals'],['Native reported · est.',data.reported_call_count?money(data.reported_call_value):'—','Billed spend remains unknown']].map(([label,value,note])=>'<div class="kpi"><div class="l">'+esc(label)+'</div><div class="v">'+esc(value)+'</div><div class="s">'+esc(note)+'</div></div>').join('');
+  $('#commit-summary').textContent=fmt(data.commit_attributed_calls)+' calls attributed to commit work; '+data.commits.length+' commits with usage in scope. Usage between recorded commit boundaries is allocated once; same-result commit batches remain unknown. PR membership is separate and may be unknown.';
+  $('#commit-table').innerHTML='<tr><th>repository / commit</th><th>linked sessions</th><th>allocated calls</th><th>processed tokens</th><th>PR membership</th><th>Rack-rate value · est.</th><th>Effective expense · allocated</th></tr>'+data.commits.slice(0,100).map(c=>`<tr><td>${esc(c.repo)}<br><code>${esc(c.sha.slice(0,12))}</code></td><td>${c.linked_sessions.length}</td><td>${c.calls||'—'}</td><td>${c.calls?fmt(c.total_tokens):'—'}</td><td>${c.prs.length?c.prs.map(p=>`<a href="${esc(p)}" target="_blank" rel="noreferrer">#${esc(p.split('/').pop())}</a>`).join(', '):'No verified PR'}</td><td>${tokenValue(c.valuation)}</td><td>${esc(effectiveCost(c))}</td></tr>`).join('');
+    if(data.monetary)showMoney(data.monetary);
+    const val=x=>x==null?'—':fmt(x);
+    const linkedPRs=data.prs.filter(r=>r.calls),metadataPRs=data.prs.filter(r=>!r.calls);
+    $('#pr-summary').textContent=fmt(data.attributed_calls)+' / '+fmt(data.total_calls)+' calls attributed ('+fmt(data.pre_pr_calls||0)+' before PR opening); '+fmt(data.unattributed_calls)+' unassigned. '+data.prs.length+' known PRs. '+linkedPRs.length+' with captured usage; '+metadataPRs.length+' without allocated usage.';
+    $('#pr-coverage').textContent=JSON.stringify({definition_version:data.definition_version,automatic_evidence_count:data.automatic_evidence_count,unattributed_reasons:data.unattributed_reasons,definitions:data.definitions,limitations:data.limitations,unattributed_sessions:data.unattributed_sessions,task_contexts:data.task_contexts,unclassified_codex_role_records:data.unclassified_codex_role_records},null,2);
+    $('#pr-table').innerHTML='<tr><th>Pull request</th><th>State</th><th>Sessions</th><th>Tokens</th><th>Input equivalents</th><th>Merged + / −</th><th>Rack-rate value · est.</th><th>Effective expense · allocated</th></tr>'+linkedPRs.slice(0,showAllPRs?100:25).map(r=>`<tr><td><a href="${esc(r.url)}" target="_blank" rel="noreferrer">${esc(r.title||"Untitled PR")}</a><span class="cell-meta">${esc(r.repo)} #${r.number}</span><details><summary>Evidence & metrics</summary><pre>${esc(JSON.stringify({tasks:r.tasks,sessions:r.session_refs,evidence:r.evidence_refs,calls:r.calls,output_tokens:r.out,observed_inputs:r.observed_inputs,physical_input_events:r.observed_input_events,input_count_basis:data.input_count_basis,human_inputs:r.human_inputs,pre_pr_calls:r.pre_pr_calls,input_coverage:r.input_coverage,unknown_origin_inputs:r.unknown_origin_inputs,merged_lines_per_million_tokens:r.accepted_code_per_million_tokens,actual_billed_usd:null,metadata_asof:r.metadata_asof},null,2))}</pre></details></td><td>${esc(r.state||'—')}</td><td>${r.calls?'<details><summary>'+val(r.sessions)+' sessions</summary>'+(r.session_refs||[]).map(s=>'<div>'+esc(s.title||'Untitled session')+'<span class="cell-meta">'+esc(s.tool)+' · '+esc(s.session.slice(0,8))+'</span></div>').join('')+'</details>':'—'}</td><td>${r.calls?val(r.total_tokens):'—'}</td><td>${val(r.human_inputs)}</td><td>${val(r.added_code)} / ${val(r.removed_code)}</td><td>${tokenValue(r.valuation)}</td><td>${esc(effectiveCost(r))}</td></tr>`).join('');
+    if(!linkedPRs.length)$('#pr-table').innerHTML='<tr><td colspan="7" class="empty-state">No PRs have allocated usage in this scope. Try a wider range or another human project. Unassigned sessions remain visible in Usage.</td></tr>';
+    $('#more-prs').hidden=linkedPRs.length<=25;$('#more-prs').textContent=showAllPRs?'Show first 25 linked PRs':'Show all '+linkedPRs.length+' linked PRs';$('#more-prs').onclick=()=>{showAllPRs=!showAllPRs;loadEffectiveness(false,'work')};
+    $('#unlinked-prs').hidden=!metadataPRs.length;$('#unlinked-prs summary').textContent=metadataPRs.length+' PRs without captured usage';
+    $('#unlinked-pr-list').innerHTML=metadataPRs.map(r=>`<div><a href="${esc(r.url)}" target="_blank" rel="noreferrer">${esc(r.title||"Untitled PR")}</a><span class="cell-meta">${esc(r.repo)} #${r.number}</span> · ${esc(r.state||'state unavailable')}</div>`).join('');
+    $('#pr-summary').textContent+=' Human-input counts use supported interactive-event proxies. Token values are estimates; billed spend is unavailable.';
+}
+
+async function loadEffectiveness(refresh=false,view=activeView){
+  if(!['work','accounts','capture'].includes(view))view='work';
+  const scope=['work','accounts'].includes(view)?scopeQuery().toString():'',loadKey=view+'?'+scope;
+  if(workLoading[loadKey])return;workLoading[loadKey]=true;
+  if(view==='capture')$('#load-capture-metrics').disabled=true;
+  if(activeView===view)$('#refresh-report').disabled=true;
+  try{
+    let data=Date.now()-(workLoadedAt[loadKey]||0)<900000?workReports[loadKey]:null;if(data?.rollup_status&&data.rollup_status.updated_at<reportPublication)data=null;let fetched=false;
+    if(refresh||!data){const response=await apiFetch('/api/effectiveness?view='+view+(scope?'&'+scope:'')+(refresh?'&refresh=1':''));if(!response.ok)throw new Error('Work and account evidence unavailable ('+response.status+')');data=await response.json();fetched=true}
+    if(!data.available)throw new Error(data.reason);requireCurrentPublication(data);
+    if(['work','accounts'].includes(view)&&data.project_revision!==undefined&&data.project_revision<scopeCatalog.revision)throw new Error('Project allocation is updating in the background. Refresh after publication.');
+    if(fetched){workLoadedAt[loadKey]=Date.now();workReports[loadKey]=data;const keys=Object.keys(workReports).sort((a,b)=>(workLoadedAt[a]||0)-(workLoadedAt[b]||0));while(keys.length>16){const key=keys.shift();delete workReports[key];delete workLoadedAt[key]}}
+    if(activeView===view&&['work','accounts'].includes(view))$('#gen').textContent=reportCaption(data);
+    if(['work','accounts'].includes(view)&&scope!==scopeQuery().toString())return;
+    if(view==='capture')captureViews(data);else if(view==='accounts')accountViews(data);else workViews(data);
+  }catch(error){if(['work','accounts'].includes(view)&&scope!==scopeQuery().toString())return;if(view==='work'){for(const id of ['#work-kpis','#pr-table','#commit-table','#unlinked-pr-list','#pr-coverage'])$(id).innerHTML='';$('#commit-summary').textContent='';$('#more-prs').hidden=true}else if(view==='accounts'){for(const id of ['#account-table','#subscription-table','#quota-table','#reset-history-table','#billing-capture-status'])$(id).innerHTML='';$('#quota-summary').textContent=''}$(view==='accounts'?'#value-summary':view==='capture'?'#attribution-summary':'#pr-summary').textContent=error.message}
+  finally{workLoading[loadKey]=false;if(view==='capture')$('#load-capture-metrics').disabled=false;if(activeView===view)$('#refresh-report').disabled=!!workLoading[view+'?'+(['work','accounts'].includes(view)?scopeQuery().toString():'')]}
+}
+
+
+function projectLabel(key){if(key==='@unassigned')return 'Unassigned';return scopeCatalog.projects.find(p=>p.project_key===key)?.name||key||'Unassigned'}
+function folderLabel(key){if(key==='@unobserved')return 'Without folder evidence';const f=scopeCatalog.folders.get(key);return f?f.name+(f.machine?' · '+f.machine:''):key||'Folder not observed'}
+function folderGroup(key){return scopeCatalog.folders.get(key)?.kind==='unobserved'?'@unobserved':key}
+function dimensionLabel(key,dim){return dim==='project'?projectLabel(key):dim==='folder'?folderLabel(key):key}
+let reportPublication=0;
+function reportCaption(data){
+ const s=data.rollup_status,c=s?.capture;const age=ts=>{const seconds=Math.max(0,Math.floor(Date.now()/1000-ts));return seconds<60?seconds+'s':seconds<3600?Math.floor(seconds/60)+'m':(seconds/3600).toFixed(1)+'h'};
+ return(s?.updated_at?'Report published '+new Date(s.updated_at*1000).toLocaleString():(data.backend?data.backend+' · ':'')+'data as of '+new Date(data.generated*1000).toLocaleString())
+ +(s?.recent_usage_source_at?' · Recent usage snapshot '+age(s.recent_usage_source_at)+' old':'')
+ +(c?.sampled_at?' · Capture checked '+age(c.sampled_at)+' ago · Usage queue '+fmt(c.usage_pending)+' · Work queue '+fmt(c.work_pending):'')
+ +(s?.pending_hours?' · '+s.pending_hours+' hours updating':'')+(s?.stale_policy?' · project allocation updating':'');
+}
+function requireCurrentPublication(data){if(data.rollup_status&&data.rollup_status.updated_at<reportPublication)throw new Error('A newer reporting snapshot is available. Refresh to load matching usage and costs.')}
+
+function updateScope(data){
+ reportPublication=Math.max(reportPublication,data.rollup_status?.updated_at||0);
+ const incoming=data.project_revision??data.revision;if(incoming!==undefined&&incoming<scopeCatalog.revision)return false;if(incoming!==undefined&&incoming>scopeCatalog.revision){scopeCatalog.folders.clear();scopeCatalog.revision=incoming}
+ const catalog=data.project_catalog||data.catalog;if(catalog)scopeCatalog.projects=catalog;
+ for(const f of data.folder_catalog||[]){const old=scopeCatalog.folders.get(f.folder_key);scopeCatalog.folders.set(f.folder_key,{...f,project_keys:[...new Set([...(old?.project_keys||[]),...(f.project_keys||[])])]})}
+ for(const m of data.machines||[])scopeCatalog.machines.add(m);
+ for(const f of data.folder_catalog||[])if(f.machine)scopeCatalog.machines.add(f.machine);
+ for(const tool of data.observed_tools||[])scopeCatalog.tools.add(tool);
+ if(data.llm_cols){const i=data.llm_cols.indexOf('tool');for(const row of data.llm||[])if(row[i])scopeCatalog.tools.add(row[i])}
+ if(S.toolsAll)S.tools=new Set(scopeCatalog.tools);
+}
+function buildScopeControls(data){
+ if(data)updateScope(data);
+ $('#range').innerHTML=Object.keys(RANGES).map(key=>'<button type="button" data-range="'+key+'" class="'+(key===S.range?'on':'')+'">'+key+'</button>').join('');
+ document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{S.range=b.dataset.range;S.anchor=Math.floor(Date.now()/3600000);scopeChanged()});
+ const options=(id,rows,value)=>{const e=$(id);e.innerHTML=rows.map(([key,label])=>'<option value="'+esc(key)+'">'+esc(label)+'</option>').join('');e.value=value};
+ options('#project',[['*','All human projects'],['@unassigned','Unassigned'],...scopeCatalog.projects.map(p=>[p.project_key,p.name+(p.state==='archived'?' (archived)':'')])],S.project);
+ const folders=[...scopeCatalog.folders.values()].filter(f=>S.project==='*'||f.project_keys?.includes(S.project)).sort((a,b)=>a.name.localeCompare(b.name));
+ options('#folder',[['*','All folders / agent projects'],...folders.filter(f=>f.kind!=='unobserved').map(f=>[f.folder_key,folderLabel(f.folder_key)]),...(folders.some(f=>f.kind==='unobserved')?[['@unobserved','Without folder evidence']]:[])],S.folder);
+ options('#machine',[['*','All machines'],...[...scopeCatalog.machines].sort().map(m=>[m,m])],S.machine);
+ $('#project').onchange=event=>{S.project=event.target.value;S.folder='*';scopeChanged()};$('#folder').onchange=event=>{S.folder=event.target.value;scopeChanged()};$('#machine').onchange=event=>{S.machine=event.target.value;scopeChanged()};
+ const reqs=D?[...new Set(T.llm.map(r=>r.requester).filter(Boolean))].sort():[];
+ options('#requester',[['all','Everyone'],['me','Me'],...reqs.map(r=>[r,r])],S.requester);$('#requester').onchange=event=>{S.requester=event.target.value;scopeChanged()};
+ const toolButton=(tool,label,on)=>'<button type="button" class="chip'+(on?'':' off')+'" data-scope-tool="'+esc(tool)+'">'+esc(label)+'</button>';
+ $('#toolchips').innerHTML=toolButton('*','All agents',S.toolsAll)+[...scopeCatalog.tools].sort().map(tool=>toolButton(tool,tool,S.toolsAll||S.tools.has(tool))).join('');
+ document.querySelectorAll('[data-scope-tool]').forEach(button=>button.onclick=()=>{const tool=button.dataset.scopeTool;if(tool==='*'){S.toolsAll=true;S.tools=new Set(scopeCatalog.tools)}else if(S.toolsAll){S.toolsAll=false;S.tools=new Set([tool])}else S.tools.has(tool)?S.tools.delete(tool):S.tools.add(tool);scopeChanged()});
+ const kindButton=(kind,label,on)=>'<button type="button" class="chip'+(on?'':' off')+'" data-scope-kind="'+kind+'">'+label+'</button>';
+ $('#kindchips').innerHTML=kindButton('*','All session kinds',S.kindsAll)+['main','subagent','review'].map(kind=>kindButton(kind,kind,S.kindsAll||S.kinds.has(kind))).join('');
+ document.querySelectorAll('[data-scope-kind]').forEach(button=>button.onclick=()=>{const kind=button.dataset.scopeKind;if(kind==='*')S.kindsAll=true;else if(S.kindsAll){S.kindsAll=false;S.kinds=new Set([kind])}else S.kinds.has(kind)?S.kinds.delete(kind):S.kinds.add(kind);scopeChanged()});
+ document.querySelectorAll('.usage-only').forEach(e=>e.hidden=['work','costs','history'].includes(activeView));
+}
+function scopeQuery(){
+ const now=S.anchor,hours=RANGES[S.range];
+ const q=new URLSearchParams({start:String(hours?Math.max(0,(now-hours+1)*3600):0),end:String((now+1)*3600),requester:S.requester});
+ for(const [name,value] of [['project_key',S.project],['folder_key',S.folder],['machine',S.machine]])if(value&&value!=='*')q.set(name,value);
+ if(!S.toolsAll)q.set('tools',[...S.tools].sort().join(',')||'@none');
+ if(!S.kindsAll)q.set('kinds',[...S.kinds].sort().join(',')||'@none');
+ return q;
+}
+function scopeChanged(){buildScopeControls();if(['work','accounts'].includes(activeView))loadEffectiveness(false,activeView);else if(activeView==='costs')loadCosts();else if(activeView==='history')loadHistory();else if(D)render()}
 function buildControls(){
   const seg=(el,items,key)=>{const e=$(el);e.innerHTML='';items.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.className=S[key]===k?'on':'';b.onclick=()=>{S[key]=k;buildControls();render()};e.appendChild(b)})};
-  seg('#range',Object.keys(RANGES).map(k=>[k,k]),'range');seg('#bucket',[['hour','Hour'],['day','Day']],'bucket');
-  seg('#tabdim',[['project','Project'],['model','Model'],['tool','Agent'],['machine','Machine']],'dim');
-  const sel=(el,opts,key)=>{const e=$(el);e.innerHTML=opts.map(([k,l])=>`<option value="${esc(k)}" ${S[key]===k?'selected':''}>${esc(l)}</option>`).join('');e.onchange=()=>{S[key]=e.value;render()}};
+  buildScopeControls(D);seg('#bucket',[['hour','Hour'],['day','Day']],'bucket');
+  seg('#tabdim',[['folder','Folders'],['project','Human projects'],['model','Model'],['tool','Agent'],['machine','Machine']],'dim');
+  const sel=(el,opts,key)=>{const e=$(el);e.innerHTML=opts.map(([k,l])=>`<option value="${esc(k)}" ${S[key]===k?'selected':''}>${esc(l)}</option>`).join('');e.onchange=()=>{S[key]=e.value;key==='requester'?scopeChanged():render()}};
   sel('#group',Object.entries(GROUPS),'group');sel('#measure',Object.entries(MEASURES).map(([k,v])=>[k,v[0]]),'measure');
-  const projs=[...new Set([...T.llm,...T.commits].map(r=>r.project))].sort();
-  sel('#project',[['*','All projects'],...projs.map(p=>[p,p])],'project');
-  const reqs=[...new Set(T.llm.map(r=>r.requester).filter(Boolean))].sort();
-  sel('#requester',[['me','Me'],['all','Everyone'],...reqs.map(r=>[r,r])],'requester');
-  sel('#machine',[['*','All machines'],...D.machines.map(p=>[p,p])],'machine');
-  const chips=(el,names,set,colors)=>{const e=$(el);e.innerHTML='';names.forEach(([k,l],i)=>{const s=document.createElement('span');s.className='chip'+(set.has(k)?'':' off');s.style.background=colors[i];s.style.color='#fff';s.textContent=l;s.onclick=()=>{set.has(k)?set.delete(k):set.add(k);buildControls();render()};e.appendChild(s)})};
-  chips('#toolchips',[['claude','Claude'],['codex','Codex'],['gateway','DB gateway'],['none','human commits']],S.tools,[PAL[1],PAL[0],PAL[4],PAL[7]]);
-  chips('#kindchips',[['main','main'],['subagent','subagents'],['review','auto-review']],S.kinds,['#6b7280','#6b7280','#6b7280']);
+
 }
 
 // ---- time bucketing (local time)
 const tzCache=new Map();
 function localDate(h){let v=tzCache.get(h);if(!v){const d=new Date(h*3600e3);v={d,day:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),hod:d.getHours(),dow:(d.getDay()+6)%7};tzCache.set(h,v)}return v}
 function span(){
-  const now=Math.floor(D.generated/3600);let h0=RANGES[S.range]?now-RANGES[S.range]+1:Math.min(...[T.llm,T.commits,T.edits,T.prompts].filter(t=>t.length).map(t=>Math.min(...t.map(r=>r.hour))),now);
+  const now=S.anchor;let h0=RANGES[S.range]?now-RANGES[S.range]+1:Math.min(...[T.llm,T.commits,T.edits,T.prompts].filter(t=>t.length).map(t=>Math.min(...t.map(r=>r.hour))),now);
   let bucket=S.bucket;if((now-h0)>24*45&&bucket==='hour')bucket='day';
   const keys=[],seen=new Set();for(let h=h0;h<=now;h++){const k=bucket==='hour'?h:localDate(h).day;if(!seen.has(k)){seen.add(k);keys.push(k)}}
   return {h0,now,bucket,keys,idx:new Map(keys.map((k,i)=>[k,i]))}
@@ -143,15 +371,15 @@ const bk=(sp,h)=>sp.bucket==='hour'?h:localDate(h).day;
 function bucketLabel(sp,k){return sp.bucket==='hour'?new Date(k*3600e3).toLocaleString([],{month:'short',day:'numeric',hour:'numeric'}):k}
 
 // ---- filtering & grouping
-const reqOk=r=>r.requester===undefined||S.requester==='all'||(S.requester==='me'?(r.requester===''||D.me.includes(r.requester)):r.requester===S.requester);
-const pass=(r,kind)=>reqOk(r)&&(S.project==='*'||r.project===S.project)&&(S.machine==='*'||r.machine===S.machine)&&(r.tool===undefined||S.tools.has(r.tool))&&(!kind||r.kind===undefined||S.kinds.has(r.kind));
-function gkey(r){switch(S.group){case 'none':return 'Total';case 'project':return r.project;case 'model':return r.model;case 'tool':return r.tool==='none'?'human':r.tool;case 'machine':return r.machine;case 'kind':return r.kind||'main'}}
+const reqOk=r=>r.requester===undefined||S.requester==='all'||(S.requester==='me'?(!r.requester||D.me.includes(r.requester)):r.requester===S.requester);
+const pass=(r,kind)=>reqOk(r)&&(S.project==='*'||(r.project_keys?r.project_keys.includes(S.project):r.project===S.project))&&(S.folder==='*'||(r.folder_keys?r.folder_keys.some(key=>(S.folder==='@unobserved'?folderGroup(key):key)===S.folder):(S.folder==='@unobserved'?folderGroup(r.folder):r.folder)===S.folder))&&(S.machine==='*'||r.machine===S.machine)&&(r.tool===undefined||S.toolsAll||S.tools.has(r.tool))&&(!kind||S.kindsAll||r.kind===undefined||S.kinds.has(r.kind));
+function gkey(r){switch(S.group){case 'none':return 'Total';case 'project':return r.project;case 'folder':return folderGroup(r.folder);case 'model':return r.model;case 'tool':return r.tool==='none'?'human':r.tool;case 'machine':return r.machine;case 'kind':return r.kind||'main'}}
 function series(sp,rows,valf,kind){
   const tot=new Map(),per=new Map();
   for(const r of rows){if(r.hour<sp.h0||!pass(r,kind))continue;const k=bk(sp,r.hour),i=sp.idx.get(k);if(i===undefined)continue;
     const g=gkey(r),v=valf(r);if(!v)continue;tot.set(g,(tot.get(g)||0)+v);let a=per.get(g);if(!a){a=new Array(sp.keys.length).fill(0);per.set(g,a)}a[i]+=v}
   const order=[...tot.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
-  const top=order.slice(0,10),rest=order.slice(10),out=top.map((g,i)=>({name:g,color:PAL[i%PAL.length],data:per.get(g),total:tot.get(g)}));
+  const top=order.slice(0,10),rest=order.slice(10),out=top.map((g,i)=>({name:dimensionLabel(g,S.group),color:PAL[i%PAL.length],data:per.get(g),total:tot.get(g)}));
   if(rest.length){const d=new Array(sp.keys.length).fill(0);rest.forEach(g=>per.get(g).forEach((v,i)=>d[i]+=v));out.push({name:'other ('+rest.length+')',color:OTHER,data:d,total:d.reduce((a,b)=>a+b,0)})}
   return out;
 }
@@ -203,10 +431,17 @@ const pearson=(a,b)=>{const n=a.length;if(n<4)return null;const ma=a.reduce((x,y
 
 // ---- render
 function render(){
+  if(activeView==='usage'&&moneyScope!==scopeQuery().toString())loadMoney();
+  if(activeView==='usage'&&D?.rollup_status?.enabled&&(!D.rollup_status.ready||D.rollup_status.stale_policy)){
+    $('#kpis').innerHTML='<div class="kpi"><div class="l">Usage rollups</div><div class="v">—</div><div class="s">'+(D.rollup_status.stale_policy?'Project allocation is updating.':'Building in the background; totals are not yet available.')+'</div></div>';
+    for(const id of ['#c-tokens','#l-tokens','#tbl'])$(id).innerHTML='';return;
+  }
   const sp=span(),mv=MEASURES[S.measure][1];
   const tokS=series(sp,T.llm,mv,true);
-  $('#sub-tokens').textContent=MEASURES[S.measure][0]+' per '+sp.bucket+(sp.bucket!==S.bucket?' (auto-switched to day for long range)':'');
-  stacked('#c-tokens',sp,tokS,fmt,230);legend('#l-tokens',tokS);
+  const valueMode=S.metric==='value',displaySeries=valueMode?series(sp,T.llm,r=>r.value_low_usd||0,true):tokS;
+  $('#usage-chart-title').textContent=valueMode?'Token value · estimate':'Tokens';
+  $('#sub-tokens').textContent=(valueMode?'Known API-equivalent lower bound; unpriced requests excluded, not treated as free.':MEASURES[S.measure][0])+' per '+sp.bucket;
+  stacked('#c-tokens',sp,displaySeries,valueMode?money:fmt,230);legend('#l-tokens',displaySeries);
   const cs=series(sp,T.commits,r=>r.n),ls=series(sp,T.commits,r=>r.added_code),ds=series(sp,T.commits,r=>r.added_doc),es=series(sp,T.edits,r=>r.added+0,false);
   const es2=series(sp,T.edits.filter(e=>!e.doc),r=>r.added),typed=series(sp,T.prompts,r=>r.est_tokens);
   stacked('#c-commits',sp,cs,fmt);legend('#l-commits',cs);stacked('#c-lines',sp,ls,fmt);legend('#l-lines',ls);
@@ -216,10 +451,21 @@ function render(){
   const pr=series(sp,T.prompts,r=>r.n);
   const tot=a=>a.reduce((x,s)=>x.map((v,i)=>v+s.data[i]),new Array(sp.keys.length).fill(0));
   const act=new Array(sp.keys.length).fill(0);let anyAct=false;
-  for(const [x,o] of mhours('active')){if(x<sp.h0)continue;const i=sp.idx.get(bk(sp,x));if(i!==undefined){act[i]+=o.avg*60;anyAct=true}}
-  lines('#c-active',sp,[{name:'prompts',color:PAL[0],data:tot(pr),fv:fmt,bars:true},...(anyAct?[{name:'active minutes',color:PAL[1],data:act,fv:v=>v.toFixed(0)+' min',right:true}]:[])],200,{right:anyAct});
+  for(const r of T.metrics){if(r.m!=='active'||r.hour<sp.h0||(S.machine!=='*'&&r.machine!==S.machine))continue;const i=sp.idx.get(bk(sp,r.hour));if(i!==undefined){act[i]+=r.avg*r.covered_seconds/60;anyAct=true}}
+  lines('#c-active',sp,[{name:'prompts',color:PAL[0],data:tot(pr),fv:fmt,bars:true},...(anyAct?[{name:'machine-active minutes',color:PAL[1],data:act,fv:v=>v.toFixed(0)+' min',right:true}]:[])],200,{right:anyAct});
   $('#l-active').innerHTML=anyAct?'':'<span>no keyboard-active samples (needs <code>erg sampler</code>)</span>';
-  coverage(sp);perfSection(sp,mv);lagSection(sp,mv);idleSection(sp,mv);heat(mv);table(sp,mv);kpis(sp,{tokS,cs,ls,ds,es,typed,pr,act});
+  sessionSection(sp);coverage(sp);perfSection(sp,mv);lagSection(sp,mv);idleSection(sp,mv);heat(mv);table(sp,mv);kpis(sp,{tokS,cs,ls,ds,es,typed,pr,act});
+}
+function sessionSection(sp){
+  const rows=T.sessions.filter(r=>r.last_ts>=sp.h0*3600&&pass(r));
+  $('#session-summary').textContent=fmt(rows.length)+' recent sessions match the filters (up to 200 loaded). Mirrored sessions count once. Full-session metrics load on demand; a dash means no measurement after loading. Processed tokens include repeated and cached context. Select a session for ownership, billing and capture details.';
+  $('#session-table').innerHTML='<tr><th>Agent / session</th><th>Observed project</th><th>Last activity</th><th>Capture</th><th>Processed tokens</th><th>Peak input</th><th>Token value · est.</th></tr>'+rows.map((r,i)=>{const m=workReport?.sessions.find(s=>s.tool===r.tool&&s.session===r.session);return `<tr><td><button data-session="${i}">${esc(r.title||"Untitled session")}</button><span class="cell-meta">${esc(r.tool)} · ${esc(r.session.slice(0,8))}</span><span class="cell-meta">${esc([r.orchestrator,r.kind].filter(Boolean).join(' · '))}</span></td><td>${esc(r.project||'—')}</td><td>${esc(new Date(r.last_ts*1000).toLocaleString())}</td><td>${esc((r.usage_status==='unknown'?'metadata only':r.usage_status||'metadata only').replaceAll('_',' '))}</td><td>${!workReport?'On demand':m?.calls?fmt(m.total_tokens):'—'}</td><td>${!workReport?'On demand':m?.largest_request_input_tokens!=null?fmt(m.largest_request_input_tokens):'—'}</td><td>${!workReport?'On demand':tokenValue(m?.valuation)}</td></tr>`}).join('');
+  if(!rows.length)$('#session-table').innerHTML='<tr><td class="empty-state">No recent sessions match these filters. Try a wider range or another project.</td></tr>';
+  document.querySelectorAll('[data-session]').forEach(b=>b.onclick=async()=>{const r=rows[+b.dataset.session];const detail=$('#session-detail');detail.parentElement.open=true;detail.textContent='Loading session…';try{const res=await apiFetch('/api/session?tool='+encodeURIComponent(r.tool)+'&session='+encodeURIComponent(r.session));if(!res.ok)throw new Error('Session unavailable');detail.textContent=JSON.stringify({session:r,evidence:workReport?.sessions.find(s=>s.tool===r.tool&&s.session===r.session),calls:await res.json()},null,2)}catch(e){detail.textContent=e.message}});
+  const captureCounts=Object.fromEntries((D.capture_counts||[]).map(r=>[r[0]+'|'+r[1],r]));
+  (D.orchestrator_counts||[]).forEach(r=>captureCounts[r[0]+'|'+r[1]]=r);
+  $('#source-table').innerHTML='<tr><th>Agent</th><th>Capture state</th><th>Sessions</th><th>With calls</th><th>Summary only</th><th>Errors / details</th></tr>'+T.sources.map(r=>{const c=captureCounts[r.machine+'|'+r.tool]||[];return `<tr><td>${esc(r.tool)}<span class="cell-meta">${esc(r.machine)}</span></td><td>${esc(r.status.replaceAll('_',' '))}</td><td>${fmt(c[2]||0)}</td><td>${fmt(c[3]||0)}</td><td>${fmt(c[4]||0)}</td><td>${fmt(r.errors)}<details><summary>Source details</summary><div>${esc(r.detail||'Native histories; mirrors share session identity')}</div><div>${fmt(r.files)} files / conversations scanned · ${r.installed?'installed':'not detected'}${r.tool==='omnigent'?' · '+fmt(r.linked||0)+' linked / '+fmt(r.missing||0)+' unresolved':''}</div></details></td></tr>`}).join('');
+
 }
 function kpis(sp,x){
   const allTok=sum(series(sp,T.llm,MEASURES.all[1],true)),out=sum(series(sp,T.llm,r=>r.out,true)),commits=sum(x.cs);
@@ -229,11 +475,13 @@ function kpis(sp,x){
   const cpuh=[...mhours('cpu')].filter(([h])=>h>=sp.h0).map(e=>e[1].avg);const avgcpu=cpuh.length?cpuh.reduce((a,b)=>a+b,0)/cpuh.length:null;
   const phours=new Set();T.prompts.forEach(r=>{if(r.hour>=sp.h0&&pass(r))phours.add(r.hour)});
   const k=[['Tokens (selected measure)',fmt(sum(x.tokS)),`${fmt(allTok)} incl. cache reads`],['Output tokens',fmt(out),`${fmt(out/Math.max(1,hrs))}/hour avg`],
-    ['Commits',fmt(commits),`${(commits/Math.max(1,hrs/24)).toFixed(1)}/day`],['Code lines added',fmt(codeL),commits?fmt(sum(x.tokS)/Math.max(1,codeL))+' tok/line':''],
+    ['Allocated commits',fmt(commits),`${(commits/Math.max(1,hrs/24)).toFixed(1)}/day`],['Code lines added',fmt(codeL),commits?fmt(sum(x.tokS)/Math.max(1,codeL))+' tok/line':''],
     ['Doc lines added',fmt(docL),''],['Agent-written lines',fmt(sum(x.es)),'Edit/Write/apply_patch'],
-    ['Prompts sent',fmt(pr),`${fmt(chars.reduce((a,s)=>a+s.total,0))} chars · ~${fmt(typedTok)} tok typed`],
-    ['Hours with prompts',String(phours.size),act?act.toFixed(1)+' h at keyboard (sampler)':'hours you sent ≥1 prompt'],['Avg CPU',avgcpu==null?'—':avgcpu.toFixed(0)+'%','hourly mean']];
-  $('#kpis').innerHTML=k.map(([l,v,s])=>`<div class="kpi"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
+    ['Input equivalents',fmt(pr),`${fmt(chars.reduce((a,s)=>a+s.total,0))} chars · ~${fmt(typedTok)} tok typed`],
+    ['Hours with prompts',String(phours.size),act?act.toFixed(1)+' machine-active hours observed':'hours you sent ≥1 prompt'],['Avg CPU',avgcpu==null?'—':avgcpu.toFixed(0)+'%','hourly mean']];
+  const moneyRows=T.llm.filter(r=>r.hour>=sp.h0&&pass(r,true)),value=rollupValue(moneyRows);
+  const moneyKpi=['Token value · est.',tokenValue(value),priceCoverage(value)+' · API equivalent, not billed'];
+  $('#kpis').innerHTML=[k[0],moneyKpi,k[2],k[6]].map(([l,v,s])=>`<div class="kpi"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
 }
 const MET=[['cpu','CPU busy',v=>v.toFixed(0)+'%',1],['mem_pct','Memory used',v=>v.toFixed(0)+'%'],['mem_pressure','Memory pressure',v=>v.toFixed(0)+'%'],
   ['swap_mb','Swap used',v=>fmt(v)+' MB'],['decompress_per_s','Compressor thrash (decompressions/s)',v=>fmt(v)],['disk_r','Disk read',v=>fmt(v)+' KB/s',1],['disk_w','Disk write',v=>fmt(v)+' KB/s',1],
@@ -244,7 +492,7 @@ function mhours(m){ // hour -> {avg,max} averaged over selected machines
   const out=new Map();acc.forEach((o,h)=>out.set(h,{avg:o.s/o.n,max:o.mx}));return out}
 function actHours(mv){ // hour -> activity vars
   const A=new Map(),g=h=>{let o=A.get(h);if(!o){o={tokens:0,out:0,calls:0,edits:0,prompts:0,commits:0};A.set(h,o)}return o};
-  T.llm.forEach(r=>{if(pass(r,true)){const o=g(r.hour);o.tokens+=mv(r);o.out+=r.out;o.calls+=r.calls}});
+  T.llm.forEach(r=>{if(pass(r,true)){const o=g(r.hour);o.tokens+=mv(r);o.out+=r.out;o.value+=r.value_low_usd||0;o.valueHigh+=r.value_high_usd||0;o.priced+=r.priced_calls||0;o.unpriced+=r.unpriced_calls??r.calls??0;o.calls+=r.calls}});
   T.edits.forEach(r=>{if(pass(r))g(r.hour).edits+=r.added});T.prompts.forEach(r=>{if(pass(r))g(r.hour).prompts+=r.n});T.commits.forEach(r=>{if(pass(r))g(r.hour).commits+=r.n});return A}
 function perfSection(sp,mv){
   const A=actHours(mv),vars=[['tokens','tokens'],['out','output tok'],['calls','LLM calls'],['edits','agent lines'],['prompts','prompts'],['commits','commits']];
@@ -329,21 +577,212 @@ function heat(mv){
   g.forEach((a,d)=>{h+=`<div>${days[d]}</div>`+a.map((v,i)=>`<div title="${days[d]} ${i}:00 — ${fmt(v)}" style="background:color-mix(in srgb,${PAL[0]} ${mx?Math.round(100*Math.sqrt(v/mx)):0}%,var(--grid))"></div>`).join('')});
   $('#heat').innerHTML=h;
 }
+function groupExpense(dim,key){
+ if(moneyScope!==scopeQuery().toString()||!moneyData?.available)return null;
+ if(dim==='none')return moneyData.totals;
+ const rows=moneyData.rows.filter(r=>r.kind===dim&&(dim==='folder'?folderGroup(JSON.parse(r.key)[1]):dim==='model'?modelLabel(r.key):r.key)===key);
+ if(!rows.length)return null;
+ const sum=rows.reduce((a,r)=>{for(const k of ['known_effective_cost_usd','effective_cost_calls','missing_effective_cost_calls'])a[k]+=r[k]||0;return a},{known_effective_cost_usd:0,effective_cost_calls:0,missing_effective_cost_calls:0});
+ sum.effective_cost_usd=sum.missing_effective_cost_calls?null:sum.known_effective_cost_usd;return sum;
+}
 function table(sp,mv){
-  const dim=S.dim,key=r=>dim==='tool'?(r.tool==='none'?'human':r.tool):r[dim],agg=new Map();
-  const get=k=>{let o=agg.get(k);if(!o)agg.set(k,o={k,tokens:0,out:0,prompts:0,typed:0,edit:0,commits:0,code:0,docs:0});return o};
+  const dim=S.dim,key=r=>dim==='tool'?(r.tool==='none'?'human':r.tool):dim==='folder'?folderGroup(r.folder):r[dim],agg=new Map();
+  const get=k=>{let o=agg.get(k);if(!o)agg.set(k,o={k,tokens:0,out:0,prompts:0,typed:0,edit:0,commits:0,code:0,docs:0,value:0,valueHigh:0,priced:0,unpriced:0});return o};
   const inr=r=>r.hour>=sp.h0&&pass(r,true);
-  T.llm.forEach(r=>{if(inr(r)){const o=get(key(r));o.tokens+=mv(r);o.out+=r.out}});
+  T.llm.forEach(r=>{if(inr(r)){const o=get(key(r));o.tokens+=mv(r);o.out+=r.out;o.value+=r.value_low_usd||0;o.valueHigh+=r.value_high_usd||0;o.priced+=r.priced_calls||0;o.unpriced+=r.unpriced_calls??r.calls??0}});
   T.prompts.forEach(r=>{if(inr(r)){const o=get(key(r));o.prompts+=r.n;o.typed+=r.est_tokens}});
   T.edits.forEach(r=>{if(inr(r))get(key(r)).edit+=r.added});
   T.commits.forEach(r=>{if(inr(r)){const o=get(key(r));o.commits+=r.n;o.code+=r.added_code;o.docs+=r.added_doc}});
   const rows=[...agg.values()].map(o=>(o.tpc=o.commits?o.tokens/o.commits:null,o.tpl=o.code?o.tokens/o.code:null,o)).sort((a,b)=>(b[S.sort]??-1)-(a[S.sort]??-1));
-  const cols=[['k',dim],['tokens','tokens'],['out','output tok'],['prompts','prompts'],['typed','typed tok'],['edit','agent lines'],['commits','commits'],['code','code lines'],['docs','doc lines'],['tpc','tok / commit'],['tpl','tok / code line']];
-  $('#tbl').innerHTML='<tr>'+cols.map(([k,l])=>`<th data-k="${k}" class="${S.sort===k?'sorted':''}">${l}</th>`).join('')+'</tr>'+rows.slice(0,60).map(o=>'<tr>'+cols.map(([k])=>`<td>${k==='k'?esc(o.k):o[k]==null?'—':fmt(o[k])}</td>`).join('')+'</tr>').join('');
+  const cols=[['k',GROUPS[dim]||dim],['tokens','Tokens'],['value','Rack-rate value · est.'],['effective','Effective expense · allocated'],['prompts','Inputs'],['commits','Commit equivalents'],['code','Code lines']];
+  $('#tbl').innerHTML='<tr>'+cols.map(([k,l])=>`<th data-k="${k}" class="${S.sort===k?'sorted':''}">${l}</th>`).join('')+'</tr>'+rows.slice(0,60).map(o=>'<tr>'+cols.map(([k])=>`<td>${k==='k'?esc(dimensionLabel(o.k,dim)):k==='effective'?esc(effectiveCost(groupExpense(dim,o.k))):k==='value'?esc(tokenValue({priced_calls:o.priced,unpriced_calls:o.unpriced,known_value_low_usd:o.value,known_value_high_usd:o.valueHigh})):o[k]==null?'—':fmt(o[k])}</td>`).join('')+'</tr>').join('');
   document.querySelectorAll('#tbl th').forEach(t=>t.onclick=()=>{S.sort=t.dataset.k;table(sp,mv)});
 }
+
+
+let historyCursor=0,historyUpper=null,historyRevision=null,historyRequest=0,historySelected=null,eventCursor=0,historyHealthRequest=0;
+async function historyJSON(path){const r=await apiFetch('/api/history/'+path);if(!r.ok)throw new Error('History unavailable ('+r.status+')');return r.json()}
+async function loadHistoryHealth(){
+ const request=++historyHealthRequest;$('#history-audit').disabled=false;$('#history-audit-status').textContent='Full reconciliation scans retained metadata and runs only on request.';
+ try{
+  const i=await historyJSON('discovery');if(request!==historyHealthRequest)return;
+  $('#history-health').textContent=i.available?'Discovery comparison '+(i.stale?'is stale':i.current_state)+' as of '+new Date(i.observed_at*1000).toLocaleString()+': '+fmt(i.pending_paths)+' paths await capture; '+fmt(i.error_paths)+' need investigation; '+fmt(i.counts.baseline_excluded||0)+' pre-enrollment baselines excluded.':'Discovery completeness has not been checked.';
+  $('#history-coverage').textContent=JSON.stringify({source_inventory:i},null,2);
+ }catch(e){if(request===historyHealthRequest)$('#history-health').textContent=e.message}
+}
+async function loadHistoryDiagnostics(){
+ const request=++historyHealthRequest;$('#history-audit').disabled=true;$('#history-audit-status').textContent='Checking retained ledger metadata… Session browsing remains available.';
+ try{
+  const status=await historyJSON('status');if(request!==historyHealthRequest)return;
+  const coverage=await historyJSON('reconciliation');if(request!==historyHealthRequest)return;
+  $('#history-health').textContent=status.enabled?fmt(status.events)+' archived events since '+new Date(status.enrolled_at*1000).toLocaleString()+'. '+fmt(status.unmatched_sessions)+' active sessions without archived records; '+fmt(status.sources_needing_attention || 0)+' source checkpoints need attention; '+fmt(status.pending_inferences)+' pending or incomplete local requests. No automatic expiration is enabled.':'Content capture is not enrolled. Run erg history enroll, then reinstall the collector.';
+  if(status.source_inventory?.available){const i=status.source_inventory;$('#history-health').textContent+=' Discovery comparison '+(i.stale?'is stale':i.current_state)+' as of '+new Date(i.observed_at*1000).toLocaleString()+': '+fmt(i.pending_paths)+' paths await capture; '+fmt(i.error_paths)+' need investigation; '+fmt(i.counts.baseline_excluded||0)+' pre-enrollment baselines excluded.';}else $('#history-health').textContent+=' Discovery completeness has not been checked.';
+  if(status.projection?.pending)$('#history-health').textContent+=' Reporting has '+fmt(status.projection.pending)+' archived records queued.';
+  if(status.projection?.edit_pending)$('#history-health').textContent+=' Edit metrics are updating from '+fmt(status.projection.edit_pending)+' retained records.';
+  if(status.work_projection?.pending)$('#history-health').textContent+=' Task/commit evidence has '+fmt(status.work_projection.pending)+' retained records queued.';
+  if(status.work_projection?.conflicting_sessions)$('#history-health').textContent+=' '+fmt(status.work_projection.conflicting_sessions)+' sessions have conflicting work evidence; automatic commit/PR attribution is withheld.';
+  if(status.projection?.edit_retrying||status.projection?.edit_unavailable)$('#history-health').textContent+=' Some retained edit metrics need repair; session usage is tracked separately.';
+  if(status.projection?.states?.error)$('#history-health').textContent+=' '+fmt(status.projection.states.error)+' records need reporting repair; their captured bodies are retained.';
+  $('#history-coverage').textContent=JSON.stringify({source_inventory:status.source_inventory,sources:status.source_states,source_errors:status.source_errors,projection:status.projection,work_projection:status.work_projection,source_problems:coverage.source_problems,proof_scope:coverage.proof_scope,session_states:coverage.counts,adapter_coverage:coverage.adapter_coverage,unsupported_sources:coverage.unsupported_sources,endpoints:status.endpoint_enrollments,scope:status.scope,bypass_warning:coverage.bypass_warning},null,2);
+  $('#history-audit-status').textContent='Ledger reconciliation completed at '+new Date().toLocaleString()+'.';
+ }catch(e){if(request===historyHealthRequest)$('#history-audit-status').textContent=e.message}
+ finally{if(request===historyHealthRequest)$('#history-audit').disabled=false}
+}
+$('#history-audit').onclick=loadHistoryDiagnostics;
+async function loadHistory(append=false){
+ const request=++historyRequest,scope=scopeQuery().toString();if(!append){historyCursor=0;historyUpper=null;historyRevision=null}
+ try{
+  if(!append){loadHistoryHealth();$('#history-list-status').textContent='Loading sessions…';}
+  if(!append){historyCursor=0;$('#history-sessions').innerHTML='<tr><th>Session / agent</th><th>Folder / agent project</th><th>First event</th><th>Latest event</th><th>Events</th></tr>'}
+  const q=new URLSearchParams(scope);q.set('scope','1');q.set('session',$('#history-id').value.trim());q.set('after',String(historyCursor));q.set('limit','50');if(historyUpper!==null)q.set('through_seq',String(historyUpper));
+  const data=await historyJSON('sessions?'+q);if(request!==historyRequest||scope!==scopeQuery().toString())return;if(append&&historyRevision!==null&&historyRevision!==data.project_revision){loadHistory(false);return}historyRevision=data.project_revision;historyUpper=data.through_seq;updateScope(data);buildScopeControls();
+  for(const r of data.sessions){const tr=document.createElement('tr');tr.innerHTML='<td><button class="history-open">'+esc(r.title||'Untitled session')+'</button><span class="cell-meta">'+esc(r.tool)+' · '+esc(r.session)+'</span></td><td>'+esc(r.project)+'</td><td>'+esc(new Date(r.first_ts*1000).toLocaleString())+'</td><td>'+esc(new Date(r.last_ts*1000).toLocaleString())+'</td><td>'+fmt(r.events)+(r.expired_events?' · '+fmt(r.expired_events)+' expired':'')+'</td>';tr.querySelector('button').onclick=()=>openHistory(r);$('#history-sessions').appendChild(tr)}
+  if(!append&&!data.sessions.length)$('#history-sessions').innerHTML+='<tr><td colspan="5" class="empty-state">No archived sessions match these filters. This corpus starts at enrollment; historical logs are not backfilled.</td></tr>';
+  historyCursor=data.next_cursor;$('#history-more').hidden=!data.more;$('#history-list-status').textContent='Showing '+fmt(data.sessions.length)+' sessions'+(append?' in this page':'')+'.';
+ }catch(e){if(request===historyRequest)$('#history-list-status').textContent=e.message}
+}
+async function openHistory(row,append=false){
+ try{
+  if(!append){historySelected=row;eventCursor=0;$('#history-events').replaceChildren();$('#history-reader').hidden=false;$('#history-reader-title').textContent=(row.title||'Untitled session')+' · '+row.tool+' · '+row.session;$('#history-metrics').textContent='Loading usage evidence…';$('#history-cost-summary').replaceChildren();apiFetch('/api/session?'+new URLSearchParams({tool:row.tool,session:row.session})).then(r=>{if(!r.ok)throw new Error('Usage evidence unavailable');return r.json()}).then(d=>{if(historySelected!==row)return;const m=d.metrics;$('#history-cost-summary').innerHTML=[['Full-session token value · est.',tokenValue(m?.valuation)],['Native reported calls · est.',money(m?.reported_call_value)+(m?.reported_call_count?' ('+m.reported_call_count+'/'+m.calls+' calls)':'')],['Native session estimate',money(m?.reported_session_value?.usd)],['Actual billed usage','—']].map(([label,value])=>'<div class="kpi"><div class="l">'+esc(label)+'</div><div class="v">'+esc(value)+'</div></div>').join('');$('#history-metrics').textContent=JSON.stringify({metrics:d.metrics,usage_counter_snapshot:d.usage_counter_snapshot,metadata:d.metadata,cost_provenance:d.cost_provenance},null,2)}).catch(e=>{$('#history-metrics').textContent=e.message})}
+  const q=new URLSearchParams({tool:row.tool,session:row.session,after:String(eventCursor),limit:'30'});
+  const data=await historyJSON('events?'+q);
+  for(const r of data.events){const details=document.createElement('details');details.open=true;const summary=document.createElement('summary');summary.textContent=new Date(r.ts*1000).toLocaleString()+' · '+(r.role||r.kind)+' · '+r.origin;const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;font-size:12px';pre.textContent=r.expired_at?'Content expired at '+new Date(r.expired_at*1000).toLocaleString():JSON.stringify(r.body,null,2);details.append(summary,pre);$('#history-events').appendChild(details)}
+  eventCursor=data.next_cursor;$('#history-events-more').hidden=!data.more;
+ }catch(e){$('#history-reader-title').textContent=e.message}
+}
+$('#history-filters').onsubmit=e=>{e.preventDefault();loadHistory()};$('#history-more').onclick=()=>loadHistory(true);$('#history-events-more').onclick=()=>openHistory(historySelected,true);
+
+let costsRequest=0;
+const costValue=r=>!r.priced_equivalents?'—':(r.known_value_low_usd===r.known_value_high_usd?money(r.known_value_low_usd):money(r.known_value_low_usd)+'–'+money(r.known_value_high_usd))+(r.unpriced_equivalents?' + rate mapping needed':'');
+$('#payer-binding-form').onsubmit=async event=>{
+ event.preventDefault();const o=$('#billing-account').selectedOptions[0];if(!o||!$('#payer-session').value)return;const sk=JSON.parse($('#payer-session').value);
+ const binding={provider:o.dataset.provider,account_key:o.value,tool:sk[1],session:sk[2],subscription_id:$('#billing-subscription').value,start_ts:Date.parse($('#payer-start').value)/1000,end_ts:Date.parse($('#payer-end').value)/1000};
+ try{const response=await fetch('/api/billing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,bindings:[binding]})});if(!response.ok)throw new Error('Payer binding rejected; check the account and interval.');$('#billing-status').textContent='Explicit payer binding recorded. Shared reports will update after publication and metadata sync.';loadMoney()}catch(e){$('#billing-status').textContent=e.message}
+};
+$('#plan-price-form').onsubmit=async event=>{
+ event.preventDefault();const o=$('#billing-account').selectedOptions[0];if(!o)return;
+ try{const response=await fetch('/api/billing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,identities:[{provider:o.dataset.provider,account_key:o.value,plan:$('#plan-price-name').value,monthly_usd:Number($('#plan-price-usd').value),price_provenance:'operator_observed_account_ui',tool:'',session:''}]})});if(!response.ok)throw new Error('Plan observation rejected');$('#billing-status').textContent='Plan price recorded; estimates begin at this observation. Reporting publication and sync follow in the background.';loadMoney()}catch(e){$('#billing-status').textContent=e.message}
+};
+$('#billing-form').onsubmit=async event=>{
+ event.preventDefault();const option=$('#billing-account').selectedOptions[0];if(!option)return;
+ const charge={provider:option.dataset.provider,account_key:option.value,subscription_id:$('#billing-subscription').value,charge_id:$('#billing-receipt').value,charge_kind:$('#billing-kind').value,period_start:Date.parse($('#billing-start').value+'T00:00:00Z')/1000,period_end:Date.parse($('#billing-end').value+'T00:00:00Z')/1000,usd:Number($('#billing-usd').value)};
+ if($('#billing-reset').value)charge.reset_at=Date.parse($('#billing-reset').value)/1000;
+ const button=event.target.querySelector('button');button.disabled=true;
+ try{const response=await fetch('/api/billing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:1,charges:[charge]})});if(!response.ok)throw new Error('Billing record rejected ('+response.status+'). Check account, dates and amount.');const result=await response.json();$('#billing-status').textContent=result.status;loadMoney()}
+ catch(error){$('#billing-status').textContent=error.message}finally{button.disabled=false}
+};
+const costNumber=n=>Number(n).toLocaleString(undefined,{maximumFractionDigits:3});
+async function loadCosts(){
+ const request=++costsRequest,scope=scopeQuery().toString();$('#cost-status').textContent='Loading project allocation…';
+ try{
+  const response=await apiFetch('/api/costs?'+scope);if(!response.ok)throw new Error('Project allocation unavailable ('+response.status+').');const data=await response.json();if(request!==costsRequest||scope!==scopeQuery().toString())return;if(!data.available)throw new Error(data.reason);requireCurrentPublication(data);if(data.revision<scopeCatalog.revision){if(data.rollup_status?.stale_policy)throw new Error('Project allocation is updating in the background. Refresh to load the completed rollups.');if(activeView==='costs')return loadCosts();return}
+  if(data.monetary)showMoney(data.monetary);
+  updateScope(data);buildScopeControls();renderProjectSetup();$('#gen').textContent=reportCaption(data);const t=data.totals,u=data.projects.find(p=>p.project_key==='@unassigned');
+  $('#cost-kpis').innerHTML=[['Token value · est.',costValue(t),Math.round((t.price_coverage||0)*100)+'% priced · API equivalent'],['Processed tokens',fmt(t.tokens),costNumber(t.request_equivalents)+' request equivalents'],['Native reported · est.',t.reported_equivalents?money(t.known_reported_usd):'—',costNumber(t.reported_equivalents)+' equivalents with reported values'],['Human-project coverage',t.request_equivalents?Math.round((1-(u?.request_equivalents||0)/t.request_equivalents)*100)+'%':'—',u?costNumber(u.request_equivalents)+' unassigned equivalents':'All observed usage assigned']].map(([label,value,note])=>'<div class="kpi"><div class="l">'+esc(label)+'</div><div class="v">'+esc(value)+'</div><div class="s">'+esc(note)+'</div></div>').join('');
+  $('#cost-status').textContent=(data.warnings||[]).join(' ')+(data.rollup_status?.pending_hours?' Showing completed rollups; recent changes are processing.':'');
+  const childMode=S.project!=='*';let rows=childMode?data.folders:data.projects;
+  if(childMode){const unknown=rows.filter(r=>r.kind==='unobserved');if(unknown.length){const bucket={name:'Without folder evidence',folder_key:'@unobserved',tokens:0,request_equivalents:0,priced_equivalents:0,unpriced_equivalents:0,known_value_low_usd:0,known_value_high_usd:0,reported_equivalents:0,known_reported_usd:0,session_count:0};for(const r of unknown)for(const key of Object.keys(bucket))if(typeof bucket[key]==='number')bucket[key]+=r[key]||0;bucket.price_coverage=bucket.request_equivalents?bucket.priced_equivalents/bucket.request_equivalents:null;rows=[...rows.filter(r=>r.kind!=='unobserved'),bucket]}}
+  const max=Math.max(...rows.map(r=>r.tokens),1);
+  $('#cost-rollup-title').textContent=childMode?'Folders & agent projects':'Human projects';
+  $('#cost-rollup-note').textContent=childMode?'Sessions inherit their folder allocation at the time of each observation. Open a folder to see its sessions.':'Select a human project to see its folders and sessions. Unassigned means no unique configured binding.';
+  $('#cost-breadcrumbs').innerHTML='<button data-crumb="all">All human projects</button>'+(S.project!=='*'?' <span>›</span> <button data-crumb="project">'+esc(projectLabel(S.project))+'</button>':'')+(S.folder!=='*'?' <span>›</span> <span>'+esc(folderLabel(S.folder))+'</span>':'');
+  document.querySelectorAll('[data-crumb]').forEach(b=>b.onclick=()=>{if(b.dataset.crumb==='all')S.project='*';S.folder='*';scopeChanged()});
+  $('#cost-project-list').innerHTML=rows.length?rows.map((r,i)=>'<div class="allocation-row"><div><button class="allocation-name" data-allocation="'+i+'">'+esc(r.name)+' <span aria-hidden="true">›</span></button>'+(r.machine?'<span class="cell-meta">'+esc(r.machine)+(r.session_count?' · '+r.session_count+' distinct sessions':'')+'</span>':'')+'<div class="allocation-track"><i style="width:'+Math.round(r.tokens/max*100)+'%"></i></div></div><div class="allocation-number"><small>Tokens</small>'+fmt(r.tokens)+'</div><div class="allocation-number"><small>Token value · est.</small>'+esc(costValue(r))+'</div><div class="allocation-number"><small>Effective expense · allocated</small>'+esc(effectiveCost(r))+'</div></div>').join(''):'<div class="allocation-empty">No captured usage matches this scope. Try a wider range or clear the project filters.</div>';
+  document.querySelectorAll('[data-allocation]').forEach(b=>b.onclick=()=>{const r=rows[+b.dataset.allocation];if(childMode)S.folder=r.folder_key;else {S.project=r.project_key;S.folder='*'}scopeChanged()});
+  $('#cost-sessions-note').textContent='Showing '+data.sessions.length+' of '+data.session_count+' sessions by allocated tokens. Opening a session shows its full retained history; the values below cover this selected scope.';
+  $('#cost-session-table').innerHTML='<tr><th>Session</th><th>Agent</th><th>Allocated tokens</th><th>Rack-rate value · est.</th><th>Effective expense · allocated</th></tr>'+data.sessions.map((row,i)=>'<tr><td><button data-cost-session="'+i+'">'+esc(row.title||'Untitled session')+'</button><span class="cell-meta">'+esc(row.session)+'</span></td><td>'+esc(row.tool)+'</td><td>'+fmt(row.tokens)+'</td><td>'+esc(costValue(row))+'</td><td>'+esc(effectiveCost(row))+'</td></tr>').join('');
+  if(!data.sessions.length)$('#cost-session-table').innerHTML='<tr><td colspan="4" class="empty-state">No sessions in this scope.</td></tr>';
+  document.querySelectorAll('[data-cost-session]').forEach(b=>b.onclick=()=>{const row=data.sessions[+b.dataset.costSession];showView('history');openHistory(row)});
+  $('#cost-config-note').textContent=data.catalog.length+' human projects · '+data.binding_count+' bindings · revision '+data.revision+'. '+(data.catalog.length?'':'No human projects configured yet. Captured folders and sessions remain available under Unassigned. ')+(Object.entries(data.unassigned_reasons).map(([reason,n])=>reason.replaceAll('_',' ')+': '+n).join('; ')||'No allocation gaps in this scope.');
+ }catch(error){if(request===costsRequest){$('#cost-status').textContent=error.message;$('#cost-kpis').innerHTML='';$('#cost-project-list').innerHTML='';$('#cost-session-table').innerHTML=''}}
+}
+let pendingProjectMutation=null,projectAdminRequest=0,projectSetupInitialized=false;
+function selectorForFolder(folder){
+ if(folder.kind==='folder')return {directory:{machine:folder.machine,root:folder.name}};
+ if(folder.kind==='agent_project'&&folder.tool&&folder.observed_project)return {agent_project:{machine:folder.machine,tool:folder.tool,id:folder.observed_project}};
+ if(folder.kind==='repository'&&folder.repository)return {repository:folder.repository};
+ return null;
+}
+function renderProjectSetup(){
+ if(!projectSetupInitialized){if(!scopeCatalog.projects.length)$('#project-setup').open=true;projectSetupInitialized=true}
+ const folder=$('#binding-folder').value,target=$('#binding-project').value;
+ const folders=[...scopeCatalog.folders.values()].filter(f=>selectorForFolder(f)).sort((a,b)=>a.name.localeCompare(b.name));
+ $('#binding-folder').innerHTML='<option value="">Choose an observed folder</option>'+folders.map(f=>'<option value="'+esc(f.folder_key)+'">'+esc(folderLabel(f.folder_key))+(f.kind==='agent_project'?' (agent label)':'')+'</option>').join('');$('#binding-folder').value=folder;
+ $('#binding-project').innerHTML='<option value="">Choose a human project</option>'+scopeCatalog.projects.filter(p=>p.state!=='archived').map(p=>'<option value="'+esc(p.project_key)+'">'+esc(p.name)+'</option>').join('');$('#binding-project').value=target;
+ $('#binding-preview-button').disabled=!scopeCatalog.projects.some(p=>p.state!=='archived')||!folders.length;
+}
+async function projectAPI(body){
+ const response=await apiFetch('/api/projects',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ if(!response.ok)throw new Error(response.status===409?'Project configuration changed. Refresh data and preview again.':'Project change unavailable ('+response.status+').');
+ return response.json();
+}
+function clearProjectReportCaches(){D=null;for(const key of Object.keys(workReports))delete workReports[key];for(const key of Object.keys(workLoadedAt))delete workLoadedAt[key]}
+$('#project-create').onsubmit=async event=>{
+ event.preventDefault();const name=$('#project-name').value.trim();if(!name)return;
+ const id=globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2);
+ const body={action:'create',revision:scopeCatalog.revision,project_key:'local:'+id,name,apply:true};$('#project-create-button').disabled=true;$('#project-name').disabled=true;$('#project-admin-status').textContent='Creating human project…';
+ try{const result=await projectAPI(body);updateScope(result);clearProjectReportCaches();await loadCosts();renderProjectSetup();$('#binding-project').value=body.project_key;$('#project-name').value='';$('#project-admin-status').textContent='Created '+name+'. Choose a folder to assign.'}
+ catch(error){$('#project-admin-status').textContent=error.message}
+ finally{$('#project-create-button').disabled=false;$('#project-name').disabled=false}
+};
+function cancelProjectPreview(){pendingProjectMutation=null;projectAdminRequest++;$('#binding-preview').hidden=true}
+$('#binding-folder').onchange=cancelProjectPreview;$('#binding-project').onchange=cancelProjectPreview;$('#binding-cancel').onclick=cancelProjectPreview;
+$('#folder-bind').onsubmit=async event=>{
+ event.preventDefault();const folder=scopeCatalog.folders.get($('#binding-folder').value),target=$('#binding-project').value;if(!folder||!target)return;
+ const selectors=selectorForFolder(folder);if(!selectors)return;const request=++projectAdminRequest;
+ $('#binding-preview-button').disabled=true;$('#binding-preview').hidden=true;$('#project-admin-status').textContent='Previewing retained usage…';
+ try{const result=await projectAPI({action:'bind',revision:scopeCatalog.revision,project_key:target,selectors,valid_from:0,apply:false});if(request!==projectAdminRequest)return;
+  const before=result.preview.before.find(p=>p.project_key===target),after=result.preview.after.find(p=>p.project_key===target);pendingProjectMutation={...result.mutation,apply:true};
+  $('#binding-preview-text').textContent=folder.name+' → '+projectLabel(target)+'. Allocated tokens for this human project: '+fmt(before?.tokens||0)+' → '+fmt(after?.tokens||0)+'. This applies to all retained matching usage. '+(result.preview.unassigned_reasons.conflicting_bindings?'Conflicting bindings remain unassigned.':'');
+  $('#binding-preview').hidden=false;$('#project-admin-status').textContent='Preview only. Captured traces and billing evidence are unchanged.';
+ }catch(error){if(request===projectAdminRequest)$('#project-admin-status').textContent=error.message}
+ finally{$('#binding-preview-button').disabled=false}
+};
+$('#binding-apply').onclick=async()=>{
+ if(!pendingProjectMutation)return;const body=pendingProjectMutation;$('#binding-apply').disabled=true;$('#project-admin-status').textContent='Applying folder assignment…';
+ try{const result=await projectAPI(body);updateScope(result);cancelProjectPreview();clearProjectReportCaches();S.project=body.project_key;S.folder='*';await loadCosts();$('#project-admin-status').textContent='Assignment applied across Usage, Work, Costs and Session history.'}
+ catch(error){$('#project-admin-status').textContent=error.message}
+ finally{$('#binding-apply').disabled=false}
+};
+$('#cost-clear').onclick=()=>{S.project='*';S.folder='*';scopeChanged()};$('#cost-accounts').onclick=()=>showView('accounts');
+document.querySelectorAll('[data-usage-metric]').forEach(b=>b.onclick=()=>{S.metric=b.dataset.usageMetric;document.querySelectorAll('[data-usage-metric]').forEach(x=>x.classList.toggle('on',x===b));render()});
+
+let activeView='usage';
+function showView(key){
+  if(!['usage','history','work','costs','accounts','capture','machine'].includes(key))key='usage';
+  activeView=key;$('#money-overview').hidden=!['usage','work','costs','accounts'].includes(key);if(['work','costs','history'].includes(key))buildScopeControls();$('#refresh-report').disabled=!!workLoading[key];document.querySelectorAll('.view').forEach(e=>e.hidden=e.id!=='view-'+key);
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===key)));
+  history.replaceState(null,'','#'+key);document.querySelectorAll('header > .ctl:not(#gen),header > .filter-options').forEach(e=>e.hidden=false);if(key==='history')loadHistory();else if(key==='costs')loadCosts();else if(['work','accounts'].includes(key))loadEffectiveness();else if(!D||D.rollup_status&&D.rollup_status.updated_at<reportPublication)load().catch(reportError);else {$('#gen').textContent=reportCaption(D);render()}window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$('#open-capture').onclick=()=>showView('capture');
+showView(location.hash.slice(1)||'usage');
+document.querySelectorAll('.disclosure').forEach(d=>d.addEventListener('toggle',()=>{if(d.open&&D)render()}));
+
 addEventListener('resize',()=>{clearTimeout(window._rt);window._rt=setTimeout(()=>D&&render(),120)});
-load();
+function reportError(error){$('#gen').textContent=error.message;$('#report-warnings').textContent='Check reporter connectivity and permissions, then refresh.'}
+function renderReportingLag(s){
+ const c=s.capture||{},age=ts=>Math.max(0,Math.floor((Date.now()/1000-ts)/60));
+ $('#report-lag').textContent=(s.recent_usage_source_at?'Latest published usage snapshot: '+age(s.recent_usage_source_at)+'m old':'Usage snapshot time not recorded yet')
+ +(c.sampled_at?' · Usage pending '+fmt(c.usage_pending)+' · Work pending '+fmt(c.work_pending)+' · Capture check '+age(c.sampled_at)+'m ago':' · Capture progress unavailable')
+ +(s.pending_hours?' · '+s.pending_hours+' hours updating':'')
+ +(s.migration_pending?' · Completing one-time consistency migration':'')
+ +(s.updated_at>reportPublication?' · New report available; refresh data':'');
+}
+async function refreshReportingLag(){if(document.hidden||!['usage','costs','work','accounts'].includes(activeView))return;try{const r=await apiFetch('/api/reporting/status');if(r.ok){const status=await r.json();renderReportingLag(status);if(CLOUD&&status.report_source){const s=status.report_source;cloudReportSource=s;renderCapture(null);document.querySelector('#cloud-report-status').textContent='Databricks · '+fmt(s.records||0)+' records · delivery cursor '+fmt(s.delivery_cursor||0)+' · '+fmt(s.pending_items||0)+' trace items awaiting cache · metadata checked through '+fmt(s.metadata_cursor||0)+' · shared project revision '+(s.project_revision??'—')+(s.error?' · refresh needs attention ('+s.error+')':'')+(s.last_pull?' · refreshed '+Math.max(0,Math.floor((Date.now()/1000-s.last_pull)/60))+'m ago':' · warming');}}}catch(error){$('#report-lag').textContent='Reporting progress unavailable'}}
+async function refreshHealth(){if(document.hidden)return;try{const response=await apiFetch('/api/capture/status');if(response.ok)renderCapture(await response.json())}catch(error){$('#capture-health').textContent='Capture status unavailable'}}
+$('#refresh-report').onclick=()=>{moneyScope='';S.anchor=Math.floor(Date.now()/3600000);if(activeView==='history')loadHistory();else if(activeView==='costs')loadCosts();else if(['work','accounts'].includes(activeView))loadEffectiveness(true);else load(true).catch(reportError)};
+$('#load-capture-metrics').onclick=()=>loadEffectiveness(!!workReport,'capture');
+refreshHealth();refreshReportingLag();setInterval(()=>{refreshHealth();refreshReportingLag()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHealth()});
+
+
+let deliveryInFlight=false;
+async function loadDeliveryStatus(){if(document.hidden||deliveryInFlight)return;deliveryInFlight=true;try{const r=await apiFetch('/api/delivery/status');if(!r.ok)return;const d=await r.json();const text=d.summary||'Sync status unavailable';document.querySelector('#sync-summary').textContent=text;document.querySelector('#sync-health').textContent='Databricks · '+(d.enabled?(d.running?'sync running':d.worker_state==='stopped'?'uploader stopped':'heartbeat delayed'):'off')+' · '+(d.materialized_through||0)+' materialized · '+(d.pending_revisions||0)+' revisions queued';document.querySelector('#sync-detail').textContent=JSON.stringify(d,null,2)}catch{document.querySelector('#sync-summary').textContent='Sync status unavailable'}finally{deliveryInFlight=false}}
+loadDeliveryStatus();setInterval(loadDeliveryStatus,15000);
+</script>
+
+<script>
+if(CLOUD){const b=document.querySelector('#report-backend');b.href='/';b.textContent='Local dashboard';document.querySelector('#cloud-report-status').textContent='Databricks · incremental reporting cache · forward corpus only';}
 </script>
 </body>
 </html>

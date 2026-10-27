@@ -1,0 +1,432 @@
+# erg model power ranking -- SEED (draft). Pure data; see docs/research/model-power.md.
+# Power is fizeau's 1..10 model-strength scale (github.com/easel/fizeau); erg archives it as a
+# capability tier for optional token weighting (ADR-001). Power is NOT a price and NOT a routing
+# eligibility flag: fizeau's catalog zeroes power on superseded models for pin-only routing; that
+# zero is a routing concept and is not copied here (strength values are).
+# provenance: reported = read from a fizeau artifact (catalog or benchmark mapping, cited per entry);
+# derived = placed by the method below because fizeau has not measured the model yet. Nothing is inferred
+# beyond the documented band + anchor + list-price/generation rule; derived entries flip to reported when
+# fizeau publishes measurements covering them. Anything not here is NOT ranked: do not invent powers.
+schema_version: 0
+status: draft
+ranking_version: 0.1.0-draft
+as_of: '2026-10-16'
+scale: 1..10
+# fizeau bands (scripts/benchmark/terminalbench_model_power.json): frontier >= 9, medium_frontier 7-8,
+# non_frontier 4-6. Deployment-class defaults/caps (internal/modelcatalog/power.go): managed/prepaid
+# frontier default 9 cap 10; metered_cloud default 7 cap 10; local_free / community_self_hosted
+# default 5 cap 6.
+method: >
+  reported entries copy fizeau verbatim. derived entries use fizeau's band for the deployment class,
+  then pick the band value by (a) the nearest measured predecessor in the same family tier and
+  (b) list price + generation ordering from catalog/prices.yaml (as_of 2026-10-16); smaller variants of a
+  measured model (nano/lite/luna/flash) sit at or below the measured sibling. Every derived entry names
+  its anchor in `note`. Relative order inside a tier is unresolved unless stated.
+sources:
+  FIZ_CAT: "fizeau v0.17.5 embedded catalog internal/modelcatalog/catalog/models.yaml (catalog_version 2026-05-08.1, generated 2026-04-27); module cache, read-only"
+  FIZ_MAP: "fizeau v0.17.5 scripts/benchmark/terminalbench_model_power.json (committed 2026-05-06): Terminal-Bench-2 leaderboard submissions mapped to the 1..10 scale"
+  FIZ_MASTER: "fizeau GitHub master checked 2026-10-16: both files identical to v0.17.5; no newer published measurements (latest release v0.17.5, 2026-09-21)"
+  ERG_PRICES: "catalog/prices.yaml as_of 2026-10-16 (list prices used for derived ordering only)"
+
+entries:
+  # ---- Anthropic (first-party ids follow catalog/prices.yaml) ----
+  - model: claude-fable-5-1
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "current Anthropic flagship line; successor of measured claude-opus-4.7 (10, swe 80.8); list price 10/50 = 2.5x opus-5-5"
+  - model: claude-fable-5
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "previous fable generation, same list price as fable-5-1; same tier, relative order unresolved"
+  - model: claude-opus-5-5
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "top opus generation; frontier band (>=9); below fable on price (4/20 vs 10/50)"
+  - model: claude-opus-5
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "opus band; superseded by 5-5, same tier (5/25)"
+  - model: claude-opus-4-8
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "oldest opus in the ledger; still frontier band (5/25); generation between measured opus-4.7 (10) and opus-5"
+  - model: claude-sonnet-5-5
+    power: 8
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT
+    as_of: '2026-10-16'
+    note: "current sonnet; inherits measured sonnet-4.6 tier (8, swe 79.6)"
+  - model: claude-sonnet-5
+    power: 8
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT
+    as_of: '2026-10-16'
+    note: "same sonnet tier as measured sonnet-4.6 (8); relative order unresolved (2/10)"
+  - model: claude-sonnet-4-6
+    power: 8
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-12'
+    swe_bench_verified: 79.6
+    note: "fizeau id sonnet-4.6"
+  - model: claude-haiku-5-5
+    power: 7
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-12'
+    swe_bench_verified: 73.3
+    note: "fizeau id claude-haiku-5.5; exact-pin-only in fizeau's catalog for routing (not copied)"
+  - model: claude-haiku-4-5
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT
+    as_of: '2026-10-16'
+    note: "same haiku tier as measured haiku-5.5 (7); older generation, 10x its list price (1/5 vs 0.1/0.5)"
+
+  # ---- OpenAI ----
+  - model: gpt-6.1-sol
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "current OpenAI flagship sol generation; successor of measured gpt-5.5 (10, swe 81.5)"
+  - model: gpt-6-astra
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "premium frontier tier (10/50, 5x sol price); strongest gpt-6 variant"
+  - model: gpt-6-sol
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "previous sol generation, same list price as 6.1-sol (2/10); frontier band below flagship"
+  - model: gpt-6-luna
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "luna = small/fast tier (0.1/0.5); metered default"
+  - model: gpt-5.6-sol
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "prior sol generation (4/20); frontier band"
+  - model: gpt-5.6-terra
+    power: 8
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "terra = mid tier (2/12); medium_frontier band, sonnet-class"
+  - model: gpt-5.6-luna
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "luna tier of the 5.6 generation (0.2/1.2)"
+  - model: gpt-5.5
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-25'
+    swe_bench_verified: 81.5
+    note: "fizeau's measured flagship at catalog time; exact-pin-only status not applicable (it is not superseded in erg's view)"
+  - model: gpt-5.5-pro
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "heavy-compute variant of measured gpt-5.5 (10); priced 30/180"
+  - model: gpt-5.4
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+    note: "fizeau's catalog zeroes gpt-5.4 for pin-only routing because gpt-5.5 supersedes it; the benchmark mapping states power 10 -- strength value used"
+  - model: gpt-5.4-mini
+    power: 8
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-12'
+    swe_bench_verified: 77.2
+  - model: gpt-5.4-nano
+    power: 6
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "smaller sibling of measured gpt-5.4-mini (8); non_frontier band upper edge (0.2/1.25)"
+  - model: gpt-5.3-codex
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+    note: "Terminal-Bench-2 mapping; also in fizeau catalog (pin-only, strength not stated there)"
+  - model: gpt-5.2
+    power: 8
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+  - model: gpt-5.1
+    power: 7
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_MAP + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "predecessor of measured gpt-5.2 (8); medium_frontier band lower edge (1.25/10)"
+  - model: gpt-5
+    power: 7
+    deployment_class: managed_cloud_frontier
+    provenance: derived
+    source: FIZ_MAP + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "same tier and price as gpt-5.1 (1.25/10)"
+  - model: gpt-5-mini
+    power: 5
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "below measured gpt-5.4-mini (8); non_frontier band (0.25/2)"
+  - model: gpt-5-nano
+    power: 4
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "smallest gpt tier (0.05/0.4); anchored by measured GPT-OSS-20B (4)"
+
+  # ---- Google ----
+  - model: gemini-4-argon
+    power: 10
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP + ERG_PRICES
+    as_of: '2026-10-16'
+    note: "current Gemini flagship; successor of measured Gemini-3.1-Pro-Preview (10); pro-class stays metered_cloud per fizeau (gemini-2.5-pro = 9 there)"
+  - model: gemini-3.1-pro
+    power: 10
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+    note: "fizeau id Gemini-3.1-Pro-Preview"
+  - model: gemini-3.8-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "newest flash generation; flash band measured at 7 (Gemini-3-Flash-Preview, gemini-2.5-flash)"
+  - model: gemini-3.7-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "flash band (0.75/3.75)"
+  - model: gemini-3.6-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "flash band (0.75/3.75)"
+  - model: gemini-3.5-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "flash band (1.5/9)"
+  - model: gemini-3-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+    note: "fizeau id Gemini-3-Flash-Preview"
+  - model: gemini-3.5-flash-lite
+    power: 5
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT
+    as_of: '2026-10-16'
+    note: "lite tier; inherits measured gemini-2.5-flash-lite (5)"
+  - model: gemini-3.1-flash-lite
+    power: 5
+    deployment_class: metered_cloud
+    provenance: derived
+    source: FIZ_CAT
+    as_of: '2026-10-16'
+    note: "lite tier; inherits measured gemini-2.5-flash-lite (5)"
+  # anchors not in erg's price ledger, kept so every derived value above is auditable
+  - model: claude-opus-4.7
+    power: 10
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-12'
+    swe_bench_verified: 80.8
+    note: "fizeau anchor; not in erg price ledger"
+  - model: gemini-2.5-pro
+    power: 9
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-21'
+    note: "fizeau anchor; not in erg price ledger"
+  - model: gemini-2.5-flash
+    power: 7
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-21'
+    note: "fizeau anchor; not in erg price ledger"
+  - model: gemini-2.5-flash-lite
+    power: 5
+    deployment_class: metered_cloud
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-04-21'
+    note: "fizeau anchor; not in erg price ledger"
+  - model: grok-4.5
+    power: 9
+    deployment_class: managed_cloud_frontier
+    provenance: reported
+    source: FIZ_CAT
+    as_of: '2026-07-08'
+    note: "fizeau anchor, newest measurement in their catalog; not in erg price ledger"
+
+  # ---- Open weights (host-dependent; fizeau caps local classes at 6) ----
+  - model: glm-5-3
+    power: 6
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "GLM-5 measured at 6 (Terminal-Bench-2); 5-3 is a GLM-5 variant, same band"
+  - model: glm-5-2
+    power: 6
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "GLM-5 measured at 6; 5-2 same band, older minor (relative order unresolved)"
+  - model: glm-5-3-flash
+    power: 5
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "flash variant of GLM-5 (6); one step down within the 4-6 band"
+  - model: kimi-k3
+    power: 6
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "Kimi-k2.5 measured at 6; k3 is the successor, same band"
+  - model: deepseek-v4-1-flash
+    power: 6
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "DeepSeek-V3.2 measured at 6; v4.1 is a newer generation, same band"
+  - model: deepseek-v4-flash-0731
+    power: 5
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_CAT + FIZ_MAP
+    as_of: '2026-10-16'
+    note: "matches fizeau catalog deepseek-v4-flash (5, recency 2026-05-11); snapshot suffix suggests the 0731 build"
+  - model: qwen35-122b-a10b
+    power: 5
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_CAT + FIZ_MAP
+    as_of: '2026-10-16'
+    note: "fizeau measures local qwen 27b-class at 5 and qwen3-coder-480b at 6; 122B-A10B sits between -> 5"
+  - model: qwen3-next-80b-a3b-instruct
+    power: 5
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_CAT + FIZ_MAP
+    as_of: '2026-10-16'
+    note: "same anchors as qwen35-122b-a10b"
+  - model: gpt-oss-120b
+    power: 5
+    deployment_class: community_self_hosted
+    provenance: derived
+    source: FIZ_MAP
+    as_of: '2026-10-16'
+    note: "GPT-OSS-20B measured at 4; the 120b sibling sits at the band default (5)"
+  - model: gpt-oss-20b
+    power: 4
+    deployment_class: community_self_hosted
+    provenance: reported
+    source: FIZ_MAP
+    as_of: '2026-05-06'
+    note: "fizeau id AfterQuery-GPT-OSS-20B"
+
+unrated:
+  - model: codex-auto-review
+    reason: "Reviewer alias; underlying model unknown (same treatment as prices.yaml)."
+  - model: ai.gateway.glm
+    reason: "Gateway service alias; resolve destination via system.ai_gateway.usage first."
+  - model: ai.gateway.gpt-5-6-luna
+    reason: "Gateway service alias; destination probably gpt-5.6-luna but unverified."
+  - model: gemini-3-1-flash-image
+    reason: "Image model; power scale is a coding/strength tier, not applicable."
+  - model: gemini-3-pro-image
+    reason: "Image model; power scale not applicable."
+  - model: gte_large_en_v1_5
+    reason: "Embedding."
+  - model: bge_large_en_v1_5
+    reason: "Embedding."
+  - model: qwen3-embedding-0-6b
+    reason: "Embedding."
+  - model: llama-4-maverick
+    reason: "Open weights; no fizeau measurement or anchor for the llama family. Do not guess."
+  - model: llama_v3_3_70b_instruct
+    reason: "Open weights; no fizeau measurement or anchor for the llama family. Do not guess."
+  - model: meta_llama_v3_1_8b_instruct
+    reason: "Open weights; no fizeau measurement or anchor for the llama family. Do not guess."
+  - model: gemma-3-12b-it
+    reason: "Open weights; no fizeau measurement or anchor for the gemma family. Do not guess."

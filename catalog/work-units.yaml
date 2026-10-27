@@ -1,0 +1,176 @@
+# erg work-unit definitions. Pure data: a consumer reads this file; no usage logic lives here.
+# Research and citations: docs/research/work-units.md (id erg.research.work-units).
+# Every parameter is marked `evidence: <source>|tunable`. `tunable` means no source supports a value.
+# `default: null` means the consumer must not invent one; report raw inputs instead.
+schema_version: 0
+status: draft
+definitions_version: 0.1.0-draft
+as_of: 2026-10-16
+sources:
+  S1: "https://arxiv.org/html/2503.14499v3"
+  S2: "https://martinfowler.com/bliki/CannotMeasureProductivity.html"
+  S5: "https://dora.dev/guides/dora-metrics/"
+  S9: "https://metr.org/notes/2026-03-10-many-swe-bench-passing-prs-would-not-be-merged-into-main/"
+  S16: "https://www.gitclear.com/ai_assistant_code_quality_2025_research"
+  S17: "AIDev-based agent symbol survival study (see research doc, exact arXiv id unconfirmed)"
+  S19: "https://arxiv.org/abs/2509.09853"
+  S20: "Fizeau SD-012 and session usage report (local clone, see research doc)"
+  ADR-001: "docs/helix/02-design/adr/ADR-001-unit-normalization.md (proposed)"
+
+units:
+  - id: normalized_change
+    kind: volume            # a size proxy; not a measure of value
+    description: >
+      Size of a code change after excluding non-authored files, expressed in line-equivalents.
+      Reported with raw added and removed lines alongside. Gameable; do not rank individuals.
+    inputs:
+      - git.numstat            # per commit, per file: added, removed
+      - git.file_path
+      - git.commit_id
+    formula: >
+      for each commit: sum over files not matching exclude_globs of
+      (w_code * added_code + w_doc * added_doc + w_removed * removed);
+      then cap at per_commit_cap when it is not null.
+      File class (code|doc|other) comes from classify_by_extension.
+    parameters:
+      w_code:           {default: 1.0, evidence: tunable, note: "unit of account; fixed by definition"}
+      w_doc:            {default: 0.5, evidence: tunable, note: "carried from ADR-001 (proposed); no source found"}
+      w_removed:        {default: 0.5, evidence: tunable, note: "carried from ADR-001 (proposed); no source found"}
+      per_commit_cap:   {default: null, evidence: tunable, note: "outlier handling (winsorize/cap); no source; report uncapped too"}
+      exclude_globs:    {default: [], evidence: tunable, note: "lockfiles, generated, vendored, data; consumer-supplied list"}
+      classify_by_extension: {default: null, evidence: tunable, note: "extension to code|doc|other map; consumer-supplied"}
+    limits:
+      - "Not value. Verbosity and boilerplate inflate it; refactoring can shrink or enlarge it (S2)."
+      - "Comparable only in aggregate over many commits, not across individuals."
+      - "Needs commits; uncommitted agent edits are invisible unless session-log edits are used as a separate, labelled source."
+    evidence_quality: weak-as-value; usable-as-rough-size (S2)
+
+  - id: outcome_rung
+    kind: value_proxy
+    description: >
+      Highest rung of an ordered ladder of observable outcomes reached by a session. A session is assigned
+      exactly one rung. Rungs 0-4 are observable; 5 is not computable and exists only to mark the limit.
+    inputs:
+      - session.terminal_status
+      - session.edit_events           # Edit/Write/apply_patch lines
+      - session.command_results       # test/build commands with exit codes, in order
+      - git.commits_in_window         # commits attributable to the session
+      - git.default_branch_membership
+      - pr.merge_state
+      - git.revert_edges
+      - git.line_survival
+    formula: >
+      rung 0 ended: session has a terminal status (any).
+      rung 1 diff: session produced edits or an attributable commit.
+      rung 2 verified: a recognized test/build command exited 0 after the last edit.
+      rung 3 landed: an attributable commit is on the default branch, or its PR is merged, within landing_window.
+      rung 4 retained: landed and not reverted, and survival_fraction >= survival_threshold at retention_window.
+      rung 5 value: not computable from these inputs.
+      outcome_rung = highest rung whose condition holds; rungs are not required to be reached in order
+      (a session may land without a recognized test command).
+    parameters:
+      landing_window_days:    {default: null, evidence: tunable, note: "no source"}
+      retention_window_days:  {default: null, evidence: tunable, note: "no standard found; report two windows (S17 suggests days-scale differences)"}
+      survival_threshold:     {default: null, evidence: tunable, note: "no source"}
+      test_command_patterns:  {default: [], evidence: tunable, note: "agent/project specific; consumer-supplied"}
+      attribution_method:     {default: trailer, evidence: tunable, note: "trailer | time_path_overlap | git_notes; error rate unknown"}
+    limits:
+      - "Rung 2 is weaker than benchmark 'resolved': tests may be absent or trivial."
+      - "Test-passing and merge-readiness diverge: maintainer merge rates were about one-third to one-half of grader pass rates (S9)."
+      - "Investigation and review sessions have no diff and sit at rung 0 despite possible value."
+      - "Terminal status (rung 0) is process completion, not an outcome claim (S20)."
+      - "Rung 5, business value, is not measurable from outputs (S2)."
+    evidence_quality: structure supported (S9, S17, S5); parameters unsupported
+
+  - id: retained_change
+    kind: secondary
+    description: >
+      Fraction of a commit's added lines still present at a given age (code survival), plus revert detection.
+    inputs:
+      - git.commit_id
+      - git.blame_at_age
+      - git.revert_edges
+    formula: >
+      survival_fraction(commit, N) = lines_added_by_commit_still_attributed_to_it_at(commit_time + N days)
+      / lines_added_by_commit.
+      Reverted commits have survival_fraction 0 regardless of blame.
+    parameters:
+      windows_days:        {default: null, evidence: tunable, note: "no standard; report at least two windows"}
+      rename_tracking:     {default: null, evidence: tunable, note: "blame with move/copy detection on or off; affects refactor handling"}
+    limits:
+      - "Refactors and formatting passes register as churn; stability is not quality."
+      - "Rewards leaving code untouched; recent commits cannot be evaluated at long windows (right-censored)."
+      - "Evidence that agent-introduced symbols are removed sooner is a single medium-confidence study (S17); GitClear is a vendor (S16)."
+    evidence_quality: directional (S17 medium, S16 medium)
+
+  - id: landed_change
+    kind: secondary
+    description: "Count of commits and merged PRs attributable to sessions. Always shown beside normalized_change."
+    inputs:
+      - git.commits
+      - git.commit_trailers
+      - pr.merge_state
+    formula: "landed_commits = count(attributable commits on default branch); landed_prs = count(attributable merged PRs)."
+    parameters:
+      attribution_method: {default: trailer, evidence: tunable, note: "see outcome_rung"}
+      squash_handling:    {default: null, evidence: tunable, note: "how squash/rebase merges map to session commits"}
+    limits:
+      - "Commit and PR sizes vary; counts are gameable by splitting."
+      - "Attribution only reliable where trailers or notes exist."
+      - "PR throughput rose while delivery metrics were flat in one vendor report (low-medium confidence; research doc S10)."
+    evidence_quality: weak alone
+
+  - id: intent
+    kind: label
+    description: "What a session was for. One label per session, with an explicit unknown."
+    inputs:
+      - git.commit_subjects
+      - git.file_paths
+      - session.first_prompt
+      - session.tool_call_mix       # read-only vs write
+    formula: >
+      Rule order: (1) commit subject prefix mapped via prefix_map; (2) dominant file-path class mapped via path_map;
+      (3) no edits and only read-only tool calls -> investigation; (4) otherwise unknown.
+    parameters:
+      labels:      {default: [feature, fix, refactor, test, docs, chore, investigation, other, unknown], evidence: tunable, note: "no standard taxonomy found"}
+      prefix_map:  {default: null, evidence: tunable, note: "consumer-supplied, e.g. conventional-commit prefixes"}
+      path_map:    {default: null, evidence: tunable}
+    limits:
+      - "Sessions mix intents; one label loses information."
+      - "Always report the unknown share."
+      - "Efficiency ratios must be stratified by intent before comparison."
+    evidence_quality: no source for taxonomy; heuristic
+
+  - id: efficiency
+    kind: derived
+    description: >
+      Ratios of consumption to output. Each ratio names its denominator rung. Cost includes sessions that did
+      not reach the rung (cost of failures counts), as in effectiveness-aware cost per resolved (S19) and Fizeau cost_per_pass (S20).
+    inputs:
+      - usage.tokens_by_bucket        # fresh_in, out, cache_read, cache_write
+      - usage.effective_cost          # unknown cost excluded and counted separately
+      - session.tool_call_count
+      - unit.normalized_change
+      - unit.outcome_rung
+    formula: >
+      tokens_per_wu = T_eff / sum(normalized_change);
+      cost_per_wu = known_cost / sum(normalized_change);
+      cost_per_success(rung) = known_cost_all_sessions / count(sessions with outcome_rung >= rung);
+      tool_calls_per_success(rung) = tool_calls_all_sessions / count(sessions with outcome_rung >= rung).
+      Report n, the unknown-cost share, and the rung. Return null when the denominator is 0.
+    parameters:
+      rung_for_success: {default: null, evidence: tunable, note: "which outcome_rung counts as success; Fizeau's session success is rung 0 only (S20)"}
+      t_eff_definition: {default: "fresh_in + cache_write + out", evidence: ADR-001, note: "proposed in ADR-001; cache reads reported separately"}
+    limits:
+      - "Ratio of two noisy quantities; denominator definition dominates."
+      - "tool_calls_per_success has a name but no formula in Fizeau (no source found); defined here as a tunable proposal."
+      - "Never compare across models or harnesses without n and intent stratification."
+    evidence_quality: concept supported (S19, S20); no external validation found
+
+not_adopted:
+  - {id: function_points,   reason: "needs requirements-level counting; infeasible from logs (research doc S4)"}
+  - {id: story_points,      reason: "team-relative planning estimate; creator disavows measurement use (S12, low)"}
+  - {id: copilot_acceptance, reason: "needs IDE suggestion telemetry; agent CLIs do not emit it (S13)"}
+  - {id: dora_metrics,      reason: "organization-level and needs deploy data; revisit if deploy events become available (S5)"}
+  - {id: time_horizon_human_equivalent, reason: "requires human baselines (S1); no validated method from logs"}
+  - {id: ai_attributed_share, reason: "optional import when git notes exist; vendor spec (S15)"}

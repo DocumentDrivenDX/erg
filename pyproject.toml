@@ -1,17 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "erg"
-version = "0.1.0"
-description = "Local-first token, output and machine-load dashboard for Claude Code, Codex and AI gateways"
+version = "0.1.0rc1"
+description = "Local-first usage ledger for coding agents: tokens, costs, work and machine load"
 readme = "README.md"
-license = "MIT OR Apache-2.0"
-license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
+license = {text = "MIT OR Apache-2.0"}
 requires-python = ">=3.8"
 dependencies = []
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+]
+
+[project.urls]
+Repository = "https://github.com/DocumentDrivenDX/erg"
+Issues = "https://github.com/DocumentDrivenDX/erg/issues"
 
 [project.scripts]
 erg = "erg.cli:main"
 
 [tool.setuptools]
 packages = ["erg"]
+include-package-data = false
+license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
+
 [tool.setuptools.package-data]
-erg = ["static/*.html", "collect.py"]
+erg = ["static/*.html", "hooks/*.mjs", "*.json"]
