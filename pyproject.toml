@@ -31,3 +31,42 @@ license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 
 [tool.setuptools.package-data]
 erg = ["static/*.html", "hooks/*.mjs", "*.json"]
+
+[dependency-groups]
+dev = [
+    "build==1.6.1",
+    "coverage[toml]==7.17.0",
+    "hypothesis==6.170.12",
+    "pip-audit==2.10.1",
+    "pyright==1.1.414",
+    "ruff==0.17.3",
+    "setuptools==84.2.1",
+]
+
+[tool.uv.dependency-groups]
+dev = {requires-python = ">=3.12"}
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+extend-exclude = [".local-evidence", "dist", "build", "*.egg-info"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.pyright]
+include = ["erg", "scripts/quality.py", "scripts/quality_rules.py", "scripts/run-tests.py", "scripts/install-gitleaks.py", "scripts/serve-quality-fixture.py"]
+exclude = [".venv", "build", "dist"]
+pythonVersion = "3.8"
+typeCheckingMode = "basic"
+strict = ["scripts/quality_rules.py"]
+
+[tool.coverage.run]
+branch = true
+source = ["erg"]
+parallel = true
+relative_files = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

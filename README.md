@@ -1062,3 +1062,13 @@ python3 scripts/rate-catalog.py pull --profile erg-prod --warehouse WAREHOUSE_ID
 catalog and an identity permitted to write the application tables. Publication
 creates a new immutable revision; readers verify every row before atomically
 replacing their offline snapshot. No credentials are stored in the catalog.
+
+## Development quality gates
+
+Use Python 3.12, uv 0.13.3 and Node 22 for development: `make setup`, optionally
+`make hooks`, then `make quality`. Runtime consumers still need only Python 3.8+
+and the standard library. CI checks lint/format, explicit type/shape/cycle adoption
+ratchets, strict test skips, measured coverage, real-browser accessibility/flows,
+secret/dependency scanning and fresh package installs. See [CONTRIBUTING](CONTRIBUTING.md)
+and [the local quality contract](docs/helix/02-design/adr/ADR-003-local-quality-contract.md)
+for commands, remaining adoption debt and scoped exceptions. OTel is deferred.

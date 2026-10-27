@@ -15,3 +15,12 @@ prune central/databricks/.databricks
 prune build
 prune dist
 global-exclude __pycache__ *.py[cod] *.pyz *.zip *.db *.db-* .DS_Store
+
+include uv.lock .python-version .node-version package.json package-lock.json playwright.config.js .gitleaks.toml Makefile .editorconfig
+recursive-include quality *.json *.md *.py
+recursive-include e2e *.js
+include .githooks/pre-commit
+prune reports
+prune node_modules
+prune .quality-tools
+prune test-results
