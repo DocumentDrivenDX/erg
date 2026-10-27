@@ -1,0 +1,8 @@
+title = "erg public-source secret scanning"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Exact SQLite metadata key; not a credential (history_browse.py)"
+regexTarget = "secret"
+regexes = ['''^browse_turn_v1$''']

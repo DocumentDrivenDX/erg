@@ -692,3 +692,13 @@ comparison values retain separate provenance. The existing approved metadata
 journal carries optional plan price and reset charge fields; it does not export
 credentials or infer purchases from quota-reset events. CONTRACT-003 defines the
 wire fields, precedence, estimates and missing-evidence behavior.
+
+## Local-first quality adoption
+
+ADR-003 resolves the whole local package to Python 3.8+/stdlib and isolates the
+Python 3.12/Node developer tools. It records module/shape/type adoption debt and
+explicit local HTTP/security/accessibility overrides. Concern selections and the
+quality-plan map existing thread/connection/publication/cache/migration/recovery
+contracts to observed proof. These gates do not authorize changing the standalone
+collector, enabling exports or activating experimental cloud/fleet features. OTel
+instrumentation is deferred; existing local diagnostics remain product behavior.

@@ -6,6 +6,14 @@ ddx:
 ---
 # ADR-002: Canonical trace model and the consumer boundary
 
+## Local-first disposition — 2026-10-27
+
+This remains a deferred proposal. The operator explicitly deferred OTel for the
+current local-first scope; ADR-003 governs runtime/tooling and current native
+ledger/accounting contracts govern the implemented shape. No OTel SDK/exporter
+or trace-shape migration is a local release gate. The proposal below records
+future interoperability intent and does not override those current contracts.
+
 ## Context
 The operator's direction (2026-10-16): gate everything through the AI gateway, extend measurement to the local host for traffic the gateway
 never sees, capture first and centralize later, and keep research and definitions separate from usage. Fizeau already publishes a normative

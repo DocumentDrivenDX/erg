@@ -35,3 +35,10 @@ or deferred; their broader specifications do not expand this release's promise.
 See [release evidence](local-first-release.md) for results and limitations.
 The release candidate is prepared for review; tagging, publishing and deployment
 are separate operations.
+
+## Quality adoption
+
+ADR-003 and [quality-plan.md](quality-plan.md) govern the recurring local-first
+quality gates. [quality-validation.md](quality-validation.md) records observed
+adoption results, platform coverage floors and remaining explicit debt. The
+initial release evidence remains historical; OTel is deferred by the operator.

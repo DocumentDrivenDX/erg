@@ -15,3 +15,13 @@ build/
 .databricks/
 .local-evidence/
 /docs/helix/04-build/evidence/
+
+# Development-only quality tools and reports.
+node_modules/
+reports/
+.quality-tools/
+.coverage*
+.hypothesis/
+.ruff_cache/
+playwright-report/
+test-results/

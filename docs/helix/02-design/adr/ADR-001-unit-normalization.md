@@ -1,10 +1,21 @@
 ---
 ddx:
   id: erg.adr.001
-  status: proposed
+  status: superseded
   links: [prd, erg.architecture, product-vision]
 ---
 # ADR-001: Unit normalization (tokens, cost, work, energy)
+
+## Current disposition — 2026-10-27
+
+This early proposal is superseded for the local candidate by PRD FR-14–17,
+CONTRACT-003 accounting and ADR-003. Dated API-equivalent reference value,
+allocated effective expense and observed paid charges are distinct. Missing
+subscription charge evidence is unknown, never an inferred zero; a plan name
+never establishes a price or payer. Work definitions remain versioned data.
+The original proposal below is retained as history, not current acceptance.
+
+## Historical proposal
 
 ## Context
 erg reports raw tokens. Raw tokens are not comparable across models (a Haiku token is not a frontier-model token),

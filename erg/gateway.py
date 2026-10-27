@@ -3,7 +3,12 @@
 Uses the Databricks CLI's existing auth (`databricks api ...`); no tokens are read or stored here.
 Config: ~/.config/erg/gateway.json  {"profile","warehouse_id","table","me"}
 """
-import calendar, json, os, subprocess, time
+
+import calendar
+import json
+import os
+import subprocess
+import time
 
 CONF = os.path.join(os.path.expanduser("~"), ".config", "erg", "gateway.json")
 TABLE = "system.ai_gateway.usage"
@@ -24,7 +29,11 @@ def _api(profile, method, path, body=None):
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
     if r.returncode != 0:
         msg = (r.stderr or r.stdout).strip()[-400:]
-        hint = " (try: databricks auth login -p %s)" % profile if "auth" in msg.lower() or "token" in msg.lower() else ""
+        hint = (
+            " (try: databricks auth login -p %s)" % profile
+            if "auth" in msg.lower() or "token" in msg.lower()
+            else ""
+        )
         raise RuntimeError("databricks api %s failed: %s%s" % (path, msg, hint))
     return json.loads(r.stdout)
 
@@ -38,9 +47,19 @@ def discover_warehouse(profile):
 
 
 def run_sql(conf, sql):
-    st = _api(conf["profile"], "post", "/api/2.0/sql/statements",
-              {"warehouse_id": conf["warehouse_id"], "statement": sql, "wait_timeout": "50s", "format": "JSON_ARRAY",
-               "disposition": "INLINE", "on_wait_timeout": "CONTINUE"})
+    st = _api(
+        conf["profile"],
+        "post",
+        "/api/2.0/sql/statements",
+        {
+            "warehouse_id": conf["warehouse_id"],
+            "statement": sql,
+            "wait_timeout": "50s",
+            "format": "JSON_ARRAY",
+            "disposition": "INLINE",
+            "on_wait_timeout": "CONTINUE",
+        },
+    )
     sid = st["statement_id"]
     t0 = time.time()
     while st["status"]["state"] in ("PENDING", "RUNNING"):
@@ -53,7 +72,9 @@ def run_sql(conf, sql):
     rows = list((st.get("result") or {}).get("data_array") or [])
     nxt = (st.get("result") or {}).get("next_chunk_index")
     while nxt is not None:
-        ch = _api(conf["profile"], "get", "/api/2.0/sql/statements/%s/result/chunks/%d" % (sid, nxt))
+        ch = _api(
+            conf["profile"], "get", "/api/2.0/sql/statements/%s/result/chunks/%d" % (sid, nxt)
+        )
         rows += ch.get("data_array") or []
         nxt = ch.get("next_chunk_index")
     return rows
@@ -81,23 +102,57 @@ def fetch(conf, since_ts):
     day = since_ts // 86400 * 86400
     end = int(time.time()) + 86400
     while day < end:
-        a, b = time.strftime("%Y-%m-%d", time.gmtime(day)), time.strftime("%Y-%m-%d", time.gmtime(day + 86400))
+        a, b = (
+            time.strftime("%Y-%m-%d", time.gmtime(day)),
+            time.strftime("%Y-%m-%d", time.gmtime(day + 86400)),
+        )
         for r in run_sql(conf, QUERY.format(table=conf.get("table", TABLE), a=a, b=b)):
-            (uid, et, req, rtype, stype, agent, surface, sess, app, model, ep, inp, out, cr, cw, rsn, code) = r
+            (
+                uid,
+                et,
+                req,
+                rtype,
+                stype,
+                agent,
+                surface,
+                sess,
+                app,
+                model,
+                ep,
+                inp,
+                out,
+                cr,
+                cw,
+                rsn,
+                code,
+            ) = r
             if code and int(code) >= 400:
                 continue
             inp, cr, cw = _i(inp), _i(cr), _i(cw)
-            yield {"uid": "g:" + str(uid), "ts": _ts(et), "tool": "gateway", "session": sess or "", "requester": req or "",
-                   "project": app or (agent and "(gateway:%s)" % agent) or "(gateway)", "model": model or ep or "unknown",
-                   "kind": "main", "client": agent or app or stype or "",
-                   "fresh_in": max(inp - cr - cw, 0), "cache_read": cr, "cache_write": cw, "out": _i(out), "reasoning": _i(rsn),
-                   "rtype": rtype}
+            yield {
+                "uid": "g:" + str(uid),
+                "ts": _ts(et),
+                "tool": "gateway",
+                "session": sess or "",
+                "requester": req or "",
+                "project": app or (agent and "(gateway:%s)" % agent) or "(gateway)",
+                "model": model or ep or "unknown",
+                "kind": "main",
+                "client": agent or app or stype or "",
+                "fresh_in": max(inp - cr - cw, 0),
+                "cache_read": cr,
+                "cache_write": cw,
+                "out": _i(out),
+                "reasoning": _i(rsn),
+                "rtype": rtype,
+            }
         day += 86400
 
 
 def sync(db, conf, full=False):
     """Incremental by event_time; refreshes the last 2 days. Returns rows ingested."""
     from . import store
+
     r = db.execute("SELECT MAX(ts) FROM llm WHERE machine=?", (MACHINE,)).fetchone()[0]
     since = 0 if (full or not r) else r - 2 * 86400
     if not since:  # first run: start at the table's earliest row instead of probing empty days

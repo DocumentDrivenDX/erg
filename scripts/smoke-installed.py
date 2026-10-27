@@ -4,13 +4,14 @@
 Run with the installed environment's Python and -I. No build/runtime dependency,
 agent credential, existing ledger, source checkout import or cloud call is needed.
 """
+
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
-PROBE = r'''
+PROBE = r"""
 import importlib.metadata as metadata
 import json
 from pathlib import Path
@@ -97,19 +98,26 @@ finally:
         server.kill();server.wait(timeout=10)
     server.stderr.close()
 print(json.dumps(dict(version=metadata.version('erg'), python=sys.version.split()[0], installed=True, runtime_dependencies=[], synthetic_calls=1, output_tokens=7, bodies_retained=0, http=True, bundled_rates=len(card['entries']))))
-'''
+"""
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix='erg-install-smoke-') as temp:
+    with tempfile.TemporaryDirectory(prefix="erg-install-smoke-") as temp:
         # Deliberate subprocess isolation: never inherit agent/cloud discovery or
         # credentials from the operator's home, PATH or ERG_* environment.
-        env = {'HOME': temp, 'PATH': str(Path(sys.executable).parent)+os.pathsep+'/usr/bin:/bin',
-               'ERG_HOME': str(Path(temp)/'ledger'), 'ERG_STATE_DIR': str(Path(temp)/'state'),
-               'ERG_DATABASE': str(Path(temp)/'ledger/erg-v2.db'),
-               'PYTHONDONTWRITEBYTECODE': '1', 'LANG': 'en_US.UTF-8'}
-        subprocess.run([sys.executable, '-I', '-B', '-c', PROBE], cwd=temp, env=env, check=True, timeout=180)
+        env = {
+            "HOME": temp,
+            "PATH": str(Path(sys.executable).parent) + os.pathsep + "/usr/bin:/bin",
+            "ERG_HOME": str(Path(temp) / "ledger"),
+            "ERG_STATE_DIR": str(Path(temp) / "state"),
+            "ERG_DATABASE": str(Path(temp) / "ledger/erg-v2.db"),
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "LANG": "en_US.UTF-8",
+        }
+        subprocess.run(
+            [sys.executable, "-I", "-B", "-c", PROBE], cwd=temp, env=env, check=True, timeout=180
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
