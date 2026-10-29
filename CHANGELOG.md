@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0rc1
+## 0.1.0rc1 — 2026-10-29
 
 First local-first release candidate:
 
@@ -11,6 +11,11 @@ First local-first release candidate:
 - Installable wheel and source distribution with static UI, hooks, price snapshot
   and both licenses; no third-party local runtime dependencies.
 - Consistent capture/privacy/retention documentation and fresh-install CI checks.
+- Locked developer tools and automated lint, formatting, type-debt, architecture,
+  coverage, security and browser accessibility/behavior gates.
+- Reporting preparation reuse, bounded catch-up scheduling, scoped invalidation
+  and indexed delivery queries.
+- Full macOS/Linux Python 3.8/3.12 runtime and fresh-install validation.
 
 Central delivery/reporting and fleet rollout are experimental. Automatic billing
 charges can be unavailable and remain unknown. Source coverage varies; Linux uses

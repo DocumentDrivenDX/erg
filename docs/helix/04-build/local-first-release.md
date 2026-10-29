@@ -67,3 +67,32 @@ and `docs/helix/04-build/evidence/`; they are not public acceptance requirements
 Privacy behavior is governed publicly by [PRIVACY](../../../PRIVACY.md), README and
 CONTRIBUTING. Default metadata, provider/account network reads, explicit body
 capture/export, retention and uninstall semantics are documented consistently.
+
+
+## Published candidate — 2026-10-29
+
+The local-first candidate is released as `v0.1.0rc1` on GitHub, with an explicit
+prerelease designation. The release contains the wheel, source archive and
+`SHA256SUMS` from the passing release commit's hosted CI build. Installation does
+not require a package-index account or a cloud service. Download the wheel from
+[the release](https://github.com/DocumentDrivenDX/erg/releases/tag/v0.1.0rc1),
+verify its SHA-256 against the attached manifest, then follow the README's
+virtual-environment installation commands. The source archive remains an
+alternative for source installs. No PyPI publication is part of this release.
+
+The release includes the reporting work integrated at `23506d8`, the managed
+Python CI provisioning correction at `a0b542d`, and Node 24 GitHub Actions pins.
+Uncommitted pipeline/inference, retention and cloud development are excluded.
+The installed local runtime remains standard-library-only, with history bodies
+off by default and no automatic telemetry upload. Central/fleet functionality is
+experimental; billing values may be unavailable; automatic services are macOS-only.
+
+The release commit must pass the complete quality job and all four macOS/Linux,
+Python 3.8/3.12 runtime/install jobs before tagging. The release notes link the
+exact passing run and record its test, skip and coverage evidence. CI is required
+on `main` with all five checks; administrators are subject to the same status
+requirements. Force pushes and branch deletion are disabled.
+
+Manual screen-reader/visual conformance, legacy type/cycle reduction and wider
+capacity qualification remain scoped follow-ups, rather than claims of this RC.
+OTel is deferred.
