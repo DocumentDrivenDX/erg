@@ -424,7 +424,9 @@ def staged_index(control):
                 for k, v in batches.items()
             ):
                 raise Conflict("invalid staged index batch")
-        return result
+        from .staging_index import load_shards
+
+        return load_shards(control, result)
     result = dict(version=1, scopes={})
     receipts = Path(control).glob("v1/*/batches/*.json")
 
@@ -452,21 +454,15 @@ def staged_index(control):
                 space, ident, sha = value
                 result["scopes"].setdefault(space, {})[ident] = sha
     atomic_control(path, result)
-    return result
+    from .staging_index import load_shards
+
+    return load_shards(control, result)
 
 
 def index_staged(index, control, receipts):
-    for receipt in receipts:
-        space = namespace(receipt)
-        batches = index["scopes"].setdefault(space, {})
-        previous = batches.get(receipt["batch_id"])
-        if previous and previous != receipt["batch_sha256"]:
-            raise Conflict("staged index receipt conflict")
-        batches[receipt["batch_id"]] = receipt["batch_sha256"]
-    encoded = wire.encode(index)
-    if len(encoded) > 16 * 1024 * 1024:
-        raise Conflict("staged index requires sharding")
-    atomic_control(Path(control) / "processor-staged-index.json", index)
+    from .staging_index import persist
+
+    persist(index, control, receipts, atomic_control)
 
 
 def pending_markers(root, control, limit, started, max_seconds, staged=None):
@@ -580,9 +576,23 @@ def run(
         cohort.clear()
         weight.update(items=0, bytes=0)
 
-    candidates = pending_markers(
-        root, control, max_batches, time.monotonic(), min(60, max_seconds / 4), staged=completed
-    )
+    discovery_metrics = None
+    if root.as_posix().startswith("/Volumes/"):
+        from .discovery import paged_markers
+
+        candidates, discovery_metrics = paged_markers(
+            root,
+            control,
+            max_batches,
+            time.monotonic(),
+            min(60, max_seconds / 4),
+            completed,
+            atomic_control,
+        )
+    else:
+        candidates = pending_markers(
+            root, control, max_batches, time.monotonic(), min(60, max_seconds / 4), staged=completed
+        )
     discovery_seconds = time.monotonic() - discovery_started
     # Discovery has its own bound; already-found work gets a processing budget.
     processing_started = time.monotonic()
@@ -622,6 +632,7 @@ def run(
     return dict(
         attempted_batches=attempted,
         discovery_seconds=discovery_seconds,
+        discovery=discovery_metrics,
         indexed_staged_batches=sum(len(v) for v in completed["scopes"].values()),
         elapsed_seconds=time.monotonic() - started,
         outcomes=results,

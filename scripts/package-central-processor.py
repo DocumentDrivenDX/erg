@@ -10,7 +10,16 @@ output = Path(sys.argv[1]).resolve()
 if output.suffix not in (".zip", ".pyz"):
     raise SystemExit("explicit .pyz or .zip output required")
 files = {"erg/__init__.py": None, "erg/delivery_protocol.py": root / "erg" / "delivery_protocol.py"}
-for name in ("__init__.py", "ddl.py", "zerobus.py", "processor.py", "receiver.py", "verify.py"):
+for name in (
+    "__init__.py",
+    "ddl.py",
+    "zerobus.py",
+    "processor.py",
+    "discovery.py",
+    "staging_index.py",
+    "receiver.py",
+    "verify.py",
+):
     files["erg_central/" + name] = root / "central" / "erg_central" / name
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
     for name, path in sorted(files.items()):

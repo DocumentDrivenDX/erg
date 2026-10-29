@@ -29,3 +29,8 @@ through an explicitly selected Databricks profile or `DATABRICKS_HOST`.
 Fleet enrollment/recovery, retention policy, sustained cloud capacity and general
 central reporting acceptance are separate from the local release gate. No local
 test result establishes production readiness for another deployment.
+
+For Unity Catalog volumes, production reconciliation uses resumable Files API
+pages and an incremental completion cache. See [bounded central discovery](DISCOVERY.md)
+for cursor semantics, runtime qualification and rollback. The UMF/TableSpec
+project remains a separate migration candidate.
