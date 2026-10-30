@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "kind": "app",
+  "name": "Erg reporting IA",
+  "supports": {
+    "sizeClasses": [
+      "compact",
+      "medium",
+      "expanded",
+      "large"
+    ],
+    "inputs": [
+      "coarse",
+      "fine"
+    ],
+    "frame": "side-nav",
+    "modalities": [
+      "responsive-web"
+    ]
+  },
+  "destinations": [
+    {
+      "id": "overview",
+      "label": "Overview",
+      "screen": "overview"
+    },
+    {
+      "id": "projects",
+      "label": "Projects",
+      "screen": "projects"
+    },
+    {
+      "id": "sessions",
+      "label": "Sessions",
+      "screen": "sessions"
+    },
+    {
+      "id": "accounts",
+      "label": "Accounts",
+      "screen": "accounts"
+    },
+    {
+      "id": "system",
+      "label": "System",
+      "screen": "system"
+    }
+  ],
+  "screens": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "purpose": "Establish scope and find the largest consumption or expense driver",
+      "pattern": "Dashboard",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-001"
+      ],
+      "actions": [
+        {
+          "id": "compare",
+          "label": "Compare projects",
+          "to": "projects"
+        },
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Summary: tokens / rack value / effective expense / output; trend; top projects; grouped attention"
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "title": "Projects",
+      "purpose": "Compare human projects and select one for investigation",
+      "pattern": "CollectionList",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-001"
+      ],
+      "actions": [
+        {
+          "id": "open-project",
+          "label": "Open project",
+          "to": "project"
+        },
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Project rows: tokens / rack value / effective expense / commits / coverage; unassigned included"
+        }
+      ]
+    },
+    {
+      "id": "project",
+      "title": "Project detail",
+      "purpose": "Explain a human project through folders, sessions and work",
+      "pattern": "RecordDetail",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-001"
+      ],
+      "actions": [
+        {
+          "id": "open-session",
+          "label": "Open session",
+          "to": "session"
+        },
+        {
+          "id": "all-sessions",
+          "label": "Browse project sessions",
+          "to": "sessions"
+        },
+        {
+          "id": "back",
+          "label": "Back to projects",
+          "to": "projects"
+        },
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Summary; folder or agent-project contributions; sessions; commits and PR titles/state; assignment evidence"
+        }
+      ]
+    },
+    {
+      "id": "sessions",
+      "title": "Sessions",
+      "purpose": "Find a session by ID, title, folder, agent or time",
+      "pattern": "CollectionList",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-003"
+      ],
+      "actions": [
+        {
+          "id": "open-session",
+          "label": "Open session",
+          "to": "session"
+        },
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Search; session rows with title, ID, project portions, dates, agent, route, tokens and both cost bases"
+        }
+      ]
+    },
+    {
+      "id": "session",
+      "title": "Session detail",
+      "purpose": "Read a session and explain its usage and attribution",
+      "pattern": "RecordDetail",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-003"
+      ],
+      "actions": [
+        {
+          "id": "back",
+          "label": "Back to sessions",
+          "to": "sessions"
+        },
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Title and full ID; totals and peak context; project portions; route and payer evidence; paged trace; verified work"
+        }
+      ]
+    },
+    {
+      "id": "accounts",
+      "title": "Accounts",
+      "purpose": "Inspect remaining capacity, resets and expense evidence",
+      "pattern": "CollectionList",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-002"
+      ],
+      "actions": [
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Account cards/rows: plan, current windows and resets; selected-period usage/value/expense; grouped missing evidence"
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "title": "System",
+      "purpose": "Investigate capture, delivery, reporting and host health",
+      "pattern": "ReportViewer",
+      "states": [
+        "empty",
+        "loading",
+        "partial",
+        "error"
+      ],
+      "stories": [
+        "US-001"
+      ],
+      "actions": [
+        {
+          "id": "retry",
+          "label": "Try again",
+          "to": "state:loading"
+        }
+      ],
+      "content": [
+        {
+          "kind": "text",
+          "label": "Capture checkpoints; delivery receipts; reporting backlog and through-time; machine/load correlations"
+        }
+      ]
+    }
+  ],
+  "journeys": [
+    {
+      "id": "J-explain-spending",
+      "story": "US-001",
+      "criteria": [
+        "US-001-AC1",
+        "US-001-AC2",
+        "US-001-AC3",
+        "US-001-AC4"
+      ],
+      "entry": "overview",
+      "steps": [
+        {
+          "screen": "overview",
+          "action": "compare"
+        },
+        {
+          "screen": "projects",
+          "action": "open-project"
+        },
+        {
+          "screen": "project",
+          "action": "open-session"
+        },
+        {
+          "screen": "session"
+        }
+      ],
+      "alternates": [
+        {
+          "from": 0,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "overview",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "overview",
+              "state": "loading"
+            }
+          ]
+        },
+        {
+          "from": 1,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "projects",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "projects",
+              "state": "loading"
+            }
+          ]
+        },
+        {
+          "from": 2,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "project",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "project",
+              "state": "loading"
+            }
+          ]
+        },
+        {
+          "from": 3,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "session",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "session",
+              "state": "loading"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "J-inspect-capacity",
+      "story": "US-002",
+      "criteria": [
+        "US-002-AC1",
+        "US-002-AC2",
+        "US-002-AC3",
+        "US-002-AC4"
+      ],
+      "entry": "accounts",
+      "steps": [
+        {
+          "screen": "accounts"
+        }
+      ],
+      "alternates": [
+        {
+          "from": 0,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "accounts",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "accounts",
+              "state": "loading"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "J-inspect-session",
+      "story": "US-003",
+      "criteria": [
+        "US-003-AC1",
+        "US-003-AC2",
+        "US-003-AC3",
+        "US-003-AC4"
+      ],
+      "entry": "sessions",
+      "steps": [
+        {
+          "screen": "sessions",
+          "action": "open-session"
+        },
+        {
+          "screen": "session",
+          "action": "back"
+        },
+        {
+          "screen": "sessions"
+        }
+      ],
+      "alternates": [
+        {
+          "from": 0,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "sessions",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "sessions",
+              "state": "loading"
+            }
+          ]
+        },
+        {
+          "from": 1,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "session",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "session",
+              "state": "loading"
+            }
+          ]
+        },
+        {
+          "from": 2,
+          "reason": "Reporting read fails; retry the same scope",
+          "steps": [
+            {
+              "screen": "sessions",
+              "state": "error",
+              "action": "retry"
+            },
+            {
+              "screen": "sessions",
+              "state": "loading"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
