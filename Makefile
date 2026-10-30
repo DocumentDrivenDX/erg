@@ -20,3 +20,8 @@ browser:
 	npm test
 package:
 	uv run --locked python scripts/quality.py package
+
+.PHONY: ldp-test
+ldp-test:
+	uv sync --locked --project central/ldp --python 3.12
+	uv run --locked --project central/ldp python -m unittest discover -s central/ldp/tests -v

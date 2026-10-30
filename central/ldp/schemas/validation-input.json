@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:erg:ldp:validation-input:1.0.0",
+  "description": "Two positional arguments: raw landing row and declaration-bound expected identity. Identity is never inferred from raw data.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["row", "identity"],
+  "properties": {
+    "row": {
+      "type": "object",
+      "required": ["enrollment_id", "installation_id", "destination_generation", "delivery_seq", "record_id", "record_revision", "record_kind", "record_sha256", "item_json"],
+      "properties": {
+        "enrollment_id": {"type": "string"},
+        "installation_id": {"type": "string"},
+        "destination_generation": {"type": "string"},
+        "delivery_seq": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+        "record_id": {"type": "string"},
+        "record_revision": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+        "record_kind": {"type": "string"},
+        "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "item_json": {"type": "string"}
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enrollment_id", "installation_id", "destination_generation"],
+      "properties": {
+        "enrollment_id": {"type": "string", "minLength": 1},
+        "installation_id": {"type": "string", "minLength": 1},
+        "destination_generation": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

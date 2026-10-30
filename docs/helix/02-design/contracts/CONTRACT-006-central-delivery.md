@@ -305,3 +305,56 @@ candidate after a slow scan MUST NOT result in a successful zero-work run. The
 existing finite job timeout, single concurrency, UNPAUSED authorized enrollment,
 original signed batch receipts and contiguous materialization acknowledgements
 remain in force. The index changes discovery cost, not receipt meaning.
+
+
+### Generated LDP migration and receipt authority
+
+The canonicalization graph MUST be compiled from versioned UMF documents with
+`tablespec.ldp.generate_ldp_project` and the typed `tablespec.pipeline:0.2.0`
+extension. The compiler, UMF core, transform closure, stage schemas and emitted
+files MUST be pinned by version and digest. Handwritten pipeline graphs and
+unsupported UMF namespace aliases are not alternative compiler paths.
+
+The source producer remains the enrolled collector through immutable acceptance
+and the qualified Zerobus landing table. A serialized staging task may append
+exact, visibility-verified wire rows into an owned Delta append source declared
+by UMF. Admission MUST reject enrollment, installation or generation mismatches
+before writing that dedicated source. The generated raw reader selects the full
+declared scope; rows outside that selector are not admitted revision events.
+Acceptance or raw visibility MUST NOT publish materialized/projected
+progress. The source's initial admission boundary MUST name the completed legacy
+prefix and pinned raw snapshot. Staging MUST omit deliveries already covered by
+that completed prefix. A migrated production publisher MUST require the existing
+scoped receipt at or above the declared boundary; missing state MUST NOT be
+replaced with a zero cursor. Admission MUST preserve every pending chunk and never
+skip an unmaterialized sequence. Already completed legacy revisions remain in
+the existing canonical tables. New generated facts MUST be checked against that
+immutable legacy history before publication, including same-key/different-hash
+and same-sequence/different-wire-byte conflicts.
+
+The generated archive retains every post-boundary immutable revision and durable
+conflict event. Latest heads are a separate derivative. The coordinator MUST pin
+all declared dependencies, prove conflict-free readiness and contiguous progress,
+and copy only proven complete facts/items into the existing canonical Delta
+interfaces. Reporting consumers retain their current tables, snapshot admission,
+shared payload interpretation and project allocation rules.
+
+The operator approved explicit serialized-job authority on 2026-10-29. Erg MUST
+opt in through TableSpec's `allow_serialized_job_execution` publication policy;
+this approval does not change TableSpec's fenced-writer default. Publication
+MUST verify the actual job/run/task, code and complete job-definition pins, sole
+active run, concurrency one and queue disabled from fresh backend facts. It MUST
+retain the hashed observation and recheck immediately before receipt writes.
+A changed definition, competing run, failed API call, expired evidence or any
+unresolved scoped conflict MUST prevent publication. Serialized exclusive
+execution MUST NOT be described as a distributed fenced lease. Receipt cursors
+remain monotonic and independently scoped; a newer ready flow cannot jump a gap.
+
+Cutover MUST stop and drain the old canonical writer before enabling the new
+one. Initial qualification uses separate synthetic tables/checkpoints/control
+paths. Rollback restores the saved old job definition and immutable archive only
+after the new writer has stopped, preserving durable canonical writes and last
+published cursors. No source body, receipt history, data grant or retention policy is
+deleted or broadened by this migration. The existing processor may receive
+`CAN_VIEW` on its own job to evaluate the approved authority; that metadata-only
+permission does not authorize job edits or broaden Unity Catalog access.

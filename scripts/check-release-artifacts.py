@@ -41,14 +41,21 @@ def main():
     wheel_names = names
     with tarfile.open(sources[0]) as archive:
         names = {n.split("/", 1)[1] for n in archive.getnames() if "/" in n}
-        assert {"pyproject.toml", "PRIVACY.md", "LICENSE-MIT", "LICENSE-APACHE"} <= names
+        assert {
+            "pyproject.toml",
+            "PRIVACY.md",
+            "LICENSE-MIT",
+            "LICENSE-APACHE",
+            "central/ldp/pyproject.toml",
+            "central/ldp/uv.lock",
+        } <= names
         for path in (root / "tests/fixtures").rglob("*"):
             if path.is_file():
                 name = path.relative_to(root).as_posix()
                 assert name in names, "Missing fixture: " + name
     for name in names | wheel_names:
         assert not any(
-            p in name.split("/") for p in (".local-evidence", ".databricks", "__pycache__")
+            p in name.split("/") for p in (".local-evidence", ".databricks", "__pycache__", ".venv")
         ), name
         assert not name.startswith("docs/helix/04-build/evidence/"), name
         assert not name.endswith((".db", ".pyz", ".zip", ".pem", ".key", ".pyc")), name

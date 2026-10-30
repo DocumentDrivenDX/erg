@@ -16,6 +16,7 @@ from .receiver import Conflict, namespace
 
 PAGE_SIZE = 1000
 MAX_STATE_BYTES = 2 * 1024 * 1024
+MAX_CANDIDATES = 4096
 
 
 def volume_page(directory, token):
@@ -59,7 +60,7 @@ def load_state(path, root):
         or not isinstance(value.get("stack"), list)
         or len(value["stack"]) > 8
         or not isinstance(value.get("retry"), list)
-        or len(value["retry"]) > 512
+        or len(value["retry"]) > MAX_CANDIDATES
     ):
         raise Conflict("invalid paged discovery state")
     for item in value["retry"]:
@@ -98,7 +99,7 @@ def paged_markers(root, control, limit, started, max_seconds, staged, write, pag
     selected = []
     retry = []
     waiting = []
-    limit = min(512, limit)
+    limit = min(MAX_CANDIDATES, limit)
     if limit < 1:
         return [], metrics
 
@@ -192,11 +193,11 @@ def paged_markers(root, control, limit, started, max_seconds, staged, write, pag
     if len(wire.encode(state)) > MAX_STATE_BYTES:
         raise Conflict("paged discovery state exceeds bound")
     write(path, state)
-    metrics["selected"] = len(selected)
+    metrics["selected"] = min(limit, len(selected))
     metrics["state"] = (
         "work_found"
         if selected
         else ("sweep_complete" if metrics["sweep_complete"] else "scan_in_progress")
     )
     selected.sort(key=lambda row: (min(row[1]["accepted_delivery_seqs"]), str(row[0])))
-    return selected, metrics
+    return selected[:limit], metrics

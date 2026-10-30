@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:erg:ldp:reconstruction-output:1.0.0",
+  "type": "object",
+  "required": ["state", "payload_json", "record_sha256", "disposition"],
+  "additionalProperties": false,
+  "properties": {
+    "state": {"enum": ["complete", "pending", "conflict"]},
+    "payload_json": {"type": ["string", "null"]},
+    "record_sha256": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[0-9a-f]{64}$"}]},
+    "disposition": {"type": ["string", "null"]}
+  },
+  "if": {"properties": {"state": {"const": "complete"}}},
+  "then": {"properties": {"payload_json": {"type": "string"}, "record_sha256": {"type": "string"}}},
+  "else": {"properties": {"payload_json": {"type": "null"}, "record_sha256": {"type": "null"}, "disposition": {"type": "null"}}}
+}

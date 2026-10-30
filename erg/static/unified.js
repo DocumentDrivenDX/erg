@@ -34,6 +34,7 @@ window.ErgUI=(()=>{
   const reportInfo=document.createElement('details');reportInfo.id='report-evidence';reportInfo.innerHTML='<summary>Reporting freshness and corpus</summary>';
   [q('#gen'),q('#report-lag'),q('#cloud-report-status'),q('#sync-health')].forEach(e=>reportInfo.append(e));
   const meta=document.createElement('div');meta.className='report-meta';meta.innerHTML='<strong id="backend-label"></strong><span id="publication-summary" role="status"></span>';meta.append(q('#report-backend'),reportInfo);scope.before(meta);const headings=document.createElement('div');headings.id='page-headings';meta.after(headings);for(const key of ['usage','costs','history','accounts','capture']){const h=q('#title-'+key).closest('.view-heading');h.dataset.heading=key;headings.append(h)}
+  q('#money-overview').before(q('#account-capacity'));
   q('#backend-label').textContent=location.pathname==='/databricks'?'Databricks · admitted corpus':'Local · this ledger';
   // Folder selection is a refinement, after the three primary scope controls.
   q('.filter-body').prepend(q('#folder').closest('.ctl'));
@@ -81,7 +82,7 @@ window.ErgUI=(()=>{
  }
  function openFromProject(row){restoring=true;showView('history');restoring=false;openHistory(row)}
  function navigate(dest){selected=null;showView(internal[dest]||dest)}
- function view(key){document.body.dataset.reportView=key;all('[data-heading]').forEach(h=>h.hidden=h.dataset.heading!==key);
+ function view(key){q('#account-capacity').hidden=key!=='accounts';document.body.dataset.reportView=key;all('[data-heading]').forEach(h=>h.hidden=h.dataset.heading!==key);
   if(key!=='history')selected=null;
   const detail=key==='costs'&&S.project!=='*';q('#title-costs').textContent=detail?projectLabel(S.project):'Projects';
   q('#view-work').hidden=key!=='costs';

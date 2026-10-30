@@ -77,3 +77,15 @@ jobs:
           name: runtime-${{ matrix.os }}-${{ matrix.python }}
           path: reports/
           retention-days: 30
+
+  ldp-compiler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: {version: '0.13.3', enable-cache: true}
+      - name: Install separately locked compiler dependencies
+        run: uv sync --locked --project central/ldp --python 3.12
+      - name: Verify exact generated output and declaration bindings
+        run: uv run --locked --project central/ldp python -m unittest discover -s central/ldp/tests -v

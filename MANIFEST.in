@@ -24,3 +24,6 @@ prune reports
 prune node_modules
 prune .quality-tools
 prune test-results
+
+include central/ldp/pyproject.toml central/ldp/uv.lock
+prune central/ldp/.venv

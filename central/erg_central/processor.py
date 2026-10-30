@@ -11,6 +11,7 @@ from pathlib import Path
 
 from erg import delivery_protocol as wire
 
+from .disposition import raw_disposition
 from .receiver import Conflict, namespace
 from .zerobus import table_name
 
@@ -361,20 +362,6 @@ def cohort_values(batches):
     return dict(first, items=[items[k] for k in sorted(items)]), receipts, origins
 
 
-def raw_disposition(payload):
-    if payload["record_kind"] in ("session_event", "content_tombstone"):
-        return "not_applicable:raw-session-v1"
-    if (
-        payload.get("origin") == "derived_reporting"
-        and payload.get("kind") == payload["record_kind"]
-        and payload["record_kind"] in ("usage_evidence", "work_evidence", "account_evidence")
-        and isinstance(payload.get("body"), dict)
-        and payload["body"].get("schema_version") == 1
-    ):
-        return "not_applicable:raw-reporting-v1"
-    return None
-
-
 def batch_already_staged(previous, items):
     """Out-of-order durable staging must not wait for global prefix progress.
 
@@ -515,13 +502,16 @@ def run(
     telemetry="telemetry",
     max_batches=512,
     max_seconds=240,
+    processor_factory=None,
 ):
     """Finite reconciliation sweep, independent of notification delivery.
 
     This initial qualification scanner rescans marker metadata. Large-fleet indexing
     and measured 10x central capacity remain acceptance gates, not claimed here.
     """
-    processor = Processor(spark, zerobus, catalog, ingest, telemetry, control)
+    processor = (processor_factory or Processor)(
+        spark, zerobus, catalog, ingest, telemetry, control
+    )
     started = time.monotonic()
     attempted = 0
     results = []
@@ -549,7 +539,7 @@ def run(
             return
         try:
             result = processor.process_many(cohort)
-            if result.get("state") == "canonical":
+            if result.get("state") in ("canonical", "raw_visible"):
                 index_staged(completed, control, [receipt for _, receipt in cohort])
             results.append(
                 {
@@ -569,7 +559,7 @@ def run(
                 value = wire.validate_batch(raw, receipt["batch_sha256"])
                 try:
                     individual = processor.process(raw, receipt)
-                    if individual.get("state") == "canonical":
+                    if individual.get("state") in ("canonical", "raw_visible"):
                         index_staged(completed, control, [receipt])
                 except (Conflict, wire.ProtocolError):
                     quarantine_batch(value, receipt)
