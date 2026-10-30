@@ -27,7 +27,15 @@ def main():
         assert any(n.endswith("/LICENSE-APACHE") for n in names)
         assert all(n.startswith("erg/") or ".dist-info/" in n for n in names)
         for path in (root / "erg").rglob("*"):
-            if path.is_file() and path.suffix in (".py", ".html", ".mjs", ".json"):
+            if path.is_file() and path.suffix in (
+                ".py",
+                ".html",
+                ".mjs",
+                ".json",
+                ".js",
+                ".css",
+                ".txt",
+            ):
                 name = path.relative_to(root).as_posix()
                 assert name in names, "Missing runtime file: " + name
     wheel_names = names

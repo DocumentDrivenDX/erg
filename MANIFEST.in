@@ -1,9 +1,9 @@
 include LICENSE-MIT LICENSE-APACHE CHANGELOG.md CONTRIBUTING.md PRIVACY.md AGENTS.md
 include .helix.yml app.yaml
-recursive-include erg *.py *.json *.html *.mjs
+recursive-include erg *.py *.json *.html *.mjs *.css *.js *.txt
 recursive-include catalog *.yaml *.json
-recursive-include tests *.py *.json *.sha256
-recursive-include scripts *.py
+recursive-include tests *.py *.json *.sha256 *.js
+recursive-include scripts *.py *.mjs
 recursive-include central *.py *.yml *.yaml *.json *.txt *.md
 recursive-include native *.swift
 recursive-include docs *.md

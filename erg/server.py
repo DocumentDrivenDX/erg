@@ -1061,6 +1061,25 @@ def serve(port, bind="127.0.0.1", backend="sqlite", profile=None, warehouse=None
                 with open(os.path.join(STATIC, "databricks.html"), "rb") as f:
                     body = f.read()
                 ct = "text/html; charset=utf-8"
+            elif u.path in {
+                "/assets/" + name
+                for name in (
+                    "theme.css",
+                    "ui.css",
+                    "patterns.css",
+                    "unified.css",
+                    "shell.js",
+                    "unified.js",
+                )
+            }:
+                name = u.path.rsplit("/", 1)[1]
+                with open(os.path.join(STATIC, name), "rb") as f:
+                    body = f.read()
+                ct = (
+                    "text/css; charset=utf-8"
+                    if name.endswith(".css")
+                    else "text/javascript; charset=utf-8"
+                )
             elif u.path in ("/", "/index.html", "/databricks"):
                 with open(os.path.join(STATIC, "index.html"), "rb") as f:
                     body = f.read()
