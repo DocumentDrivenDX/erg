@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:erg:ldp:reconstruction-input:1.0.0",
+  "description": "One qualified scope and immutable record/revision group after sequence replay/conflict checks. Each string contains exact canonical wire item JSON; the shared codec validates all inner fields.",
+  "type": "array",
+  "minItems": 1,
+  "maxItems": 128,
+  "items": {"type": "string", "maxLength": 2097152}
+}

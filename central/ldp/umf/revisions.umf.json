@@ -1,0 +1,341 @@
+{
+  "umf": "0.10.0",
+  "id": "ldpqual_revisions",
+  "vocabularies": {
+    "tablespec.pipeline": {
+      "version": "0.2.0"
+    }
+  },
+  "modules": [
+    {
+      "id": "table",
+      "namespace": "ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+      "elements": [
+        {
+          "id": "column:0",
+          "name": "enrollment_id",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:1",
+          "name": "installation_id",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:2",
+          "name": "destination_generation",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:3",
+          "name": "batch_id",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:4",
+          "name": "delivery_seq",
+          "scalarType": "integer",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "INTEGER",
+                "nullable": false,
+                "notes": [
+                  "Protocol positive int64; native Delta BIGINT must be preserved without INT32 or floating-point narrowing."
+                ],
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:5",
+          "name": "record_id",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:6",
+          "name": "record_revision",
+          "scalarType": "integer",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "INTEGER",
+                "nullable": false,
+                "notes": [
+                  "Protocol positive int64; native Delta BIGINT must be preserved without INT32 or floating-point narrowing."
+                ],
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:7",
+          "name": "record_kind",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:8",
+          "name": "record_sha256",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        },
+        {
+          "id": "column:9",
+          "name": "item_json",
+          "scalarType": "string",
+          "extensions": {
+            "tablespec.pipeline": {
+              "metadata": {
+                "data_type": "TEXT",
+                "nullable": false,
+                "exclude_from_change_detection": false,
+                "internal": false,
+                "preserve_literal_null": false
+              }
+            }
+          },
+          "kind": "field"
+        }
+      ],
+      "extensions": {
+        "tablespec.pipeline": {
+          "metadata": {
+            "version": "1.0",
+            "description": "Synthetic-only Erg immutable revision qualification; not a production deployment declaration.",
+            "source": {
+              "kind": "delta",
+              "table": "erg.telemetry.ldpqual_dd08734238f0493eb995534e5bcb63f3_source",
+              "read_mode": "append_stream",
+              "starting_version": 0,
+              "identity_scope": {
+                "enrollment_id": "synthetic-ldp-qualification",
+                "installation_id": "fabricated",
+                "destination_generation": "synthetic-only-v1"
+              },
+              "mutation_mode": "append_only"
+            },
+            "metadata": {
+              "ldp": {
+                "revisions": {
+                  "record_id": "record_id",
+                  "record_revision": "record_revision",
+                  "record_kind": "record_kind",
+                  "delivery_sequence": "delivery_seq",
+                  "content_hash": "record_sha256",
+                  "replay": "same_sequence_and_canonical_bytes",
+                  "conflict": "block_and_retain_evidence",
+                  "retention": "all_revisions",
+                  "latest_projection": "separate",
+                  "reconstruction": "bounded_chunk_codec"
+                },
+                "transform": {
+                  "transform_id": "erg.ldp.revision-codec",
+                  "artifact_uri": "/Volumes/erg/ingest/control/qualification/erg-ldp-adapter-4192c5260a4454b1fcf79959db2cbf545605d8919d6266fa5c9c45df41910666.zip",
+                  "version": "1.0.0",
+                  "sha256": "4192c5260a4454b1fcf79959db2cbf545605d8919d6266fa5c9c45df41910666",
+                  "max_group_items": 128,
+                  "max_group_bytes": 100663296,
+                  "stages": [
+                    {
+                      "stage_id": "validate-wire-item",
+                      "role": "validate_raw_item",
+                      "entrypoint": "erg_central.ldp_codec.checked_item",
+                      "input": {
+                        "schema_id": "urn:erg:ldp:validation-input:1.0.0",
+                        "version": "1.0.0",
+                        "sha256": "debcabedf19f16539956933214da7b48fe2e539965bc430d26c31023c91697ef",
+                        "schema_uri": "/Volumes/erg/ingest/control/qualification/validation-input-debcabedf19f16539956933214da7b48fe2e539965bc430d26c31023c91697ef.json"
+                      },
+                      "output": {
+                        "schema_id": "urn:erg:ldp:validation-output:1.0.0",
+                        "version": "1.0.0",
+                        "sha256": "dcac7f64e07e89eddacd1a3fe5df44009bc570d4351b178860dd761815f29c0a",
+                        "schema_uri": "/Volumes/erg/ingest/control/qualification/validation-output-dcac7f64e07e89eddacd1a3fe5df44009bc570d4351b178860dd761815f29c0a.json"
+                      },
+                      "group_by": [
+                        "enrollment_id",
+                        "installation_id",
+                        "destination_generation",
+                        "delivery_seq"
+                      ],
+                      "data_rejection_exceptions": [
+                        "Conflict"
+                      ]
+                    },
+                    {
+                      "stage_id": "reconstruct-immutable-revision",
+                      "role": "reconstruct_revision",
+                      "entrypoint": "erg_central.ldp_codec.reconstruct_revision",
+                      "input": {
+                        "schema_id": "urn:erg:ldp:reconstruction-input:1.0.0",
+                        "version": "1.0.0",
+                        "sha256": "59d8d51822ac08ce5ef2d85e2e4b950e75554072dc410e5769f07870179c91ea",
+                        "schema_uri": "/Volumes/erg/ingest/control/qualification/reconstruction-input-59d8d51822ac08ce5ef2d85e2e4b950e75554072dc410e5769f07870179c91ea.json"
+                      },
+                      "output": {
+                        "schema_id": "urn:erg:ldp:reconstruction-output:1.0.0",
+                        "version": "1.0.0",
+                        "sha256": "1f69a6d0a19c11a7b18001977d0d0b911f5ff9bf189e8c7d3fa84bfbd1dcec7f",
+                        "schema_uri": "/Volumes/erg/ingest/control/qualification/reconstruction-output-1f69a6d0a19c11a7b18001977d0d0b911f5ff9bf189e8c7d3fa84bfbd1dcec7f.json"
+                      },
+                      "group_by": [
+                        "enrollment_id",
+                        "installation_id",
+                        "destination_generation",
+                        "record_id",
+                        "record_revision"
+                      ]
+                    }
+                  ]
+                },
+                "required_dependencies": [
+                  "erg.telemetry.raw_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+                  "erg.telemetry.scoped_sequence_decisions_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+                  "erg.telemetry.ldpqual_dd08734238f0493eb995534e5bcb63f3_archive",
+                  "erg.telemetry.revision_fact_events_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+                  "erg.telemetry.ldpqual_dd08734238f0493eb995534e5bcb63f3_latest"
+                ],
+                "archive": {
+                  "target": "erg.telemetry.ldpqual_dd08734238f0493eb995534e5bcb63f3_archive",
+                  "latest_target": "erg.telemetry.ldpqual_dd08734238f0493eb995534e5bcb63f3_latest",
+                  "schema_version": "1.0.0",
+                  "schema": {
+                    "enrollment_id": "string",
+                    "installation_id": "string",
+                    "destination_generation": "string",
+                    "event_type": "string",
+                    "delivery_sequence": "long",
+                    "record_id": "string",
+                    "record_revision": "long",
+                    "content_hash": "string",
+                    "payload_json": "string",
+                    "record_sha256": "string",
+                    "disposition": "string",
+                    "reason_code": "string",
+                    "evidence_json": "string",
+                    "event_order": "long"
+                  },
+                  "identity_fields": [
+                    "enrollment_id",
+                    "installation_id",
+                    "destination_generation"
+                  ],
+                  "revision_key_fields": [
+                    "enrollment_id",
+                    "installation_id",
+                    "destination_generation",
+                    "record_id",
+                    "record_revision"
+                  ],
+                  "delivery_key_fields": [
+                    "enrollment_id",
+                    "installation_id",
+                    "destination_generation",
+                    "delivery_sequence"
+                  ],
+                  "write_mode": "append_only",
+                  "raw_target": "erg.telemetry.raw_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+                  "sequence_decisions_target": "erg.telemetry.scoped_sequence_decisions_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions",
+                  "fact_events_target": "erg.telemetry.revision_fact_events_ldpqual_dd08734238f0493eb995534e5bcb63f3_revisions"
+                }
+              },
+              "union_exclude_base": false,
+              "union_coalesce_base": false
+            }
+          }
+        }
+      }
+    }
+  ]
+}

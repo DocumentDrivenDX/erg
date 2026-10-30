@@ -1,0 +1,11 @@
+import {readFileSync, writeFileSync, existsSync, copyFileSync} from 'node:fs';
+const sdk=process.env.ERG_UX_BUILDER_ROOT;
+if(!sdk)throw Error('Set ERG_UX_BUILDER_ROOT to the UX Builder 0.14.0 checkout');
+const {writePrototype}=await import(sdk+'/packages/ui/blueprint/prototype.mjs');
+const root=new URL('../',import.meta.url).pathname.replace(/\/$/,'');
+const bp=JSON.parse(readFileSync(root+'/app.blueprint.json','utf8'));
+if(existsSync(root+'/prototype-regenerated'))throw Error('Prototype exists; refusing replacement');
+const r=await writePrototype(bp,{root,dir:'prototype-regenerated',question:'Can the operator follow project spending to session evidence, inspect account capacity, and keep diagnostics out of the primary reports? All figures and records are synthetic.',theme:'plain'});
+for(const license of ['LICENSE-MIT','LICENSE-APACHE'])copyFileSync(sdk+'/'+license,r.dir+'/'+license);
+writeFileSync(r.dir+'/README.md','UX Builder-generated exploratory prototype. Synthetic placeholder data. No live requests, credentials, mutations or collection. Built from @ux-builder/ui 0.14.0 and @ux-builder/tokens 1.7.0 using the checked sibling blueprint. Four primary destinations plus System; SDK AppShell currently renders System alongside primary items, so secondary placement is specified in DESIGN.md and remains a visual gap in this generated prototype.\n');
+console.log(JSON.stringify(r));

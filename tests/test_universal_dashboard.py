@@ -33,7 +33,8 @@ const fs=require('node:fs'),vm=require('node:vm');
  costs.revision=++revision;costs.projects=[{...total,project_key:body.project_key,name:catalog.find(p=>p.project_key===body.project_key).name}];folders[0].project_keys=[body.project_key];return Promise.resolve(response({available:true,applied:true,revision,catalog,mutation}));
  }if(url.startsWith('/api/data'))return Promise.resolve(response(dataset));if(url.startsWith('/api/effectiveness')){if(hold)return new Promise(resolve=>held.push({url,resolve}));return Promise.resolve(response(work))}if(url.startsWith('/api/costs'))return Promise.resolve(response(costs));if(url.startsWith('/api/history/status'))return Promise.resolve(response({enabled:true,enrolled_at:1,events:1,source_states:{},projects:[]}));if(url.startsWith('/api/history/reconciliation'))return Promise.resolve(response({counts:{},proof_scope:'fixture'}));if(url.startsWith('/api/history/sessions'))return Promise.resolve(response({sessions:[],more:false,next_cursor:null,through_seq:1,project_revision:1,project_catalog:catalog,folder_catalog:folders,observed_tools:['pi','codex','claude']}));return new Promise(()=>{})};
  const context=vm.createContext({document,location:{hash:'#'+process.argv[2]},history:{replaceState(){}},window:{scrollTo(){}},addEventListener(){},setInterval(){},setTimeout(){},clearTimeout(){},fetch,Date,URLSearchParams,console});
- vm.runInContext(script,context);const actualRender=vm.runInContext('render',context);vm.runInContext('render=()=>{};renderCapture=()=>{};',context);
+ require(require('node:path').join(require('node:path').dirname(process.argv[1]),'../../tests/ui_vm.js')).install(context,vm);
+vm.runInContext(script,context);const actualRender=vm.runInContext('render',context);vm.runInContext('render=()=>{};renderCapture=()=>{};',context);
  const tick=()=>new Promise(resolve=>setImmediate(resolve));await tick();await tick();
 STEPS
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -17,6 +17,7 @@ const html=fs.readFileSync(process.argv[1],'utf8'),script=html.match(/<script>([
 const nodes=new Map(),requests=[],timers=[];
 const document={hidden:false,querySelector:s=>{if(!nodes.has(s))nodes.set(s,{value:'',style:{},replaceChildren(){},setAttribute(){}});return nodes.get(s)},querySelectorAll:()=>[],addEventListener(){}};
 const context={document,location:{hash:'#history'},history:{replaceState(){}},window:{scrollTo(){}},addEventListener(){},setInterval:fn=>timers.push(fn),setTimeout(){},clearTimeout(){},fetch:url=>{requests.push(url);return new Promise(()=>{})},Date,URLSearchParams,console};
+require(require('node:path').join(require('node:path').dirname(process.argv[1]),'../../tests/ui_vm.js')).install(context,vm);
 vm.runInNewContext(script,context);
 const initial=[...requests];document.hidden=true;timers.forEach(fn=>fn());const hidden=[...requests];
 document.hidden=false;timers.forEach(fn=>fn());const visible=[...requests];
@@ -47,6 +48,7 @@ console.log(JSON.stringify({initial,hidden,visible}));
 const fs=require('node:fs'),vm=require('node:vm'),nodes=new Map(),requests=[],pending=[];
 const document={hidden:false,querySelector:s=>{if(!nodes.has(s))nodes.set(s,{value:'',style:{},replaceChildren(){},setAttribute(){}});return nodes.get(s)},querySelectorAll:()=>[],addEventListener(){}};
 const context=vm.createContext({document,location:{hash:'#history'},history:{replaceState(){}},window:{scrollTo(){}},addEventListener(){},setInterval(){},setTimeout(){},clearTimeout(){},Date,URLSearchParams,console,fetch:url=>{requests.push(url);return new Promise((resolve,reject)=>pending.push({url,resolve,reject}))}});
+require(require('node:path').join(require('node:path').dirname(process.argv[1]),'../../tests/ui_vm.js')).install(context,vm);
 vm.runInContext(fs.readFileSync(process.argv[1],'utf8').match(/<script>([\s\S]*?)<\/script>/)[1],context);
 const tick=()=>new Promise(resolve=>setImmediate(resolve)),answer=(p,value)=>p.resolve({ok:true,json:async()=>value});
 const sessions={sessions:[],more:false,next_cursor:null,through_seq:7,project_revision:1,project_catalog:[],folder_catalog:[],observed_tools:[]};
@@ -84,7 +86,8 @@ const fs=require('node:fs'),vm=require('node:vm');
  const report={available:true,generated:1,sessions:[],accounts:[],prs:[],commits:[],subscription_periods:[],quota_latest:[],quota_counts:{},valuation:{priced_calls:0,unpriced_calls:0,rate_card_dates:[]}};
  const fetch=url=>{requests.push(url);if(url.startsWith('/api/effectiveness')){if(process.argv[3]==='hold')return new Promise(()=>{});const view=new URLSearchParams(url.split('?')[1]).get('view');const shape=view==='accounts'?{available:true,generated:1,valuation:report.valuation,account_registry:[],subscription_periods:[],quota_counts:{},quota_latest:[]}:view==='capture'?{available:true,generated:1,sessions:[],subscription_period_count:0}:{available:true,generated:1,prs:[],commits:[],commit_attributed_calls:0,total_calls:0,attributed_calls:0,pre_pr_calls:0,unattributed_calls:0};return Promise.resolve({ok:process.argv[3]!=='error',status:503,json:async()=>shape})}if(url.startsWith('/api/data'))return Promise.resolve({ok:true,json:async()=>dataset});return new Promise(()=>{})};
  const context=vm.createContext({document,location:{hash:'#'+process.argv[2]},history:{replaceState(){}},window:{scrollTo(){}},addEventListener(){},setInterval(){},setTimeout(){},clearTimeout(){},fetch,Date:class extends Date{static now(){return now}},URLSearchParams,console});
- vm.runInContext(script,context);
+ require(require('node:path').join(require('node:path').dirname(process.argv[1]),'../../tests/ui_vm.js')).install(context,vm);
+vm.runInContext(script,context);
  // Suppress chart rendering only; actual loading, work/account rendering,
  // session rendering and navigation still execute against the served source.
  vm.runInContext('render=()=>{};buildControls=()=>{};renderCapture=()=>{};',context);
@@ -112,11 +115,13 @@ nodes.get('#refresh-report').onclick();await tick();await tick();
 console.log(JSON.stringify({initial,navigated,refreshed:requests,expired,accountText,workText}));
 """,
             )
-            self.assertEqual(len(data["initial"]), 4)
-            self.assertEqual(data["initial"][3], "/api/delivery/status")
-            self.assertEqual(data["initial"][2], "/api/reporting/status")
+            self.assertEqual(len(data["initial"]), 5 if view == "work" else 4)
+            self.assertEqual(data["initial"][-1], "/api/delivery/status")
+            self.assertEqual(data["initial"][-2], "/api/reporting/status")
             self.assertTrue(data["initial"][0].startswith("/api/effectiveness?view=" + view))
-            self.assertEqual(data["initial"][1], "/api/capture/status")
+            self.assertEqual(data["initial"][-3], "/api/capture/status")
+            if view == "work":
+                self.assertTrue(data["initial"][1].startswith("/api/costs?"))
             if view == "work":
                 self.assertIn("&start=", data["initial"][0])
             self.assertEqual(
@@ -149,7 +154,13 @@ console.log(JSON.stringify({initial,afterClick:requests,table,disabled:nodes.get
 """,
         )
         self.assertEqual(
-            data["initial"], ["/api/data?days=0", "/api/capture/status", "/api/delivery/status"]
+            data["initial"],
+            [
+                "/api/data?days=0",
+                "/api/capture/status",
+                "/api/reporting/status",
+                "/api/delivery/status",
+            ],
         )
         self.assertEqual(data["afterClick"].count("/api/effectiveness?view=capture"), 1)
         self.assertEqual(

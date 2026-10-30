@@ -1,0 +1,183 @@
+{
+  "immutable_reset_guards": {
+    "all_reset_allowed_false": true,
+    "native_guard_count": 6
+  },
+  "limitations": [
+    "Synthetic graph output snapshots use unchanged table identity and Delta version around reads; production publication pins versionAsOf snapshots.",
+    "Fresh graph replay from source version zero qualifies checkpoint loss without resetting existing immutable archives.",
+    "First phase 707.006s includes environment startup; subsequent fresh-graph phases include startup and processing but exclude separate staging/publication jobs.",
+    "Independent reviewer dispatch is awaiting explicit authorization. Production remains on the prior finite writer."
+  ],
+  "phases": [
+    {
+      "capacity": {
+        "exact_sequence_and_fact_hash_parity": true,
+        "snapshot_mode": "unchanged_table_identity_and_delta_version",
+        "unique_items": 8398,
+        "wire_bytes": 32774067
+      },
+      "completed": true,
+      "exact_wire_payload_hash_disposition": true,
+      "immutable_revisions": 119,
+      "latest_heads": 117,
+      "offered_items": 120,
+      "phase": 1,
+      "snapshot_mode": "unchanged_table_identity_and_delta_version",
+      "unique_items": 120,
+      "update_wall_seconds": 360.14,
+      "worker_runtime_admission_passed": true
+    },
+    {
+      "capacity": {
+        "exact_sequence_and_fact_hash_parity": true,
+        "snapshot_mode": "unchanged_table_identity_and_delta_version",
+        "unique_items": 16796,
+        "wire_bytes": 65571850
+      },
+      "completed": true,
+      "exact_wire_payload_hash_disposition": true,
+      "immutable_revisions": 120,
+      "latest_heads": 118,
+      "offered_items": 121,
+      "phase": 2,
+      "snapshot_mode": "unchanged_table_identity_and_delta_version",
+      "unique_items": 121,
+      "update_wall_seconds": 253.633,
+      "worker_runtime_admission_passed": true
+    },
+    {
+      "capacity": {
+        "exact_sequence_and_fact_hash_parity": true,
+        "snapshot_mode": "unchanged_table_identity_and_delta_version",
+        "unique_items": 16796,
+        "wire_bytes": 65571850
+      },
+      "completed": true,
+      "exact_wire_payload_hash_disposition": true,
+      "immutable_revisions": 120,
+      "latest_heads": 118,
+      "offered_items": 242,
+      "phase": 3,
+      "snapshot_mode": "unchanged_table_identity_and_delta_version",
+      "unique_items": 121,
+      "update_wall_seconds": 235.696,
+      "worker_runtime_admission_passed": true
+    },
+    {
+      "capacity": {
+        "exact_sequence_and_fact_hash_parity": true,
+        "snapshot_mode": "unchanged_table_identity_and_delta_version",
+        "unique_items": 16796,
+        "wire_bytes": 65571850
+      },
+      "completed": true,
+      "exact_wire_payload_hash_disposition": true,
+      "immutable_revisions": 122,
+      "latest_heads": 120,
+      "offered_items": 246,
+      "phase": 4,
+      "snapshot_mode": "unchanged_table_identity_and_delta_version",
+      "unique_items": 125,
+      "update_wall_seconds": 243.099,
+      "worker_runtime_admission_passed": true
+    }
+  ],
+  "publication": [
+    {
+      "case": "publisher-crash-phase1",
+      "result": {
+        "durable_items": 119,
+        "durable_revisions": 119,
+        "exact_wire_and_payload_hashes": true,
+        "expected_materialized": 119,
+        "expected_projected": 119,
+        "mode": "crash",
+        "phase": 1,
+        "status_exists": false
+      }
+    },
+    {
+      "case": "publisher-published-phase1",
+      "result": {
+        "durable_items": 119,
+        "durable_revisions": 119,
+        "exact_wire_and_payload_hashes": true,
+        "expected_materialized": 119,
+        "expected_projected": 119,
+        "mode": "published",
+        "phase": 1,
+        "status_exists": true
+      }
+    },
+    {
+      "case": "publisher-published-phase2",
+      "result": {
+        "durable_items": 121,
+        "durable_revisions": 120,
+        "exact_wire_and_payload_hashes": true,
+        "expected_materialized": 121,
+        "expected_projected": 121,
+        "mode": "published",
+        "phase": 2,
+        "status_exists": true
+      }
+    },
+    {
+      "case": "publisher-published-phase4",
+      "result": {
+        "durable_items": 124,
+        "durable_revisions": 121,
+        "exact_wire_and_payload_hashes": true,
+        "expected_materialized": 124,
+        "expected_projected": 121,
+        "mode": "published",
+        "phase": 4,
+        "status_exists": true
+      }
+    },
+    {
+      "case": "capacity-publication-16000",
+      "result": {
+        "canonical_items": 16000,
+        "canonical_revisions": 16000,
+        "exact_wire_and_payload_hashes": true,
+        "materialized_through": 16000,
+        "no_duplicates": true,
+        "projected_through": 16000
+      }
+    },
+    {
+      "case": "capacity-publication-16796",
+      "result": {
+        "canonical_items": 16796,
+        "canonical_revisions": 16796,
+        "exact_wire_and_payload_hashes": true,
+        "materialized_through": 16796,
+        "no_duplicates": true,
+        "projected_through": 16796
+      }
+    },
+    {
+      "case": "fault-publication-blocked",
+      "result": {
+        "global_conflicts_blocked_publication": true,
+        "no_canonical_copies": true,
+        "no_receipt": true
+      }
+    }
+  ],
+  "qualification_date_utc": "2026-10-30",
+  "scope": "Fabricated single-workspace native qualification. No production cutover or fleet throughput claim.",
+  "staging": {
+    "exact_wire_bytes": true,
+    "foreign_scope_rejected_before_append": true,
+    "identical_replays": 63,
+    "negative_control_detected_old_visibility_limit": true,
+    "no_canonical_receipt": true,
+    "raw_rows": 65,
+    "unique_items": 2
+  },
+  "tablespec_commit": "236c32f1fee17cfc949c4eb0479765d4797af165",
+  "umf_core_version": "0.10.3"
+}
