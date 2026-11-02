@@ -7,7 +7,7 @@
     "Synthetic graph output snapshots use unchanged table identity and Delta version around reads; production publication pins versionAsOf snapshots.",
     "Fresh graph replay from source version zero qualifies checkpoint loss without resetting existing immutable archives.",
     "First phase 707.006s includes environment startup; subsequent fresh-graph phases include startup and processing but exclude separate staging/publication jobs.",
-    "Independent reviewer dispatch is awaiting explicit authorization. Production remains on the prior finite writer."
+    "Independent source review approved on 2026-11-02; production cutover remains a separate controlled activation gate."
   ],
   "phases": [
     {

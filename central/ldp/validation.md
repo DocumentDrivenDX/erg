@@ -40,9 +40,11 @@ The user approved explicit single-job authority. The owning TableSpec change is
 `236c32f1fee17cfc949c4eb0479765d4797af165`; default fenced authority is preserved.
 The local Erg runtime remains standard-library only.
 
-Production cutover remains pending independent review authorization and the
-controlled migration procedure in [README.md](README.md). Review dispatch was
-blocked by automatic approval review because it would send local source to the
-Codex/Claude harnesses without separate authorization. No alternative dispatch
-was attempted. Native synthetic qualification does not establish fleet capacity
-or authorize bypassing the stop/drain and pinned legacy-boundary checks.
+Independent Codex and Claude source reviews completed on 2026-11-02 after the
+user authorized dispatch. Both approved round 3 after reporting defects were
+corrected; [review.md](review.md) records findings, fixes and accepted notes.
+The initial approval rejection and later DDx lifecycle failure were not bypassed:
+authorized reviews ran through direct read-only CLIs. Production cutover remains
+a separate controlled activation gate in [README.md](README.md), including the
+old-writer stop/drain and pinned legacy-boundary checks. Synthetic qualification
+does not establish fleet capacity.

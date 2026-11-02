@@ -99,3 +99,24 @@ access and disabled real-content retirement intact.
 
 See [the migration design](../../docs/helix/02-design/technical-designs/TD-001-ldp-migration.md)
 for the contract and acceptance matrix.
+
+## Review notes for activation
+
+Before enabling the migrated schedule, pause the previous writer and inventory
+its active runs through Jobs `runs/list?active_only=true`, following every page
+cursor. Request cancellation if a run does not finish, then poll `runs/get` until
+every observed run is terminal and repeat the active-run inventory until empty.
+Save those backend observations with the old settings/archive, ACL and final
+receipt. A pause alone does not stop an already running writer. Keep both old and
+new schedules paused until this drain evidence and the pinned admission boundary
+are ready. Merge and CI success do not execute this production activation gate.
+
+The publisher checks a completed update created during the current job run and
+pins its update ID across publication, plus the full pipeline spec, libraries and
+run-as identity. It does not independently map that update ID to the pipeline
+task's own invocation before the first observation. The one-writer activation
+profile therefore excludes privileged manual pipeline updates during a run;
+backend job serialization does not fence such administrative actions. A later
+update after the first observation is rejected by the pinned-ID recheck. General
+protection against out-of-band writers remains outside this explicitly approved
+serialized-job authority profile.

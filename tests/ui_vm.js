@@ -1,8 +1,9 @@
 /* Headless report-controller fixture. Full SDK DOM/navigation is tested in Playwright. */
 module.exports.install=(context,vm)=>{
  vm.createContext(context);
+ context.document.createElement??=()=>({});
  for(const [,id] of require('node:fs').readFileSync(process.argv[1],'utf8').matchAll(/\bid="([^"]+)"/g)){
-  const node=context.document.querySelector('#'+id);node.innerHTML??='';node.textContent??='';
+  const node=context.document.querySelector('#'+id);node.innerHTML??='';node.textContent??='';node.appendChild??=()=>{};
  }
 
  context.getComputedStyle=()=>({getPropertyValue:()=> '#222222'});

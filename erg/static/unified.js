@@ -5,7 +5,7 @@ window.ErgUI=(()=>{
  const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const canonical={usage:'overview',costs:'projects',history:'sessions',work:'projects',capture:'system',machine:'system'};
  const internal={overview:'usage',projects:'costs',project:'costs',sessions:'history',session:'history',accounts:'accounts',system:'capture'};
- let frame='',restoring=false,selected=null,sessionRequest=0,workScope='',costScope='',moneySignature='';
+ let frame='',restoring=false,selected=null,sessionRequest=0,workScope='',costScope='',projectRequest=0,moneySignature='';
  function mount(){
   const old=q('body > header');old.id='scope-controls';
   old.querySelector('h1').remove();
@@ -49,7 +49,7 @@ window.ErgUI=(()=>{
    if(dest){const key=dest.dataset.destination||dest.hash?.slice(1);if(internal[key]){event.preventDefault();navigate(key)}}
   });
   q('#session-back').onclick=()=>{selected=null;showView('history')};
-  q('#clear-scope').onclick=()=>{Object.assign(S,{range:'7d',start:null,end:null,project:'*',folder:'*',machine:'*',requester:'all',toolsAll:true,kindsAll:true});scopeChanged()};
+  q('#clear-scope').onclick=()=>{Object.assign(S,{anchor:Math.floor(Date.now()/3600000),range:'7d',start:null,end:null,project:'*',folder:'*',machine:'*',requester:'all',toolsAll:true,kindsAll:true});scopeChanged()};
   q('#date-scope').onsubmit=e=>{e.preventDefault();const start=Date.parse(q('#scope-start').value)/1000,end=Date.parse(q('#scope-end').value)/1000;if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||start%3600||end%3600){q('#date-error').textContent='Choose whole-hour boundaries, with the end after the start.';return}q('#date-error').textContent='';S.start=start;S.end=end;S.anchor=Math.floor((end-1)/3600);S.range='All';scopeChanged()};
   new MutationObserver(()=>{q('#publication-summary').textContent=q('#gen').textContent.split(' · ').find(s=>/published|as of/i.test(s))||q('#gen').textContent.split(' · ')[0]}).observe(q('#gen'),{childList:true,characterData:true,subtree:true});
   new MutationObserver(styleControls).observe(content,{childList:true,subtree:true});styleControls();
@@ -73,10 +73,10 @@ window.ErgUI=(()=>{
   const backend=q('#report-backend');backend.href=(location.pathname==='/databricks'?'/':'/databricks')+u.search+u.hash;
  }
  function read(){
-  const p=new URLSearchParams(location.search);for(const k of ['range','project','folder','machine','requester','measure','group','bucket','metric','dim'])if(p.has(k))S[k]=p.get(k);
+  const p=new URLSearchParams(location.search),defaults={range:'7d',project:'*',folder:'*',machine:'*',requester:'all',measure:'all',group:'folder',bucket:'hour',metric:'tokens',dim:'folder'};for(const [k,value]of Object.entries(defaults))S[k]=p.has(k)?p.get(k):value;
   if(!RANGES.hasOwnProperty(S.range))S.range='7d';if(!MEASURES[S.measure])S.measure='nocache';if(!GROUPS[S.group])S.group='folder';if(!['hour','day'].includes(S.bucket))S.bucket='hour';
-  for(const k of ['anchor','start','end']){const v=Number(p.get(k));if(p.has(k)&&Number.isFinite(v)&&v>=0&&v<=(k==='anchor'?Math.floor(Date.now()/3600000):Math.floor(Date.now()/1000)+86400))S[k]=v;else if(k!=='anchor')S[k]=null}
-  if(S.start!=null&&S.end!=null&&S.start>=S.end){S.start=null;S.end=null}
+  for(const k of ['anchor','start','end']){const raw=p.get(k),v=Number(raw);if(raw!==null&&raw.trim()!==''&&Number.isInteger(v)&&v>=0&&v<=(k==='anchor'?Math.floor(Date.now()/3600000):Math.floor(Date.now()/1000)+86400))S[k]=v;else S[k]=k==='anchor'?Math.floor(Date.now()/3600000):null}
+  if((S.start==null)!==(S.end==null)||S.start!=null&&(S.start>=S.end||S.start%3600||S.end%3600)){S.start=null;S.end=null}
   for(const k of ['tools','kinds']){S[k+'All']=!p.has(k);if(p.has(k))S[k]=new Set(p.get(k).split(',').filter(Boolean))}
   return internal[location.hash.slice(1)]||({usage:'usage',costs:'costs',history:'history',work:'costs',capture:'capture',machine:'capture'}[location.hash.slice(1)])||'usage';
  }
@@ -93,11 +93,11 @@ window.ErgUI=(()=>{
   if(key==='costs'){const scope=scopeQuery().toString();workScope=scope;loadEffectiveness(false,'work')}
   if(key==='usage')overviewProjects();
  }
- async function overviewProjects(){
+ async function overviewProjects(refresh=false){
   if(!q('#overview-projects'))q('#view-usage').insertAdjacentHTML('afterbegin','<section id="overview-projects" class="card"><div class="chart-heading"><h2>Projects at a glance</h2><button id="compare-projects" type="button">Compare projects</button></div><div id="overview-project-rows"></div></section>');
   q('#compare-projects').onclick=()=>showView('costs');
-  const scope=scopeQuery().toString();if(scope===costScope)return;costScope=scope;
-  try{const r=await apiFetch('/api/costs?'+scope);if(!r.ok)throw Error('Project overview unavailable');const d=await r.json();if(scope!==scopeQuery().toString())return;requireCurrentPublication(d);const rows=d.projects||[];q('#overview-project-rows').innerHTML=rows.length?rows.slice(0,5).map((r,i)=>'<div class="allocation-row"><button class="allocation-name" data-overview-project="'+i+'">'+escape(r.name)+'</button><div><small>Tokens</small>'+fmt(r.tokens)+'</div><div><small>Rack value · est.</small>'+escape(costValue(r))+'</div><div><small>Effective expense</small>'+escape(effectiveCost(r))+'</div></div>').join(''):'<p>No usage in this scope. Try a wider range or clear filters.</p>';all('[data-overview-project]').forEach(b=>b.onclick=()=>{S.project=rows[+b.dataset.overviewProject].project_key;S.folder='*';showView('costs')})}catch(e){costScope='';q('#overview-project-rows').textContent=e.message}
+  const scope=scopeQuery().toString(),key=scope+'|'+scopeCatalog.revision+'|'+reportPublication;if(!refresh&&key===costScope)return;costScope=key;const request=++projectRequest;
+  try{const r=await apiFetch('/api/costs?'+scope);if(!r.ok)throw Error('Project overview unavailable');const d=await r.json();if(request!==projectRequest||scope!==scopeQuery().toString())return;requireCurrentPublication(d);const rows=d.projects||[];q('#overview-project-rows').innerHTML=rows.length?rows.slice(0,5).map((r,i)=>'<div class="allocation-row"><button class="allocation-name" data-overview-project="'+i+'">'+escape(r.name)+'</button><div><small>Tokens</small>'+fmt(r.tokens)+'</div><div><small>Rack value · est.</small>'+escape(costValue(r))+'</div><div><small>Effective expense</small>'+escape(effectiveCost(r))+'</div></div>').join(''):'<p>No usage in this scope. Try a wider range or clear filters.</p>';all('[data-overview-project]').forEach(b=>b.onclick=()=>{S.project=rows[+b.dataset.overviewProject].project_key;S.folder='*';showView('costs')})}catch(e){if(request!==projectRequest||scope!==scopeQuery().toString())return;costScope='';q('#overview-project-rows').textContent=e.message}
  }
  function money(data){
   q('#money-status').textContent=data.available?'':(data.reason||'Cost reporting unavailable');

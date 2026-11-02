@@ -109,3 +109,114 @@ test('primary navigation and all reporting views reflow at narrow widths',async(
  await expect(page.locator('#backend-label')).toHaveText('Databricks · admitted corpus');
  expect(new URL(page.url()).pathname).toBe('/databricks');
 });
+
+// @covers US-001-AC1 @covers US-001-AC2
+ test('historical custom totals exclude both outside boundaries even in daily buckets',async({page})=>{
+ const first=Date.UTC(2026,9,28,10)/3600000,end=(first+2)*3600;
+ await page.route('**/api/data?*',async route=>{
+  const response=await route.fetch(),data=await response.json(),cols=data.llm_cols;
+  const seed=Object.fromEntries(cols.map((key,i)=>[key,data.llm[0][i]]));
+  data.llm=[first-1,first,first+1,first+2,first+24].map(hour=>{
+   const row={...seed,hour,fresh_in:10,cache_read:0,cache_write:0,out:0,calls:1,value_low_usd:1,value_high_usd:1,priced_calls:1,unpriced_calls:0};
+   return cols.map(key=>row[key]);
+  });
+  await route.fulfill({response,json:data});
+ });
+ await page.goto('/?range=All&bucket=day&start='+first*3600+'&end='+end+'#overview');
+ await expect(page.locator('#kpis .kpi').first().locator('.v')).toHaveText('20');
+ await expect(page.locator('#kpis .kpi').nth(1).locator('.v')).toHaveText('$2.00');
+ await expect(page.locator('#tbl tr').nth(1).locator('td').nth(1)).toHaveText('20');
+ await expect(page.locator('#l-tokens')).toContainText('20');
+ const heat=await page.locator('#heat [title]').evaluateAll(nodes=>nodes.reduce((sum,node)=>sum+Number(node.title.split(' — ')[1]||0),0));
+ expect(heat).toBe(20);
+});
+// @covers US-001-AC1 @covers US-001-AC4
+ test('refresh updates overview projects even when scope and publication are unchanged',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('#overview-project-rows')).toContainText('Synthetic product');
+ await page.route('**/api/costs?*',async route=>{
+  const response=await route.fetch(),data=await response.json();
+  data.projects=data.projects.map(row=>({...row,name:'Refreshed project',tokens:999}));
+  await route.fulfill({response,json:data});
+ });
+ await page.getByRole('button',{name:'Refresh data',exact:true}).click();
+ await expect(page.locator('#overview-project-rows')).toContainText('Refreshed project');
+ await expect(page.locator('#overview-project-rows')).toContainText('999');
+});
+// @covers US-001-AC1 @covers US-003-AC3
+ test('Back restores overview controls and a bare URL restores the current rolling window',async({page})=>{
+ const now=Date.now();await page.clock.setFixedTime(new Date(now));
+ await page.goto('/');
+ await expect(page.locator('#overview-project-rows')).toContainText('Synthetic product');
+ await page.locator('#project').selectOption('quality:app');
+ await page.locator('#project').selectOption('@unassigned');
+ await page.goBack();
+ await expect(page.locator('#project')).toHaveValue('quality:app');
+ await expect(page.locator('#overview-project-rows')).toContainText('Synthetic product');
+ await page.evaluate(()=>history.replaceState(null,'','/#overview'));
+ await page.getByText('Custom dates',{exact:true}).click();
+ await page.locator('#scope-start').fill('2026-10-28T10:00');
+ await page.locator('#scope-end').fill('2026-10-28T12:00');
+ await page.getByRole('button',{name:'Apply dates',exact:true}).click();
+ await page.goBack();
+ await expect(page.locator('#project')).toHaveValue('*');
+ const scope=await page.evaluate(()=>Object.fromEntries(scopeQuery()));
+ expect(Number(scope.end)).toBe((Math.floor(now/3600000)+1)*3600);
+ expect(Number(scope.end)-Number(scope.start)).toBe(168*3600);
+});
+// @covers US-001-AC1
+ test('clearing a pinned custom range resets the rolling window to now',async({page})=>{
+ const now=Date.now();await page.clock.setFixedTime(new Date(now));
+ const first=Date.UTC(2026,9,28,10)/3600/1000;
+ await page.goto('/?range=All&start='+first*3600+'&end='+(first+2)*3600+'&anchor='+(first+1)+'#overview');
+ await page.getByRole('button',{name:'Clear filters',exact:true}).click();
+ const scope=await page.evaluate(()=>Object.fromEntries(scopeQuery()));
+ expect(Number(scope.end)).toBe((Math.floor(now/3600000)+1)*3600);
+ expect(Number(scope.end)-Number(scope.start)).toBe(168*3600);
+ expect(new URL(page.url()).searchParams.get('range')).toBe('7d');
+});
+
+// @covers US-001-AC1 @covers US-003-AC3
+ test('Back synchronizes all overview presentation controls',async({page})=>{
+ await page.goto('/?group=model&measure=out&bucket=day&dim=tool#overview');
+ await expect(page.locator('#kpis .kpi')).toHaveCount(4);
+ await page.getByText('More filters',{exact:true}).click();
+ await page.locator('#bucket').getByRole('button',{name:'Hour',exact:true}).click();
+ await page.locator('#group').selectOption('machine');
+ await page.locator('#measure').selectOption('io');
+ await page.locator('#tabdim').getByRole('button',{name:'Folders',exact:true}).click();
+ await page.goBack();await expect(page.locator('#tabdim .on')).toHaveText('Agent');
+ await page.goBack();await expect(page.locator('#measure')).toHaveValue('out');
+ await page.goBack();await expect(page.locator('#group')).toHaveValue('model');
+ await page.goBack();await expect(page.locator('#bucket .on')).toHaveText('Day');
+});
+// @covers US-001-AC1 @covers US-003-AC3
+ test('Back synchronizes custom date inputs and clearing filters clears the form',async({page})=>{
+ await page.goto('/');
+ await expect(page.locator('#kpis .kpi')).toHaveCount(4);
+ await page.getByText('Custom dates',{exact:true}).click();
+ for(const day of ['28','29']){
+  await page.locator('#scope-start').fill('2026-10-'+day+'T10:00');
+  await page.locator('#scope-end').fill('2026-10-'+day+'T12:00');
+  await page.getByRole('button',{name:'Apply dates',exact:true}).click();
+ }
+ await page.goBack();
+ await expect(page.locator('#scope-start')).toHaveValue('2026-10-28T10:00');
+ await expect(page.locator('#scope-end')).toHaveValue('2026-10-28T12:00');
+ await expect(page.locator('#custom-range')).toHaveAttribute('open','');
+ await page.getByRole('button',{name:'Clear filters',exact:true}).click();
+ await expect(page.locator('#scope-start')).toHaveValue('');
+ await expect(page.locator('#scope-end')).toHaveValue('');
+ await expect(page.locator('#custom-range')).not.toHaveAttribute('open','');
+});
+// @covers US-001-AC1
+ test('empty fractional and invalid anchors restore the current rolling interval',async({page})=>{
+ const now=Date.now();await page.clock.setFixedTime(new Date(now));
+ for(const anchor of ['', '12.5', '-1', 'invalid']){
+  await page.goto('/?anchor='+encodeURIComponent(anchor)+'#overview');
+  await expect(page.locator('#kpis .kpi')).toHaveCount(4);
+  const scope=await page.evaluate(()=>Object.fromEntries(scopeQuery()));
+  expect(Number(scope.end)).toBe((Math.floor(now/3600000)+1)*3600);
+  expect(Number(scope.end)-Number(scope.start)).toBe(168*3600);
+ }
+});
