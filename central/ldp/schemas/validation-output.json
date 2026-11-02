@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:erg:ldp:validation-output:1.0.0",
+  "description": "Validated inner wire item. Outer enrollment identity is absent by design and must be bound from the declaration by the generated caller.",
+  "type": "object",
+  "required": ["delivery_seq", "record_id", "record_revision", "record_kind", "record_sha256"],
+  "properties": {
+    "delivery_seq": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+    "record_id": {"type": "string", "minLength": 1},
+    "record_revision": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+    "record_kind": {"type": "string"},
+    "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "oneOf": [
+    {"required": ["payload_json"]},
+    {"required": ["chunk_index", "chunk_count", "record_bytes", "chunk_sha256", "chunk_base64"]}
+  ]
+}

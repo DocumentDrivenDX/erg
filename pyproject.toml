@@ -30,7 +30,7 @@ include-package-data = false
 license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 
 [tool.setuptools.package-data]
-erg = ["static/*.html", "hooks/*.mjs", "*.json"]
+erg = ["static/*.html", "static/*.css", "static/*.js", "static/*.txt", "hooks/*.mjs", "*.json"]
 
 [dependency-groups]
 dev = [

@@ -702,3 +702,34 @@ quality-plan map existing thread/connection/publication/cache/migration/recovery
 contracts to observed proof. These gates do not authorize changing the standalone
 collector, enabling exports or activating experimental cloud/fleet features. OTel
 instrumentation is deferred; existing local diagnostics remain product behavior.
+
+
+### Generated canonicalization boundary
+
+[TD-001](technical-designs/TD-001-ldp-migration.md) defines the generated LDP
+migration under CONTRACT-006. Versioned UMF owns the business graph, compiled
+only by `tablespec.ldp.generate_ldp_project`. The isolated compiler environment
+and Databricks dependencies are separate from the stdlib-only installed runtime.
+
+```mermaid
+flowchart LR
+  S[Immutable accepted spool] --> A[Serialized staging task]
+  A --> Z[Zerobus visibility]
+  Z --> D[(Scoped Delta append source)]
+  D --> G[Generated sequence integrity and revision archive]
+  G --> H[Separate latest-head projection]
+  G --> P[Fixed-snapshot publication coordinator]
+  H --> P
+  P --> C[(Existing canonical Delta tables)]
+  C --> R[Existing reporting consumers]
+  P --> Q[Independent contiguous materialized/projected receipts]
+```
+
+The generated archive retains immutable revisions and conflicts; AUTO CDC owns
+only latest heads. The coordinator verifies dependencies, legacy-history
+consistency, durable compatibility copies and the approved explicit serialized
+job authority before publishing receipts. It does not claim distributed fencing.
+Staging uses a separate completion index and cannot acknowledge canonical work.
+Only one canonical writer may run. Qualification uses fabricated isolated
+sources/targets; the previous finite writer remains active until the qualified
+cutover, with its exact settings/archive retained for rollback.

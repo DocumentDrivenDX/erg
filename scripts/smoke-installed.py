@@ -31,6 +31,8 @@ assert metadata.version('erg') == '0.1.0rc1'
 assert not metadata.requires('erg'), metadata.requires('erg')
 assert (package/'static/index.html').is_file()
 assert (package/'static/databricks.html').is_file()
+for asset in ('theme.css','ui.css','patterns.css','unified.css','shell.js','unified.js','UX-BUILDER-LICENSE.txt'):
+    assert (package/'static'/asset).is_file(), asset
 assert (package/'hooks/pi.mjs').is_file()
 card = rates.load()
 rate_catalog.validate(card)
@@ -83,7 +85,7 @@ try:
             if time.monotonic() > deadline:
                 raise AssertionError('reporter did not start')
             time.sleep(.1)
-    for path in ('/', '/api/data', '/api/history/status', '/api/delivery/status'):
+    for path in ('/', '/assets/unified.js', '/assets/unified.css', '/assets/theme.css', '/api/data', '/api/history/status', '/api/delivery/status'):
         with urllib.request.urlopen(base+path, timeout=30) as response:
             raw = response.read()
             assert response.status == 200 and raw, path

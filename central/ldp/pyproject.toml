@@ -1,0 +1,11 @@
+[project]
+name = "erg-ldp-qualification"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "umf-core==0.10.3",
+  "umf-tablespec @ git+https://github.com/DocumentDrivenDX/tablespec.git@236c32f1fee17cfc949c4eb0479765d4797af165",
+]
+
+[tool.uv]
+package = false
