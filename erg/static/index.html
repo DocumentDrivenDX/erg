@@ -329,7 +329,7 @@ function updateScope(data){
 function buildScopeControls(data){
  if(data)updateScope(data);
  $('#range').innerHTML=Object.keys(RANGES).map(key=>'<button type="button" data-range="'+key+'" class="'+(key===S.range?'on':'')+'">'+key+'</button>').join('');
- document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{S.range=b.dataset.range;S.start=null;S.end=null;S.anchor=Math.floor(Date.now()/3600000);scopeChanged()});
+ document.querySelectorAll('[data-range]').forEach(b=>b.onclick=()=>{S.range=b.dataset.range;S.start=null;S.end=null;S.anchor=Math.floor(Date.now()/3600000);ErgUI.syncDates();scopeChanged()});
  const options=(id,rows,value)=>{const e=$(id);e.innerHTML=rows.map(([key,label])=>'<option value="'+esc(key)+'">'+esc(label)+'</option>').join('');e.value=value};
  options('#project',[['*','All human projects'],['@unassigned','Unassigned'],...scopeCatalog.projects.map(p=>[p.project_key,p.name+(p.state==='archived'?' (archived)':'')])],S.project);
  const folders=[...scopeCatalog.folders.values()].filter(f=>S.project==='*'||f.project_keys?.includes(S.project)).sort((a,b)=>a.name.localeCompare(b.name));
@@ -345,8 +345,6 @@ function buildScopeControls(data){
  $('#kindchips').innerHTML=kindButton('*','All session kinds',S.kindsAll)+['main','subagent','review'].map(kind=>kindButton(kind,kind,S.kindsAll||S.kinds.has(kind))).join('');
  document.querySelectorAll('[data-scope-kind]').forEach(button=>button.onclick=()=>{const kind=button.dataset.scopeKind;if(kind==='*')S.kindsAll=true;else if(S.kindsAll){S.kindsAll=false;S.kinds=new Set([kind])}else S.kinds.has(kind)?S.kinds.delete(kind):S.kinds.add(kind);scopeChanged()});
  document.querySelectorAll('.usage-only').forEach(e=>e.hidden=['work','costs','history'].includes(activeView));
- for(const key of ['start','end']){const input=document.querySelector('#scope-'+key);if(input){const ts=S[key];input.value=ts==null?'':new Date((ts-new Date(ts*1000).getTimezoneOffset()*60)*1000).toISOString().slice(0,16)}}
- const dates=document.querySelector('#custom-range');if(dates)dates.open=S.start!=null&&S.end!=null;
 
 }
 function scopeQuery(){

@@ -8,7 +8,7 @@ module.exports.install=(context,vm)=>{
 
  context.getComputedStyle=()=>({getPropertyValue:()=> '#222222'});
  context.ErgUI={
-  mount(){},save(){},money(){},projects(){},work(){},accounts(){},session(){},metrics(){},overviewProjects(){},
+  mount(){},syncDates(){},save(){},money(){},projects(){},work(){},accounts(){},session(){},metrics(){},overviewProjects(){},
   view(key){if(key==='costs')vm.runInContext("loadEffectiveness(false,'work')",context)},
   initialize(){vm.runInContext("showView(location.hash.slice(1)||'usage')",context)},
   openFromProject(row){context.__row=row;vm.runInContext("showView('history');openHistory(__row)",context)},
