@@ -220,3 +220,20 @@ test('primary navigation and all reporting views reflow at narrow widths',async(
   expect(Number(scope.end)-Number(scope.start)).toBe(168*3600);
  }
 });
+
+// @covers US-001-AC1 @covers US-003-AC3
+ test('background usage loading preserves an in-progress custom date draft',async({page})=>{
+ let release;const ready=new Promise(resolve=>{release=resolve});
+ await page.route('**/api/data?*',async route=>{await ready;await route.continue()});
+ await page.goto('/');
+ await page.getByText('Custom dates',{exact:true}).click();
+ await page.locator('#scope-start').fill('2026-10-28T10:00');
+ release();
+ await expect(page.locator('#kpis .kpi')).toHaveCount(4);
+ await expect(page.locator('#scope-start')).toHaveValue('2026-10-28T10:00');
+ await expect(page.locator('#custom-range')).toHaveAttribute('open','');
+ await page.locator('#scope-end').fill('2026-10-28T12:00');
+ await page.getByRole('button',{name:'Apply dates',exact:true}).click();
+ await expect(page.locator('#scope-start')).toHaveValue('2026-10-28T10:00');
+ expect(new URL(page.url()).searchParams.has('start')).toBe(true);
+});

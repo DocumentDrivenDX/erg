@@ -49,8 +49,8 @@ window.ErgUI=(()=>{
    if(dest){const key=dest.dataset.destination||dest.hash?.slice(1);if(internal[key]){event.preventDefault();navigate(key)}}
   });
   q('#session-back').onclick=()=>{selected=null;showView('history')};
-  q('#clear-scope').onclick=()=>{Object.assign(S,{anchor:Math.floor(Date.now()/3600000),range:'7d',start:null,end:null,project:'*',folder:'*',machine:'*',requester:'all',toolsAll:true,kindsAll:true});scopeChanged()};
-  q('#date-scope').onsubmit=e=>{e.preventDefault();const start=Date.parse(q('#scope-start').value)/1000,end=Date.parse(q('#scope-end').value)/1000;if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||start%3600||end%3600){q('#date-error').textContent='Choose whole-hour boundaries, with the end after the start.';return}q('#date-error').textContent='';S.start=start;S.end=end;S.anchor=Math.floor((end-1)/3600);S.range='All';scopeChanged()};
+  q('#clear-scope').onclick=()=>{Object.assign(S,{anchor:Math.floor(Date.now()/3600000),range:'7d',start:null,end:null,project:'*',folder:'*',machine:'*',requester:'all',toolsAll:true,kindsAll:true});syncDates();scopeChanged()};
+  q('#date-scope').onsubmit=e=>{e.preventDefault();const start=Date.parse(q('#scope-start').value)/1000,end=Date.parse(q('#scope-end').value)/1000;if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||start%3600||end%3600){q('#date-error').textContent='Choose whole-hour boundaries, with the end after the start.';return}q('#date-error').textContent='';S.start=start;S.end=end;S.anchor=Math.floor((end-1)/3600);S.range='All';syncDates();scopeChanged()};
   new MutationObserver(()=>{q('#publication-summary').textContent=q('#gen').textContent.split(' · ').find(s=>/published|as of/i.test(s))||q('#gen').textContent.split(' · ')[0]}).observe(q('#gen'),{childList:true,characterData:true,subtree:true});
   new MutationObserver(styleControls).observe(content,{childList:true,subtree:true});styleControls();
  }
@@ -72,11 +72,16 @@ window.ErgUI=(()=>{
   if(u.href!==location.href)history[replace?'replaceState':'pushState'](null,'',u);
   const backend=q('#report-backend');backend.href=(location.pathname==='/databricks'?'/':'/databricks')+u.search+u.hash;
  }
+ function syncDates(){
+  for(const key of ['start','end']){const input=q('#scope-'+key),ts=S[key];input.value=ts==null?'':new Date((ts-new Date(ts*1000).getTimezoneOffset()*60)*1000).toISOString().slice(0,16)}
+  q('#custom-range').open=S.start!=null&&S.end!=null;
+ }
  function read(){
   const p=new URLSearchParams(location.search),defaults={range:'7d',project:'*',folder:'*',machine:'*',requester:'all',measure:'all',group:'folder',bucket:'hour',metric:'tokens',dim:'folder'};for(const [k,value]of Object.entries(defaults))S[k]=p.has(k)?p.get(k):value;
   if(!RANGES.hasOwnProperty(S.range))S.range='7d';if(!MEASURES[S.measure])S.measure='nocache';if(!GROUPS[S.group])S.group='folder';if(!['hour','day'].includes(S.bucket))S.bucket='hour';
   for(const k of ['anchor','start','end']){const raw=p.get(k),v=Number(raw);if(raw!==null&&raw.trim()!==''&&Number.isInteger(v)&&v>=0&&v<=(k==='anchor'?Math.floor(Date.now()/3600000):Math.floor(Date.now()/1000)+86400))S[k]=v;else S[k]=k==='anchor'?Math.floor(Date.now()/3600000):null}
   if((S.start==null)!==(S.end==null)||S.start!=null&&(S.start>=S.end||S.start%3600||S.end%3600)){S.start=null;S.end=null}
+  syncDates();
   for(const k of ['tools','kinds']){S[k+'All']=!p.has(k);if(p.has(k))S[k]=new Set(p.get(k).split(',').filter(Boolean))}
   return internal[location.hash.slice(1)]||({usage:'usage',costs:'costs',history:'history',work:'costs',capture:'capture',machine:'capture'}[location.hash.slice(1)])||'usage';
  }
@@ -134,5 +139,5 @@ window.ErgUI=(()=>{
   const p=original.searchParams;if(original.hash==='#session'&&p.get('session')&&p.get('tool'))openHistory({tool:p.get('tool'),session:p.get('session'),machine:p.get('session_machine')||'',title:''});else save(true);
   addEventListener('popstate',()=>{selected=null;restoring=true;const key=read();showView(key);restoring=false;const p=new URLSearchParams(location.search);if(location.hash==='#session'&&p.get('session')&&p.get('tool')){restoring=true;openHistory({tool:p.get('tool'),session:p.get('session'),machine:p.get('session_machine')||'',title:''});restoring=false}});
  }
- return {mount,view,openFromProject,read,save,initialize,money,projects,accounts,work,session,metrics,overviewProjects};
+ return {mount,syncDates,view,openFromProject,read,save,initialize,money,projects,accounts,work,session,metrics,overviewProjects};
 })();

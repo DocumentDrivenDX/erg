@@ -16,6 +16,7 @@ pin was widened and no approval bypass was used.
 | 1 | REQUEST_CHANGES | APPROVE with warnings to fix | Historical totals blocker; refresh, Back and stale-anchor findings |
 | 2 | REQUEST_CHANGES | REQUEST_CHANGES | Complete presentation/date-control restoration and reject malformed anchors |
 | 3 | APPROVE | APPROVE | No blocking findings or unresolved warnings |
+| 4, post-merge follow-up | APPROVE | APPROVE | Background-load date-draft race corrected |
 
 ## Corrections
 
@@ -46,10 +47,21 @@ pipeline-task invocation. Privileged manual updates during a run are excluded
 by the documented single-writer activation profile. This is an activation scope
 condition, not a distributed fence claim or a merge blocker.
 
-Claude's final non-blocking UX note is accepted: changing a report control while
-editing an unapplied custom-date draft restores committed scope and discards that
-draft. Committed dates, URL state and totals remain consistent. Keeping a separate
-unsaved draft across unrelated control changes is outside these corrections.
+Round 3's draft-clearing NOTE was initially accepted. A slower post-merge local
+browser run exposed a real consequence: an asynchronous data response could
+rebuild controls and close the date form while a user typed. The follow-up removes
+form synchronization from ordinary rebuilds. It runs only for URL restoration,
+Apply, Clear and explicit range changes. A regression deliberately holds the
+initial data response, enters a start date, releases the response and verifies
+the draft/open form survive before applying the end date. Existing validation,
+Back and clear cases remain intact. Codex and Claude both approve this correction.
+One Codex attempt could not inspect source because the prompt disallowed commands;
+it produced no code finding. Clarifying permission for read-only file inspection
+allowed the completed review; no incomplete approval was treated as evidence.
+
+Claude's remaining NOTE concerns a pre-existing stale validation message after
+explicit state restoration. It is non-blocking and unrelated to preserving draft
+values or committed reporting scope.
 
 Coverage evidence now follows the selected time/project scope consistently with
 the other report sections. Native qualification remains the fabricated-data proof

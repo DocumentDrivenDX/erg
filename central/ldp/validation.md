@@ -43,7 +43,9 @@ The local Erg runtime remains standard-library only.
 Independent Codex and Claude source reviews completed on 2026-11-02 after the
 user authorized dispatch. Both approved round 3 after reporting defects were
 corrected; [review.md](review.md) records findings, fixes and accepted notes.
-The initial approval rejection and later DDx lifecycle failure were not bypassed:
+A subsequent post-merge local run exposed a date-draft/background-load race;
+the reviewed round-4 follow-up adds explicit synchronization and a delayed-response
+regression. The initial approval rejection and later DDx lifecycle failure were not bypassed:
 authorized reviews ran through direct read-only CLIs. Production cutover remains
 a separate controlled activation gate in [README.md](README.md), including the
 old-writer stop/drain and pinned legacy-boundary checks. Synthetic qualification
