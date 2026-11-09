@@ -1,0 +1,105 @@
+# Heavy / expensive suites. NOT run on ordinary PRs.
+# Triggers: tags v* (no release workflow exists in this repo yet; wire publishing
+# to this via workflow_call when one is added), weekly schedule, dispatch, and PRs
+# labelled `ci:full` (called from ci.yml). No `concurrency:` on purpose: when
+# called, the caller's group applies.
+name: Heavy
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 1'  # weekly, Monday 05:00 UTC
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      QUALITY_BASE_REF: ${{ github.event.pull_request.base.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with: {python-version: '3.12'}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: {node-version: '22', cache: npm}
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: {version: '0.13.3', enable-cache: true}
+      - run: uv sync --locked
+      - run: npm ci
+      - run: uv run --locked python scripts/install-gitleaks.py
+      - run: npx playwright install --with-deps chromium
+      - run: make quality
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: quality-evidence
+          path: |
+            reports/
+            test-results/
+          retention-days: 30
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: erg-release-candidate
+          path: dist/*
+          retention-days: 30
+  runtime:
+    needs: quality
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ['3.8', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      # Managed builds keep the 3.8 floor available when runner OS labels advance.
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: {version: '0.13.3'}
+      - name: Set up isolated matrix Python without project dependencies
+        shell: bash
+        run: |
+          uv venv --no-project --managed-python --python '${{ matrix.python }}' --seed "$RUNNER_TEMP/erg-runtime"
+          echo "$RUNNER_TEMP/erg-runtime/bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: {node-version: '22'}
+      - run: python -B scripts/run-tests.py
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with: {name: erg-release-candidate, path: dist}
+      - name: Fresh wheel and source installs without runtime dependencies
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/erg-wheel"
+          python -m venv "$RUNNER_TEMP/erg-source"
+          "$RUNNER_TEMP/erg-wheel/bin/python" -m pip install --no-deps dist/*.whl
+          "$RUNNER_TEMP/erg-source/bin/python" -m pip install --no-deps dist/*.tar.gz
+          "$RUNNER_TEMP/erg-wheel/bin/python" -I -B scripts/smoke-installed.py
+          "$RUNNER_TEMP/erg-source/bin/python" -I -B scripts/smoke-installed.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: runtime-${{ matrix.os }}-${{ matrix.python }}
+          path: reports/
+          retention-days: 30
+
+  ldp-compiler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: {version: '0.13.3', enable-cache: true}
+      - name: Install separately locked compiler dependencies
+        run: uv sync --locked --project central/ldp --python 3.12
+      - name: Verify exact generated output and declaration bindings
+        run: uv run --locked --project central/ldp python -m unittest discover -s central/ldp/tests -v
