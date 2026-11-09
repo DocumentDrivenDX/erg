@@ -11,18 +11,14 @@ name: CI
 #
 # Branch protection: old checks "quality", "runtime (os, py)" and "ldp-compiler"
 # no longer exist; new required checks: "quality-fast" and "evidence-gate".
-# Docs-only PRs skip this workflow (paths-ignore).
+# Required checks must run on every PR, including documentation-only changes.
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, labeled]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - 'LICENSE*'
+    types: [opened, synchronize, reopened, labeled, unlabeled]
 
 permissions:
   contents: read
