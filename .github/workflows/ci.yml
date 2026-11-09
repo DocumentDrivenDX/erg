@@ -1,13 +1,41 @@
 name: CI
-on: [push, pull_request]
+
+# PR tier: ruff lint/format, pyright types, quality rules, and the coverage-gated
+# unit tests on one ubuntu runner with Python 3.12 (`make lint` + `quality.py
+# test`). Playwright browser tests, gitleaks/pip/npm audit, packaging, the
+# py3.8/3.12 x ubuntu/macos runtime matrix and the release-candidate install test
+# live in heavy.yml (tags v*, weekly, dispatch, or PR label `ci:full`).
+#
+# Merge gate for heavy-suite code: `evidence-gate`. Run scripts/verify-full.sh
+# locally and commit .ci/evidence/full-suite.json, or label the PR `ci:full`.
+#
+# Branch protection: old checks "quality", "runtime (os, py)" and "ldp-compiler"
+# no longer exist; new required checks: "quality-fast" and "evidence-gate".
+# Docs-only PRs skip this workflow (paths-ignore).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, labeled]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'LICENSE*'
+
 permissions:
   contents: read
+
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  quality:
+  quality-fast:
+    name: quality-fast
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       QUALITY_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
     steps:
@@ -18,74 +46,70 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with: {python-version: '3.12'}
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: {node-version: '22', cache: npm}
+        with: {node-version: '22'}
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with: {version: '0.13.3', enable-cache: true}
       - run: uv sync --locked
-      - run: npm ci
-      - run: uv run --locked python scripts/install-gitleaks.py
-      - run: npx playwright install --with-deps chromium
-      - run: make quality
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: quality-evidence
-          path: |
-            reports/
-            test-results/
-          retention-days: 30
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: erg-release-candidate
-          path: dist/*
-          retention-days: 30
-  runtime:
-    needs: quality
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python: ['3.8', '3.12']
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: {persist-credentials: false}
-      # Managed builds keep the 3.8 floor available when runner OS labels advance.
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with: {version: '0.13.3'}
-      - name: Set up isolated matrix Python without project dependencies
-        shell: bash
+      - run: make lint
+      - run: uv run --locked python scripts/quality.py test
+      - name: Detect LDP compiler changes
+        id: ldp
         run: |
-          uv venv --no-project --managed-python --python '${{ matrix.python }}' --seed "$RUNNER_TEMP/erg-runtime"
-          echo "$RUNNER_TEMP/erg-runtime/bin" >> "$GITHUB_PATH"
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with: {node-version: '22'}
-      - run: python -B scripts/run-tests.py
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with: {name: erg-release-candidate, path: dist}
-      - name: Fresh wheel and source installs without runtime dependencies
-        shell: bash
+          if [[ "${{ github.event_name }}" != "pull_request" ]] || git diff --name-only "${{ github.event.pull_request.base.sha }}...HEAD" | grep -q '^central/ldp/'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: LDP compiler tests
+        if: steps.ldp.outputs.run == 'true'
         run: |
-          python -m venv "$RUNNER_TEMP/erg-wheel"
-          python -m venv "$RUNNER_TEMP/erg-source"
-          "$RUNNER_TEMP/erg-wheel/bin/python" -m pip install --no-deps dist/*.whl
-          "$RUNNER_TEMP/erg-source/bin/python" -m pip install --no-deps dist/*.tar.gz
-          "$RUNNER_TEMP/erg-wheel/bin/python" -I -B scripts/smoke-installed.py
-          "$RUNNER_TEMP/erg-source/bin/python" -I -B scripts/smoke-installed.py
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: runtime-${{ matrix.os }}-${{ matrix.python }}
-          path: reports/
-          retention-days: 30
+          uv sync --locked --project central/ldp --python 3.12
+          uv run --locked --project central/ldp python -m unittest discover -s central/ldp/tests -v
 
-  ldp-compiler:
+  full:
+    name: Heavy suite (ci:full)
+    if: github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci:full')
+    uses: ./.github/workflows/heavy.yml
+
+  # Cheap gate (seconds): proves the heavy suite was run for this exact tree.
+  # Passes if (a) .ci/evidence/full-suite.json matches the PR head content hash
+  # (produced by scripts/verify-full.sh), OR (b) PR has label `ci:full` and the
+  # heavy job passed, OR (c) the diff touches no path the heavy suite covers.
+  evidence-gate:
+    name: evidence-gate
+    if: always() && github.event_name == 'pull_request'
+    needs: [full]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: {persist-credentials: false}
-      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
-        with: {version: '0.13.3', enable-cache: true}
-      - name: Install separately locked compiler dependencies
-        run: uv sync --locked --project central/ldp --python 3.12
-      - name: Verify exact generated output and declaration bindings
-        run: uv run --locked --project central/ldp python -m unittest discover -s central/ldp/tests -v
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check evidence
+        env:
+          FULL_RESULT: ${{ needs.full.result }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAVY_RE: '^(erg/|central/|scripts/|tests/|e2e/|native/|catalog/|quality/|bin/|app\.yaml|pyproject\.toml|uv\.lock|package(-lock)?\.json|requirements\.txt|Makefile|playwright\.config\.js|MANIFEST\.in)'
+        run: |
+          set -euo pipefail
+          changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+          if ! grep -Eq "$HEAVY_RE" <<<"$changed"; then
+            echo "No heavy-suite paths changed; gate passes."; exit 0
+          fi
+          if [[ "$FULL_RESULT" == "success" ]]; then
+            echo "ci:full label set and heavy suite passed; gate passes."; exit 0
+          fi
+          f=.ci/evidence/full-suite.json
+          if [[ -f "$f" ]]; then
+            want=$(jq -r .content_hash "$f")
+            have=$(bash scripts/verify-full.sh --hash-only)
+            if [[ "$want" == "$have" ]]; then
+              echo "Evidence matches ($(jq -r '.suite + " @ " + .timestamp' "$f")); gate passes."; exit 0
+            fi
+            echo "::error::Evidence is stale (recorded $want, tree is $have). Re-run scripts/verify-full.sh and commit."
+          else
+            echo "::error::No $f. Run scripts/verify-full.sh and commit the evidence, or add the 'ci:full' label."
+          fi
+          exit 1
