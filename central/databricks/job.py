@@ -75,27 +75,11 @@ def main():
         return
     if args.action != "reconcile":
         raise SystemExit("unknown action")
-    # Approved, dedicated processor credential only. Missing scope/key fails closed.
-    # Runtime authentication is used only to read this approved secret scope.
-    # Zerobus still receives its own explicit, narrowly scoped OAuth credential.
-    from databricks.sdk.runtime import dbutils
-
-    credential = dbutils.secrets.get(scope=args.secret_scope, key=args.secret_key)
     from erg_central.processor import run
-    from erg_central.zerobus import Zerobus, table_name
 
-    client = Zerobus(
-        args.workspace,
-        args.workspace_id,
-        args.zerobus_endpoint,
-        table_name(args.catalog, args.ingest_schema, "delivery_items_raw"),
-        args.client_id,
-        credential,
-        oauth_scope=args.oauth_scope,
-    )
     result = run(
         spark,
-        client,
+        None,
         args.spool_volume,
         args.control_volume,
         args.catalog,

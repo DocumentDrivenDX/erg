@@ -11,6 +11,7 @@ from pathlib import Path
 
 from erg import delivery_protocol as wire
 
+from . import inline
 from .disposition import raw_disposition
 from .receiver import Conflict, namespace
 from .zerobus import table_name
@@ -107,58 +108,10 @@ class Processor:
     def process_many(self, batches):
         from pyspark.sql import functions as F
 
-        value, receipts, origins = cohort_values(batches)
+        # The broker spool already holds the digest-verified, durable input.
+        # Use its exact bytes for the keyed canonical upserts.
+        value, receipts, _ = cohort_values(batches)
         wanted = {i["delivery_seq"]: wire.encode(i).decode() for i in value["items"]}
-
-        def read_visible():
-            staged = (
-                self._scope(self.raw, value)
-                .where(F.col("delivery_seq").isin(list(wanted)))
-                .select("delivery_seq", "item_json")
-                .distinct()
-                .limit(len(wanted) + 1)
-                .collect()
-            )
-            return [(row["delivery_seq"], row["item_json"]) for row in staged]
-
-        def write_missing(missing):
-            rows = []
-            encoded_size = 2
-            # Keep every REST request bounded including double-escaped item_json.
-            for item in value["items"]:
-                if item["delivery_seq"] not in missing:
-                    continue
-                row = {k: value[k] for k in wire.ENROLLMENT}
-                row.update(
-                    batch_id=origins[item["delivery_seq"]],
-                    **{
-                        k: item[k]
-                        for k in (
-                            "delivery_seq",
-                            "record_id",
-                            "record_revision",
-                            "record_kind",
-                            "record_sha256",
-                        )
-                    },
-                    item_json=wanted[item["delivery_seq"]],
-                )
-                encoded = wire.encode(row)
-                cost = len(encoded) + (1 if rows else 0)
-                if rows and encoded_size + cost > wire.MAX_BATCH:
-                    self.zerobus.insert(rows)
-                    rows = []
-                    encoded_size = 2
-                    cost = len(encoded)
-                if encoded_size + cost > wire.MAX_BATCH:
-                    raise ValueError("Zerobus item exceeds bounded request")
-                rows.append(row)
-                encoded_size += cost
-            if rows:
-                self.zerobus.insert(rows)
-
-        if not await_visibility(wanted, read_visible, write_missing):
-            return dict(state="awaiting_delta_visibility", materialized=False)
         old = (
             self._scope(self.items, value)
             .where(F.col("delivery_seq").isin(list(wanted)))
@@ -167,6 +120,7 @@ class Processor:
         )
         if any(wanted[r["delivery_seq"]] != r["item_json"] for r in old):
             raise Conflict("canonical sequence conflict")
+        pending_inline = inline.additions(value["items"], {r["delivery_seq"] for r in old})
         schema = "enrollment_id string,destination_generation string,delivery_seq long,record_id string,record_revision long,item_json string,materialized boolean,projection_disposition string"
         records = [
             (
@@ -180,6 +134,7 @@ class Processor:
                 None,
             )
             for i in value["items"]
+            if "payload_json" not in i
         ]
         merge(
             self.spark,
@@ -203,13 +158,14 @@ class Processor:
             )
             .collect()
         )
-        if any(r["n"] > 128 for r in bounds) or sum(r["bytes"] for r in bounds) > 192 * 1024 * 1024:
-            raise Conflict("bounded reconstruction manifest exceeded")
+        inline.check_bounds(bounds, pending_inline)
         grouped = {}
         for row in group.select("record_id", "record_revision", "item_json").collect():
             grouped.setdefault((row["record_id"], row["record_revision"]), []).append(
                 wire.decode(row["item_json"].encode())
             )
+        for item in pending_inline:
+            grouped.setdefault((item["record_id"], item["record_revision"]), []).append(item)
         prior_rows = (
             self._scope(self.records, value)
             .join(F.broadcast(key_frame), ["record_id", "record_revision"], "inner")
