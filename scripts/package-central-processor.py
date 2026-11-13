@@ -15,6 +15,7 @@ for name in (
     "ddl.py",
     "zerobus.py",
     "processor.py",
+    "inline.py",
     "disposition.py",
     "ldp_authority.py",
     "ldp_codec.py",

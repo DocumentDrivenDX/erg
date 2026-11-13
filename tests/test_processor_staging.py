@@ -75,6 +75,25 @@ class ReportingDisposition(unittest.TestCase):
 
 
 class CohortValidation(unittest.TestCase):
+    def test_spooled_batch_checks_canonical_key_without_zerobus(self):
+        import sys
+        from unittest.mock import Mock, patch
+
+        from central.erg_central.processor import Processor
+        from central.erg_central.receiver import Conflict
+
+        spark, zerobus, pyspark = Mock(), Mock(), Mock()
+        processor = Processor(spark, zerobus, "erg", "ingest", "telemetry", "/unused")
+        spark.table.return_value.where.return_value.where.return_value.select.return_value.collect.return_value = [
+            {"delivery_seq": 1, "item_json": "different bytes"}
+        ]
+        with patch.dict(
+            sys.modules, {"pyspark": pyspark, "pyspark.sql": pyspark.sql}
+        ), self.assertRaisesRegex(Conflict, "canonical sequence conflict"):
+            processor.process_many(self.batches()[:1])
+        self.assertEqual(spark.table.call_args.args, (processor.items,))
+        zerobus.insert.assert_not_called()
+
     def batches(self):
         from erg import delivery_protocol as wire
 
