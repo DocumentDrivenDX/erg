@@ -9,7 +9,7 @@ import time
 import urllib.parse
 from pathlib import Path
 
-from . import collect, databricks
+from . import collect, databricks, rates
 
 
 def directory():
@@ -197,17 +197,36 @@ def _marker(value):
             tmp.unlink()
 
 
-def enable(profile, target, host):
+def enable(profile, target, host, snapshot=None):
     """Bind automatic pulls to the configured workspace and native profile."""
     databricks.namespace(target)
     host = _host(host)
     if not host or profile is not None and (not isinstance(profile, str) or not profile):
         raise ValueError("rate source requires a workspace and native profile")
-    _marker(dict(version=1, namespace=target, host=host, profile=profile))
+    cfg: dict = dict(version=1, namespace=target, host=host, profile=profile)
+    if snapshot is not None:
+        now = time.time()
+        cfg.update(snapshot, last_attempt=now, last_success=now)
+    _marker(cfg)
 
 
-def refresh(client, target, host=None):
-    """Opt-in source binding; at most one attempt per 15 minutes per worker."""
+DAY = 24 * 60 * 60
+WEEK = 7 * DAY
+
+
+def _unknown_models(db, now):
+    if db is None:
+        return set()
+    card = rates.load()
+    models = db.execute(
+        "SELECT DISTINCT model FROM llm WHERE ts>=? AND model IS NOT NULL AND model<>''",
+        (now - DAY,),
+    )
+    return {model for (model,) in models if rates.value({"model": model}, card) is None}
+
+
+def refresh(client, target, host=None, *, db=None):
+    """Refresh weekly, or sooner for a new model, at most once per day."""
     marker = directory() / "enabled.json"
     try:
         if marker.stat().st_size > 65536:
@@ -234,9 +253,14 @@ def refresh(client, target, host=None):
         or not math.isfinite(previous)
     ):
         return
-    if now - previous < 900:
+    if previous and now - previous < DAY:
+        return
+    checked = set(cfg.get("checked_unknown_models", []))
+    unknown = _unknown_models(db, now)
+    if previous and now - previous < WEEK and not unknown - checked:
         return
     cfg["last_attempt"] = now
+    cfg["checked_unknown_models"] = sorted(checked | unknown)[:128]
     _marker(cfg)
     try:
         result = pull(client, target)
