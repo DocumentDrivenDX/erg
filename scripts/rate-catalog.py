@@ -20,7 +20,7 @@ def main():
     p.add_argument(
         "--automatic",
         action="store_true",
-        help="Enable a 15-minute pull in the existing cloud reporting worker",
+        help="Check weekly during cloud reporting, or sooner for a new model",
     )
     a = p.parse_args()
     client = databricks.Client(a.profile, a.warehouse)
@@ -44,7 +44,7 @@ def main():
             _, _, cfg = cloud_history.connection()
             if cfg["cloud"]["profile"] != a.profile or cfg["cloud"]["namespace"] != a.namespace:
                 p.error("--automatic requires the configured reporting profile and namespace")
-            rate_catalog.enable(a.profile, a.namespace, cfg["cloud"]["host"])
+            rate_catalog.enable(a.profile, a.namespace, cfg["cloud"]["host"], snapshot=result)
         print(json.dumps(result))
 
 

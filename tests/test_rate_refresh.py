@@ -66,3 +66,22 @@ class RateRefresh(unittest.TestCase):
         self.assertEqual(
             json.loads((self.root / "enabled.json").read_text())["revision"], "verified"
         )
+
+    def test_new_model_refresh_has_daily_floor_and_weekly_retry(self):
+        host = "https://fixture.invalid"
+        target = "erg.telemetry"
+        now = 10 * r.WEEK
+        with patch.object(r.time, "time", return_value=now):
+            r.enable("fixture", target, host, snapshot=dict(revision="initial", models=1))
+        with patch.object(r, "_unknown_models", return_value={"new-model"}), patch.object(
+            r, "pull", return_value=dict(revision="latest", models=1)
+        ) as pull:
+            for elapsed, expected in (
+                (r.DAY - 1, 0),
+                (r.DAY, 1),
+                (2 * r.DAY, 1),
+                (r.DAY + r.WEEK, 2),
+            ):
+                with patch.object(r.time, "time", return_value=now + elapsed):
+                    r.refresh(self.client, target, host)
+                self.assertEqual(pull.call_count, expected)

@@ -1087,6 +1087,12 @@ catalog with the existing reporting identity (replace profile/warehouse as neede
 python3 scripts/rate-catalog.py pull --profile erg-prod --warehouse WAREHOUSE_ID --namespace erg.telemetry --automatic
 ```
 
+With `--automatic`, the dashboard uses the saved snapshot and checks weekly after
+fetching cloud records. A newly seen model missing from the catalog can trigger
+an earlier check, at least 24 hours after the last attempt. Local reporting uses
+SQLite and saved rates by default. An idle dashboard does not start SQL to check
+prices. Run `pull` for an immediate refresh after a publication.
+
 `publish --file complete-catalog.json` requires an explicitly supplied full JSON
 catalog and an identity permitted to write the application tables. Publication
 creates a new immutable revision; readers verify every row before atomically

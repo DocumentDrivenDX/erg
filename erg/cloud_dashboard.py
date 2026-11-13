@@ -335,7 +335,6 @@ def worker(database, stop):
                     sync_policy(db)
                     from . import rate_catalog
 
-                    rate_catalog.refresh(client, cfg["cloud"]["namespace"], cfg["cloud"]["host"])
                     known = receipt_cursor()
                     cursor = db.execute("SELECT cursor FROM cloud_config WHERE id=1").fetchone()[0]
                     metadata_count = fetch_metadata(db, client, ns, cfg["identity"], known)
@@ -358,6 +357,10 @@ def worker(database, stop):
                             break
                         if not any(x.get("processed") for x in (usage, edits, work, winners)):
                             break
+                    if count:
+                        rate_catalog.refresh(
+                            client, cfg["cloud"]["namespace"], cfg["cloud"]["host"], db=db
+                        )
                     project_rollups.capture_progress(db, usage, work)
                     from . import quota_projection
 
