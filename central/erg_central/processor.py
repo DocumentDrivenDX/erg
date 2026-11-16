@@ -13,6 +13,7 @@ from erg import delivery_protocol as wire
 
 from . import inline
 from .disposition import raw_disposition
+from .journal import ACTIVATION
 from .receiver import Conflict, namespace
 from .zerobus import table_name
 
@@ -523,7 +524,19 @@ def run(
         weight.update(items=0, bytes=0)
 
     discovery_metrics = None
-    if root.as_posix().startswith("/Volumes/"):
+    if (Path(control) / ACTIVATION).is_file():
+        from .journal_cursor import journal_markers
+
+        candidates, discovery_metrics = journal_markers(
+            root,
+            control,
+            max_batches,
+            time.monotonic(),
+            min(60, max_seconds / 4),
+            completed,
+            atomic_control,
+        )
+    elif root.as_posix().startswith("/Volumes/"):
         from .discovery import paged_markers
 
         candidates, discovery_metrics = paged_markers(

@@ -25,6 +25,8 @@ for name in (
     "ldp_stage.py",
     "ldp_driver.py",
     "discovery.py",
+    "journal.py",
+    "journal_cursor.py",
     "staging_index.py",
     "receiver.py",
     "verify.py",

@@ -95,3 +95,27 @@ The full local `make quality` gate passed with 961 tests (six permitted skips),
 and fresh wheel/source installs. The installed local runtime still has no
 third-party dependencies. The exact staged processor also passed its discovery
 and existing staging tests independently of other uncommitted checkout work.
+
+## Acceptance journal cutover
+
+A journal-enabled broker writes a bounded numbered page entry after the body
+and sequence claims are durable and before writing the accepted marker. The
+processor checks the immutable marker before consuming the body. A crash
+between the two writes leaves a pending entry that an identical upload retry
+can complete. Full pages are sealed. The processor commits a page/offset
+checkpoint together with unresolved marker paths, and prunes those paths only
+after terminal receipt or quarantine. Catch-up reads the new pages directly
+instead of enumerating historical batch directories.
+
+Deploy both artifacts with legacy discovery still active and enable
+`ERG_DISCOVERY_JOURNAL_ENABLED=true` on the broker. Verify real accepted synthetic
+uploads reach the journal, including a retry after interrupted publication.
+After all old broker writers are gone, complete one legacy discovery sweep and
+drain its outstanding retries. This covers pre-journal markers. Then create
+`processor-journal-active.json` in the processor control root. Verify advancing
+journal offsets and terminal receipts on subsequent runs. Keep the old cursor
+and spool for rollback. Remove the activation file to return to legacy
+discovery, including before rolling back the broker to a non-journaling version.
+
+Compare discovery page counts, elapsed time, accepted-to-receipt lag, and
+per-run posted DBUs against the preceding runs before attributing savings.
