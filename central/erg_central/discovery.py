@@ -91,6 +91,30 @@ def validate_entry(entry):
         raise Conflict("invalid directory entry")
 
 
+def pending_marker(root, control, staged, relative):
+    marker = root / relative
+    parts = relative.split("/")
+    if len(parts) == 5 and parts[2] == "batches":
+        if parts[3] in staged["scopes"].get("/".join(parts[:2]), {}):
+            return None
+    if marker.stat().st_size > 65536:
+        raise Conflict("oversized spool object")
+    receipt = wire.decode(marker.read_bytes())
+    expected = namespace(receipt) + "/batches/" + receipt["batch_id"] + "/accepted.json"
+    if expected != relative:
+        raise Conflict("accepted marker path identity conflict")
+    output = Path(control) / namespace(receipt) / "batches" / (receipt["batch_id"] + ".json")
+    if output.exists():
+        previous = wire.decode(output.read_bytes())
+        if previous.get("batch_sha256") != receipt["batch_sha256"]:
+            raise Conflict("control receipt conflict")
+        if previous.get("items_staged") is True:
+            return None
+    if (output.parent.parent / "quarantine" / output.name).exists():
+        return None
+    return marker, receipt
+
+
 def paged_markers(root, control, limit, started, max_seconds, staged, write, page=volume_page):
     """Advance within a wide directory without listing it in full through FUSE."""
     path = Path(control) / "processor-discovery-pages.json"
@@ -103,32 +127,11 @@ def paged_markers(root, control, limit, started, max_seconds, staged, write, pag
     if limit < 1:
         return [], metrics
 
-    def read(relative):
-        marker = root / relative
-        parts = relative.split("/")
-        if len(parts) == 5 and parts[2] == "batches":
-            if parts[3] in staged["scopes"].get("/".join(parts[:2]), {}):
-                return None
-        if marker.stat().st_size > 65536:
-            raise Conflict("oversized spool object")
-        receipt = wire.decode(marker.read_bytes())
-        expected = namespace(receipt) + "/batches/" + receipt["batch_id"] + "/accepted.json"
-        if expected != relative:
-            raise Conflict("accepted marker path identity conflict")
-        output = Path(control) / namespace(receipt) / "batches" / (receipt["batch_id"] + ".json")
-        if output.exists():
-            previous = wire.decode(output.read_bytes())
-            if previous.get("batch_sha256") != receipt["batch_sha256"]:
-                raise Conflict("control receipt conflict")
-            if previous.get("items_staged") is True:
-                return None
-        if (output.parent.parent / "quarantine" / output.name).exists():
-            return None
-        return marker, receipt
-
     def consume(paths):
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
-            for relative, row in zip(paths, pool.map(read, paths)):
+            for relative, row in zip(
+                paths, pool.map(lambda path: pending_marker(root, control, staged, path), paths)
+            ):
                 if row is not None:
                     selected.append(row)
                     retry.append(relative)

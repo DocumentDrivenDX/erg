@@ -115,8 +115,9 @@ def namespace(identity):
 
 
 class Receiver:
-    def __init__(self, store):
+    def __init__(self, store, publish_candidate=None):
         self.store = store
+        self.publish_candidate = publish_candidate
         self.metrics = {}
 
     def accept(self, raw, digest, identity):
@@ -209,6 +210,8 @@ class Receiver:
             materialized_through=0,
             projected_through=0,
         )
+        if self.publish_candidate is not None:
+            self.publish_candidate(self.store, root + "/accepted.json")
         self.metrics["accepted_marker_put_attempts"] += 1
         self.store.put_once(root + "/accepted.json", wire.encode(receipt))
         self.metrics["elapsed_seconds"] = time.monotonic() - started

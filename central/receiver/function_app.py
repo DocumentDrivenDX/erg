@@ -7,6 +7,7 @@ from functools import lru_cache
 import azure.functions as func
 from erg_central.auth import EntraVerifier
 from erg_central.blob import BlobStore
+from erg_central.journal import append
 from erg_central.receiver import Conflict, Forbidden, Receiver, deployment_binding
 from erg_central.status import delivery_status
 
@@ -44,7 +45,8 @@ def components(request):
         os.environ.get("ERG_ENROLLMENT_POLICY", "synthetic-only"),
         {key: os.environ.get("ERG_FORWARD_" + key.upper()) for key in wire.ENROLLMENT},
     )
-    return Receiver(store), identity
+    publish = append if os.environ.get("ERG_DISCOVERY_JOURNAL_ENABLED") == "true" else None
+    return Receiver(store, publish_candidate=publish), identity
 
 
 def respond(value, status):
