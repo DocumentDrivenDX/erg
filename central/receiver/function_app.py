@@ -107,3 +107,48 @@ def status(request):
         return respond(dict(error="invalid status request"), 400)
     except Exception:
         return respond(dict(error="status unavailable"), 503)
+
+
+@app.timer_trigger(
+    schedule="0 0 0,4,8,12,16,20 * * *", arg_name="timer", run_on_startup=False, use_monitor=True
+)
+def process_pending(timer):
+    if os.environ.get("ERG_PROCESSOR_GATE_ENABLED") != "true":
+        return
+    import datetime
+    import json
+    import urllib.request
+
+    from azure.identity import DefaultAzureCredential
+    from erg_central.run_gate import pending
+
+    store, _ = configured(
+        os.environ["ERG_STORAGE_ACCOUNT_URL"],
+        os.environ["ERG_SPOOL_CONTAINER"],
+        os.environ["ERG_CONTROL_CONTAINER"],
+        os.environ.get("ERG_SPOOL_PREFIX", "v1"),
+        os.environ["ERG_TENANT_ID"],
+        os.environ["ERG_INGEST_AUDIENCE"],
+        os.environ.get("ERG_REQUIRED_ROLE", "Erg.Collector"),
+    )
+    if not pending(store, os.environ["ERG_PROCESSOR_SPOOL_ROOT"]):
+        logging.warning("erg_processor_gate empty_skip")
+        return
+    credential = DefaultAzureCredential()
+    token = credential.get_token("2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default").token
+    request = urllib.request.Request(
+        os.environ["ERG_PROCESSOR_HOST"] + "/api/2.1/jobs/run-now",
+        data=json.dumps(
+            {
+                "job_id": int(os.environ["ERG_PROCESSOR_JOB_ID"]),
+                "idempotency_token": "erg-gate-"
+                + (timer.schedule_status or {}).get(
+                    "last", datetime.datetime.now(datetime.timezone.utc).isoformat()[:13]
+                ),
+            }
+        ).encode(),
+        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        run = json.load(response)
+    logging.warning("erg_processor_gate submitted run_id=%s", run["run_id"])

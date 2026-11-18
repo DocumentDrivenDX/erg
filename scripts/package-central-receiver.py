@@ -15,7 +15,15 @@ files = {
 }
 files["erg/__init__.py"] = None
 files["erg/delivery_protocol.py"] = root / "erg" / "delivery_protocol.py"
-for name in ("__init__.py", "auth.py", "blob.py", "journal.py", "receiver.py", "status.py"):
+for name in (
+    "__init__.py",
+    "auth.py",
+    "blob.py",
+    "journal.py",
+    "run_gate.py",
+    "receiver.py",
+    "status.py",
+):
     files["erg_central/" + name] = root / "central" / "erg_central" / name
 with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
     for name, path in sorted(files.items()):
