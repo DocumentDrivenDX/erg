@@ -595,7 +595,7 @@ def run(
         indexed_staged_batches=sum(len(v) for v in completed["scopes"].values()),
         elapsed_seconds=time.monotonic() - started,
         outcomes=results,
-        zerobus_requests=dict(zerobus.metrics),
+        zerobus_requests=dict(zerobus.metrics) if zerobus is not None else {},
         zerobus_metered_bytes=None,
         databricks_dbu=None,
         reported_cloud_charge=None,
