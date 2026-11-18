@@ -142,9 +142,7 @@ def process_pending(timer):
             {
                 "job_id": int(os.environ["ERG_PROCESSOR_JOB_ID"]),
                 "idempotency_token": "erg-gate-"
-                + (timer.schedule_status or {}).get(
-                    "last", datetime.datetime.now(datetime.timezone.utc).isoformat()[:13]
-                ),
+                + datetime.datetime.now(datetime.timezone.utc).isoformat()[:13],
             }
         ).encode(),
         headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
